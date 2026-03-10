@@ -1,0 +1,5 @@
+{
+  "apiBaseUrl": "https://example.com/api",
+  "webBaseUrl": "https://example.com",
+  "timeoutMs": 10000
+}
