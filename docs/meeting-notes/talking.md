@@ -1,8 +1,9 @@
 ・環境の違い
-@toMY_0072:鴻志郎さん
+toMY_0072:鴻志郎さん
 　Mac
-@mami
+ 
+mami
  Mac
-
-@pei
+ 
+pei
  windows11
