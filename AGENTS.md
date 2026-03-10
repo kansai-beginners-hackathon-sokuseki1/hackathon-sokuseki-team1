@@ -1,46 +1,46 @@
 # AGENTS.md
 
-This file defines the minimum working rules for AI agents operating in this repository.
+このファイルは、このリポジトリで作業する AI エージェント向けの最小ルールを定義する。
 
-## Priority
-- Follow repository files before making assumptions.
-- Treat `README.md` and files under `docs/operations/` as the source of truth for team rules.
-- If instructions conflict, prefer the more restrictive rule unless a human explicitly overrides it.
+## 優先順位
+- 先にリポジトリ内のファイルを確認してから判断する。
+- チーム運用の正本は `README.md` と `docs/operations/` 配下の文書とする。
+- 指示が競合する場合は、人が明示的に上書きしない限り、より厳しいルールを優先する。
 
-## Branch And Merge Rules
-- Do not make changes directly on `main`.
-- Do not push directly to `main`.
-- Make changes on a task-specific branch.
-- Human review is required when changes are merged into `main`.
-- Review on non-`main` branches is optional unless a human requests it.
+## ブランチとマージ
+- `main` で直接作業しない。
+- `main` へ直接 push しない。
+- 変更はタスク単位のブランチで行う。
+- 人によるレビューは `main` にマージする時だけ必須とする。
+- `main` 以外のブランチでは、人が求めない限りレビューは必須ではない。
 
-## Task Tracking
-- Tie work to a GitHub Issue or a clearly written task whenever possible.
-- If the task is still unclear, prefer creating or updating planning documents before implementing code.
-- Keep decisions in repository documents, not only in chat logs.
+## タスク管理
+- できる限り GitHub Issue または明文化されたタスクに紐づけて作業する。
+- タスクが曖昧な場合は、すぐ実装せず、先に企画文書や要件文書を更新する。
+- 決定事項はチャットだけで終わらせず、repo 内の文書にも残す。
 
-## Security And Config
-- Do not hard-code API keys, tokens, passwords, or other secrets.
-- Do not hard-code endpoints or service URLs in code.
-- Store secrets in `.env`.
-- Store local endpoint settings in `config/endpoints.local.json`.
-- Keep only sample files such as `.env.example` and `config/endpoints.example.json` in Git.
+## セキュリティと設定
+- API キー、トークン、パスワード、その他の秘密情報をコードへ直書きしない。
+- エンドポイントやサービス URL をコードへ直書きしない。
+- 秘密情報は `.env` に保存する。
+- ローカルの接続先設定は `config/endpoints.local.json` に保存する。
+- Git に置くのは `.env.example` や `config/endpoints.example.json` などのサンプルのみとする。
 
-## File Handling
-- Use UTF-8 for text files.
-- Do not commit local-only helper folders or environment-sharing assets such as `PIC/`.
-- Do not add generated recordings or large local artifacts unless a human explicitly requests it.
+## ファイル運用
+- テキストファイルは UTF-8 を使う。
+- `PIC/` のようなローカル共有用フォルダは Git 管理対象にしない。
+- 録画ファイルや大きなローカル生成物は、人が明示的に要求しない限り追加しない。
 
-## Documentation
-- Update docs when behavior, workflow, or decisions change.
-- For Git workflow, follow `docs/operations/git-workflow.md`.
-- For AI-specific rules, follow `docs/operations/ai-agent-rules.md`.
-- For project board behavior, follow `docs/operations/project-board.md`.
+## ドキュメント更新
+- 挙動、運用、意思決定が変わったら関連文書も更新する。
+- Git 運用は `docs/operations/git-workflow.md` に従う。
+- AI 向けの詳細ルールは `docs/operations/ai-agent-rules.md` に従う。
+- Project ボード運用は `docs/operations/project-board.md` に従う。
 
-## Review Expectations For AI Changes
-- Before proposing changes for `main`, ensure the diff is scoped to the requested task.
-- Call out unresolved risks, assumptions, and testing gaps.
-- Include test steps or verification steps when making implementation changes.
+## AI の変更に対する確認
+- `main` に入れる前に、差分が依頼範囲に収まっているか確認する。
+- 未解決のリスク、前提、テスト不足があれば明示する。
+- 実装変更を行う場合は、テスト手順または確認手順を添える。
 
-## Local Notes
-- `PIC/` exists to share local environment context with the agent and must remain out of Git tracking.
+## ローカルメモ
+- `PIC/` はユーザー環境を AI に共有するためのローカル用フォルダであり、Git 管理対象にしない。
