@@ -54,5 +54,5 @@
 ## AI エージェント利用
 - AI に依頼する作業も Issue か明文化タスクに紐づける。
 - AI への依頼には `目的 / 完了条件 / 制約 / 変更可否範囲` を書く。
-- AI の変更も人がレビューしてからマージする。
+- AI の変更は個別ブランチ上ではレビュー不要とし、`main` に入れる時だけ人がレビューする。
 - 詳細は [docs/operations/ai-agent-rules.md](/C:/Users/s141142/Desktop/myenv/hackthon/docs/operations/ai-agent-rules.md) を参照。
