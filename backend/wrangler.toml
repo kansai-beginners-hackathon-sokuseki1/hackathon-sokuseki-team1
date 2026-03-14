@@ -5,5 +5,5 @@ compatibility_date = "2026-03-14"
 [[d1_databases]]
 binding = "DB"
 database_name = "hackathon-sokuseki-team1-db"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "3ca5188c-6295-48e5-bc4d-a4c145982e4d"
 migrations_dir = "migrations"

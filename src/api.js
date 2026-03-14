@@ -1,7 +1,10 @@
 // バックエンドAPIクライアント
 // vite.config.js のプロキシ設定で /api/* → http://localhost:8787 に転送される
 
-const API_BASE = "/api";
+// 本番環境では Cloudflare Workers URL、開発時は vite proxy 経由の /api を使用
+const API_BASE = import.meta.env.PROD
+  ? "https://hackathon-sokuseki-team1-backend.btsi10-558.workers.dev/api"
+  : "/api";
 
 function getToken() {
   return localStorage.getItem("authToken");
