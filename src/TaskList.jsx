@@ -11,7 +11,9 @@ export function TaskList({
   deleteTask,
   apiSettings,
   userLevel,
-  levelUpActive
+  levelUpActive,
+  onCompletionSequenceStart,
+  onCompletionSequenceEnd
 }) {
   const [npcMessage, setNpcMessage] = useState(null);
   const [pendingNpcMessage, setPendingNpcMessage] = useState(null);
@@ -41,10 +43,11 @@ export function TaskList({
       setQuestCompletePopup(null);
       setNpcMessage(null);
       setPendingNpcMessage(null);
+      onCompletionSequenceEnd?.(addedTask.id);
     }
 
     previousTaskIdsRef.current = tasks.map((task) => task.id);
-  }, [tasks]);
+  }, [onCompletionSequenceEnd, tasks]);
 
   useEffect(() => {
     if (questCompletePopup || levelUpActive || !pendingNpcMessage) return undefined;
@@ -55,12 +58,13 @@ export function TaskList({
     if (npcHideTimerRef.current) clearTimeout(npcHideTimerRef.current);
     npcHideTimerRef.current = setTimeout(() => {
       setNpcMessage((current) => (current?.taskId === pendingNpcMessage.taskId ? null : current));
+      onCompletionSequenceEnd?.(pendingNpcMessage.taskId);
     }, 8000);
 
     return () => {
       if (npcHideTimerRef.current) clearTimeout(npcHideTimerRef.current);
     };
-  }, [levelUpActive, pendingNpcMessage, questCompletePopup]);
+  }, [levelUpActive, onCompletionSequenceEnd, pendingNpcMessage, questCompletePopup]);
 
   const startEditing = (task) => {
     setEditingId(task.id);
@@ -107,6 +111,7 @@ export function TaskList({
 
     const { task: updatedTask, completedNow } = result;
     if (!completedNow) {
+      onCompletionSequenceEnd?.(task.id);
       setLoadingMessageId(null);
       return;
     }
@@ -116,6 +121,7 @@ export function TaskList({
 
     setNpcMessage(null);
     setPendingNpcMessage(null);
+    onCompletionSequenceStart?.(task.id);
 
     playQuestComplete();
     setQuestCompletePopup({ title: updatedTask.title, expReward: updatedTask.expReward });
@@ -164,14 +170,6 @@ export function TaskList({
     if (status === 'in_progress') return '完了にする';
     return '進行中にする';
   };
-
-  if (tasks.length === 0) {
-    return (
-      <div className="rpg-window" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 'var(--spacing-xl)' }}>
-        クエストはまだありません。新しい依頼を始めましょう。
-      </div>
-    );
-  }
 
   return (
     <>
@@ -272,7 +270,11 @@ export function TaskList({
           paddingRight: '4px'
         }}
       >
-        {tasks.map((task) => {
+        {tasks.length === 0 ? (
+          <div className="rpg-window" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 'var(--spacing-xl)' }}>
+            クエストはまだありません。新しい依頼を始めましょう。
+          </div>
+        ) : tasks.map((task) => {
           const isEditing = editingId === task.id;
           const daysUntilDue = getDaysUntilDue(task.dueDate);
 

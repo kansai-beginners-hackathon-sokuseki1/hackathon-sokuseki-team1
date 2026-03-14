@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AuthScreen } from './AuthScreen';
 import { FantasyBackground, FantasyOverlay } from './FantasyBackground';
 import { SettingsModal } from './SettingsModal';
@@ -171,6 +171,7 @@ function MainApp({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [statusFilters, setStatusFilters] = useState(['todo', 'in_progress']);
   const [sortMode, setSortMode] = useState('created');
+  const [stagedCompletedTaskIds, setStagedCompletedTaskIds] = useState([]);
   const notifiedRef = useRef(new Set());
 
   const dueTasks = useMemo(() => {
@@ -200,7 +201,7 @@ function MainApp({
     let result = tasks.filter((task) => statusFilters.includes(task.status));
 
     if (hideCompletedTasks && !statusFilters.includes('completed')) {
-      result = result.filter((task) => task.status !== 'completed');
+      result = result.filter((task) => task.status !== 'completed' || stagedCompletedTaskIds.includes(task.id));
     }
 
     result.sort((a, b) => {
@@ -217,7 +218,17 @@ function MainApp({
       return b.createdAt - a.createdAt;
     });
     return result;
-  }, [tasks, statusFilters, sortMode, hideCompletedTasks]);
+  }, [tasks, statusFilters, sortMode, hideCompletedTasks, stagedCompletedTaskIds]);
+
+  const handleCompletionSequenceStart = useCallback((taskId) => {
+    setStagedCompletedTaskIds((current) => (
+      current.includes(taskId) ? current : [...current, taskId]
+    ));
+  }, []);
+
+  const handleCompletionSequenceEnd = useCallback((taskId) => {
+    setStagedCompletedTaskIds((current) => current.filter((id) => id !== taskId));
+  }, []);
 
   const toggleStatusFilter = (status) => {
     setStatusFilters((current) => {
@@ -424,6 +435,8 @@ function MainApp({
         apiSettings={apiSettings}
         userLevel={userStats.level}
         levelUpActive={Boolean(levelUpData)}
+        onCompletionSequenceStart={handleCompletionSequenceStart}
+        onCompletionSequenceEnd={handleCompletionSequenceEnd}
       />
 
       {levelUpData && (
