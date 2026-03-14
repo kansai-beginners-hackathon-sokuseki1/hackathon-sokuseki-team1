@@ -86,9 +86,9 @@ function MainApp({ currentUser, onLogout, colorTheme, onThemeChange }) {
 
   const displayTasks = useMemo(() => {
     let result = [...tasks];
-    if (filterMode === 'active') {
-      result = result.filter(t => !t.completed);
-    }
+    if (filterMode === 'todo')        result = result.filter(t => t.status === 'todo');
+    else if (filterMode === 'in_progress') result = result.filter(t => t.status === 'in_progress');
+    else if (filterMode === 'completed')   result = result.filter(t => t.status === 'completed');
     result.sort((a, b) => {
       if (a.completed && !b.completed) return 1;
       if (!a.completed && b.completed) return -1;
@@ -221,7 +221,9 @@ function MainApp({ currentUser, onLogout, colorTheme, onThemeChange }) {
               style={{ border: 'none', borderRadius: 0, width: 'auto', padding: '4px 8px' }}
             >
               <option value="all">すべて</option>
-              <option value="active">未完了のみ</option>
+              <option value="todo">未実施</option>
+              <option value="in_progress">進行中</option>
+              <option value="completed">完了</option>
             </select>
           </div>
 
