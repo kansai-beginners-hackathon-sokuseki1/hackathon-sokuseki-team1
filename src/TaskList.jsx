@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Edit2, Save, Trash2, X } from 'lucide-react';
 import { FantasyDatePicker, formatFantasyDate } from './FantasyDatePicker';
 import { generateCompanionMessage, getCompanionProfile } from './aiService';
@@ -27,6 +27,28 @@ export function TaskList({
   const questPopupTimerRef = useRef(null);
   const npcHideTimerRef = useRef(null);
   const previousTaskIdsRef = useRef(tasks.map((task) => task.id));
+
+  const startEditing = (task) => {
+    setEditingId(task.id);
+    setEditTitle(task.title);
+    setEditDueDate(task.dueDate || '');
+    setEditDifficulty(task.difficulty || 1);
+  };
+
+  const saveEdit = (id) => {
+    if (editTitle.trim()) {
+      editTask(id, editTitle.trim(), editDifficulty, editDueDate || null);
+    }
+    setEditingId(null);
+  };
+
+  const cancelEdit = () => setEditingId(null);
+
+  const closeNpcMessage = useCallback((taskId) => {
+    if (npcHideTimerRef.current) clearTimeout(npcHideTimerRef.current);
+    setNpcMessage((current) => (current?.taskId === taskId ? null : current));
+    onCompletionSequenceEnd?.(taskId);
+  }, [onCompletionSequenceEnd]);
 
   useEffect(() => () => {
     if (questPopupTimerRef.current) clearTimeout(questPopupTimerRef.current);
@@ -57,30 +79,26 @@ export function TaskList({
 
     if (npcHideTimerRef.current) clearTimeout(npcHideTimerRef.current);
     npcHideTimerRef.current = setTimeout(() => {
-      setNpcMessage((current) => (current?.taskId === pendingNpcMessage.taskId ? null : current));
-      onCompletionSequenceEnd?.(pendingNpcMessage.taskId);
-    }, 8000);
+      closeNpcMessage(pendingNpcMessage.taskId);
+    }, 5000);
 
     return () => {
       if (npcHideTimerRef.current) clearTimeout(npcHideTimerRef.current);
     };
-  }, [levelUpActive, onCompletionSequenceEnd, pendingNpcMessage, questCompletePopup]);
+  }, [closeNpcMessage, levelUpActive, pendingNpcMessage, questCompletePopup]);
 
-  const startEditing = (task) => {
-    setEditingId(task.id);
-    setEditTitle(task.title);
-    setEditDueDate(task.dueDate || '');
-    setEditDifficulty(task.difficulty || 1);
-  };
+  useEffect(() => {
+    if (!npcMessage) return undefined;
 
-  const saveEdit = (id) => {
-    if (editTitle.trim()) {
-      editTask(id, editTitle.trim(), editDifficulty, editDueDate || null);
-    }
-    setEditingId(null);
-  };
+    const handleKeyDown = (event) => {
+      if (event.key === 'Enter') {
+        closeNpcMessage(npcMessage.taskId);
+      }
+    };
 
-  const cancelEdit = () => setEditingId(null);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [closeNpcMessage, npcMessage]);
 
   const queueNpcMessage = (taskId, profile, text, loading = false) => {
     setPendingNpcMessage({
@@ -210,6 +228,7 @@ export function TaskList({
 
       {npcMessage && (
         <div
+          onClick={() => closeNpcMessage(npcMessage.taskId)}
           style={{
             position: 'fixed',
             inset: 0,
@@ -217,11 +236,12 @@ export function TaskList({
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 9600,
-            pointerEvents: 'none'
+            pointerEvents: 'auto'
           }}
         >
           <div
             className="rpg-window"
+            onClick={() => closeNpcMessage(npcMessage.taskId)}
             style={{
               width: 'min(420px, 90vw)',
               padding: 'var(--spacing-md) var(--spacing-lg)',
