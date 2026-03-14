@@ -108,14 +108,14 @@
   50%       { opacity: 1.0;  transform: scale(1.04); }
 }
 
-/* スマートフォン: 月を右上に移動して文字と被らないようにする */
-@media (max-width: 600px) {
+/* 非フルスクリーン・スマホ: 月を右上に移動してタイトルと被らないようにする */
+@media (max-width: 1400px) {
   .fantasy-moon-wrap {
     top: 6%;
     left: auto;
-    right: 8%;
-    width: 140px;
-    height: 140px;
+    right: 6%;
+    width: 160px;
+    height: 160px;
     transform: translate(50%, -50%);
   }
 }
