@@ -13,20 +13,20 @@ function seededRandom(seed) {
 function generateStars(count) {
   const rand = seededRandom(42);
   return Array.from({ length: count }, (_, i) => {
-    const size   = 0.8 + rand() * 2.2;
+    const size   = 1.2 + rand() * 2.8;
     const x      = rand() * 100;
     const y      = rand() * 62;          // 空の上部62%に配置
-    const opacity = 0.35 + rand() * 0.65;
-    const dur    = 2.5 + rand() * 4.5;
+    const opacity = 0.55 + rand() * 0.45;
+    const dur    = 3 + rand() * 4;
     const delay  = rand() * 9;
     // 明るい星（上位15%）は少し大きく
-    const bright = i < count * 0.15;
+    const bright = i < count * 0.22;
     return { size: bright ? size * 1.4 : size, x, y, opacity, dur, delay, bright };
   });
 }
 
 export function FantasyBackground() {
-  const stars = useMemo(() => generateStars(110), []);
+  const stars = useMemo(() => generateStars(150), []);
 
   return (
     <div className="fantasy-bg" aria-hidden="true">
