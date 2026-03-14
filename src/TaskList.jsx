@@ -25,11 +25,27 @@ export function TaskList({
 
   const questPopupTimerRef = useRef(null);
   const npcHideTimerRef = useRef(null);
+  const previousTaskIdsRef = useRef(tasks.map((task) => task.id));
 
   useEffect(() => () => {
     if (questPopupTimerRef.current) clearTimeout(questPopupTimerRef.current);
     if (npcHideTimerRef.current) clearTimeout(npcHideTimerRef.current);
   }, []);
+
+  useEffect(() => {
+    const previousTaskIds = previousTaskIdsRef.current;
+    const addedTask = tasks.find((task) => !previousTaskIds.includes(task.id));
+
+    if (addedTask && !addedTask.completed) {
+      if (questPopupTimerRef.current) clearTimeout(questPopupTimerRef.current);
+      if (npcHideTimerRef.current) clearTimeout(npcHideTimerRef.current);
+      setQuestCompletePopup(null);
+      setNpcMessage(null);
+      setPendingNpcMessage(null);
+    }
+
+    previousTaskIdsRef.current = tasks.map((task) => task.id);
+  }, [tasks]);
 
   useEffect(() => {
     if (questCompletePopup || levelUpActive || !pendingNpcMessage) return undefined;
