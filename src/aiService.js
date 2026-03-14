@@ -17,7 +17,7 @@ async function fetchWithTimeout(resource, options = {}) {
 
 async function callOpenRouterApi(apiKey, modelName, systemPrompt, userPrompt) {
   if (!apiKey) {
-    throw new Error('API key is not set');
+    throw new Error('APIキーが設定されていません');
   }
 
   const response = await fetchWithTimeout(OPENROUTER_API_URL, {
@@ -122,7 +122,7 @@ export function getCompanionProfile(userLevel = 1) {
 
 function buildCompanionPrompt(profile) {
   return `
-あなたは RPG 風タスク管理アプリの companion character です。
+あなたは RPG 風タスク管理アプリの仲間キャラクターです。
 キャラクター名は「${profile.name}」、雰囲気は「${profile.tone}」です。
 ユーザーがクエストを完了した直後に表示する、短い祝福メッセージを日本語で 1〜2 文だけ返してください。
 大げさすぎる説明や箇条書きは不要です。前向きで、次の一歩が少し軽くなる言い方にしてください。
