@@ -2,7 +2,16 @@ import React, { useState } from 'react';
 import { X, Save } from 'lucide-react';
 import { THEME_LABELS, THEME_PREVIEW } from './themes';
 
-export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, colorTheme, onThemeChange }) {
+const BG_TIME_OPTIONS = [
+  { value: 'auto',    label: '自動（現在時刻）' },
+  { value: 'night',   label: '🌙 夜' },
+  { value: 'dawn',    label: '🌄 夜明け' },
+  { value: 'morning', label: '🌅 朝' },
+  { value: 'noon',    label: '☀ 昼' },
+  { value: 'dusk',    label: '🌇 夕方' },
+];
+
+export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, colorTheme, onThemeChange, bgTimeLock, onBgTimeLockChange }) {
   const [keyInput, setKeyInput] = useState(apiSettings.apiKey);
   const [modelInput, setModelInput] = useState(apiSettings.modelName || 'google/gemini-2.5-flash');
   const [creditsOpen, setCreditsOpen] = useState(false);
@@ -78,6 +87,42 @@ export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, co
               );
             })}
           </div>
+        </div>
+
+        {/* 背景時間帯 */}
+        <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+          <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', color: 'var(--accent-primary)' }}>
+            ▶ 背景時間帯
+          </label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
+            {BG_TIME_OPTIONS.map(({ value, label }) => {
+              const isSelected = bgTimeLock === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => onBgTimeLockChange(value)}
+                  style={{
+                    padding: '6px 12px',
+                    border: isSelected
+                      ? '2px solid var(--accent-secondary)'
+                      : '2px solid var(--border-window-inner)',
+                    borderRadius: 'var(--radius-sm)',
+                    background: isSelected ? 'rgba(255,255,255,0.05)' : 'transparent',
+                    cursor: 'pointer',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.85rem',
+                    transition: 'border-color 0.15s ease',
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+            ※ 固定すると時刻に関わらず選んだ時間帯の背景になります。流れ星は夜のみ表示されます。
+          </p>
         </div>
 
         {/* セパレーター */}

@@ -18,6 +18,36 @@ function App() {
     return saved ? JSON.parse(saved) : null;
   });
 
+  const [bgTimeLock, setBgTimeLock] = useState(
+    () => localStorage.getItem('bgTimeLock') ?? 'auto'
+  );
+
+  const handleBgTimeLockChange = (value) => {
+    localStorage.setItem('bgTimeLock', value);
+    setBgTimeLock(value);
+  };
+
+  // 時間帯をhtmlのdata-time属性に設定（毎分更新）
+  useEffect(() => {
+    function updateTimePeriod() {
+      if (bgTimeLock !== 'auto') {
+        document.documentElement.dataset.time = bgTimeLock;
+        return;
+      }
+      const h = new Date().getHours();
+      let period;
+      if (h >= 20 || h < 5)  period = 'night';
+      else if (h < 7)         period = 'dawn';
+      else if (h < 11)        period = 'morning';
+      else if (h < 15)        period = 'noon';
+      else                    period = 'dusk';
+      document.documentElement.dataset.time = period;
+    }
+    updateTimePeriod();
+    const id = setInterval(updateTimePeriod, 60_000);
+    return () => clearInterval(id);
+  }, [bgTimeLock]);
+
   const [colorTheme, setColorTheme] = useState(
     () => localStorage.getItem('colorTheme') ?? 'dark-blue'
   );
@@ -52,13 +82,13 @@ function App() {
       <FantasyOverlay />
       {!authToken
         ? <AuthScreen onLogin={handleLogin} />
-        : <MainApp currentUser={currentUser} onLogout={handleLogout} colorTheme={colorTheme} onThemeChange={handleThemeChange} />
+        : <MainApp currentUser={currentUser} onLogout={handleLogout} colorTheme={colorTheme} onThemeChange={handleThemeChange} bgTimeLock={bgTimeLock} onBgTimeLockChange={handleBgTimeLockChange} />
       }
     </>
   );
 }
 
-function MainApp({ currentUser, onLogout, colorTheme, onThemeChange }) {
+function MainApp({ currentUser, onLogout, colorTheme, onThemeChange, bgTimeLock, onBgTimeLockChange }) {
   const {
     tasks,
     userStats,
@@ -303,6 +333,8 @@ function MainApp({ currentUser, onLogout, colorTheme, onThemeChange }) {
         setApiSettings={setApiSettings}
         colorTheme={colorTheme}
         onThemeChange={onThemeChange}
+        bgTimeLock={bgTimeLock}
+        onBgTimeLockChange={onBgTimeLockChange}
       />
     </div>
   );
