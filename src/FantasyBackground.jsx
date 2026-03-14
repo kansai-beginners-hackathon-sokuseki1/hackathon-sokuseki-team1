@@ -1,6 +1,12 @@
 import React, { useMemo } from 'react';
 import './FantasyBackground.css';
 
+const SCENE = {
+  buildings: ['🏠', '⛪', '🏘️'],
+  trees:     ['🌲', '🌳', '🌲', '🌳'],
+  clouds:    4,
+};
+
 // シード付き疑似乱数（毎レンダーで同じ星配置になるよう）
 function seededRandom(seed) {
   let s = seed;
@@ -114,6 +120,67 @@ export function FantasyBackground() {
   );
 }
 
+// 村・キャラクターシーン（z-index: 0）
+export function GameScene() {
+  return (
+    <div className="game-scene" aria-hidden="true">
+      {/* 雲 */}
+      {Array.from({ length: SCENE.clouds }, (_, i) => (
+        <div
+          key={i}
+          className="gs-cloud"
+          style={{
+            animationDuration: `${22 + i * 9}s`,
+            animationDelay:    `${-i * 7}s`,
+            top:               `${8 + i * 14}%`,
+            fontSize:          `${1.4 + (i % 2) * 0.6}rem`,
+          }}
+        >☁️</div>
+      ))}
+
+      {/* 建物・木 */}
+      <div className="gs-elements">
+        {SCENE.buildings.map((b, i) => (
+          <span
+            key={`b${i}`}
+            className="gs-building"
+            style={{ left: `${18 + i * 22}%`, fontSize: '2.4rem' }}
+          >{b}</span>
+        ))}
+        {SCENE.trees.map((t, i) => (
+          <span
+            key={`t${i}`}
+            className="gs-tree"
+            style={{ left: `${8 + i * (84 / SCENE.trees.length)}%`, fontSize: '1.9rem' }}
+          >{t}</span>
+        ))}
+      </div>
+
+      {/* 勇者スプライト */}
+      <div className="gs-hero">
+        <div className="gs-hero-inner">
+          <div className="gs-hero-body">⚔️</div>
+          <div className="gs-hero-shadow" />
+        </div>
+      </div>
+
+      {/* 歩行NPCキャラ（ピクセルアート） */}
+      <div className="gs-walker">
+        <div className="gs-walker-head" />
+        <div className="gs-walker-body" />
+        <div className="gs-walker-legs">
+          <div className="gs-walker-leg gs-leg-l" />
+          <div className="gs-walker-leg gs-leg-r" />
+        </div>
+        <div className="gs-walker-shadow" />
+      </div>
+
+      {/* 地面 */}
+      <div className="gs-ground" />
+    </div>
+  );
+}
+
 // アニメーションレイヤー: 星・月・流れ星・霧・魔法の光（z-index: 9999）
 export function FantasyOverlay() {
   const stars = useMemo(() => generateStars(150), []);
@@ -138,6 +205,12 @@ export function FantasyOverlay() {
           }}
         />
       ))}
+
+      {/* 太陽 */}
+      <div className="fantasy-sun">
+        <div className="fantasy-sun-glow" />
+        <div className="fantasy-sun-core" />
+      </div>
 
       {/* 月 */}
       <div className="fantasy-moon-wrap">

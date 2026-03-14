@@ -1,17 +1,30 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Target } from 'lucide-react';
+import { GameScene } from './FantasyBackground';
 
 export function StatusHeader({ stats, getRequiredExp }) {
   const { level, currentExp } = stats;
   const requiredExp = getRequiredExp(level);
   const percentage = Math.min(100, Math.round((currentExp / requiredExp) * 100));
+  const prevLevel = useRef(level);
+  const [levelAnim, setLevelAnim] = useState(false);
+
+  useEffect(() => {
+    if (level !== prevLevel.current) {
+      prevLevel.current = level;
+      setLevelAnim(true);
+      const t = setTimeout(() => setLevelAnim(false), 600);
+      return () => clearTimeout(t);
+    }
+  }, [level]);
 
   return (
     <div className="rpg-window user-status-header">
+      <GameScene />
       <div className="status-row">
-        <div className="level-badge">
-          <span>Lv.</span>
-          {level}
+        <div className={`level-ring${levelAnim ? ' level-ring--up' : ''}`}>
+          <span className="lv-label">Lv</span>
+          <span className="lv-num">{level}</span>
         </div>
         <div className="exp-info">
           {currentExp} / {requiredExp} EXP

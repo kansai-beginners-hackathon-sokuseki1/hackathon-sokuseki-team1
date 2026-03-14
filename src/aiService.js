@@ -1,38 +1,33 @@
-// OpenRouter APIを利用するための関数群
-
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-/**
- * タイムアウト付きのFetchラッパー
- */
 async function fetchWithTimeout(resource, options = {}) {
-  const { timeout = 10000 } = options; // デフォルト10秒
+  const { timeout = 10000 } = options;
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
-  const response = await fetch(resource, {
-    ...options,
-    signal: controller.signal  
-  });
-  clearTimeout(id);
-  return response;
+
+  try {
+    return await fetch(resource, {
+      ...options,
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(id);
+  }
 }
 
-/**
- * OpenRouterにリクエストを送信する共通関数
- */
 async function callOpenRouterApi(apiKey, modelName, systemPrompt, userPrompt) {
   if (!apiKey) {
-    throw new Error('API Key is not set');
+    throw new Error('API key is not set');
   }
 
   const response = await fetchWithTimeout(OPENROUTER_API_URL, {
-    timeout: 12000, // 12秒でタイムアウト
+    timeout: 12000,
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
-      'HTTP-Referer': window.location.href, // 必須 (OpenRouter)
-      'X-Title': 'Gamified Task Manager', // 推奨
+      'HTTP-Referer': window.location.href,
+      'X-Title': 'Gamified Task Manager'
     },
     body: JSON.stringify({
       model: modelName,
@@ -41,7 +36,7 @@ async function callOpenRouterApi(apiKey, modelName, systemPrompt, userPrompt) {
         { role: 'user', content: userPrompt }
       ],
       max_tokens: 300,
-      temperature: 0.7,
+      temperature: 0.7
     })
   });
 
@@ -54,10 +49,6 @@ async function callOpenRouterApi(apiKey, modelName, systemPrompt, userPrompt) {
   return data.choices[0].message.content.trim();
 }
 
-/**
- * タスクをメインタスク＋サブタスクに構造化分解する
- * @returns {{ mainTask: string, subtasks: string[] }}
- */
 export async function generateSubtasks(apiKey, modelName, taskTitle) {
   const systemPrompt = `
 You are a helpful assistant for a task management application.
@@ -72,19 +63,28 @@ Reply ONLY with valid JSON in exactly this format (no explanation, no markdown):
 
   try {
     const resultText = await callOpenRouterApi(apiKey, modelName, systemPrompt, userPrompt);
+
     try {
       const parsed = JSON.parse(resultText);
       if (parsed && typeof parsed.mainTask === 'string' && Array.isArray(parsed.subtasks)) {
-        return { mainTask: parsed.mainTask, subtasks: parsed.subtasks.filter(s => s && s.trim()) };
+        return {
+          mainTask: parsed.mainTask,
+          subtasks: parsed.subtasks.filter((subtask) => subtask && subtask.trim())
+        };
       }
-      // 旧形式（配列）が返ってきた場合のフォールバック
+
       if (Array.isArray(parsed) && parsed.length > 0) {
         return { mainTask: taskTitle, subtasks: parsed };
       }
-      throw new Error("Invalid format returned.");
-    } catch(e) {
-      console.error("AI returned invalid JSON:", resultText);
-      const subtasks = resultText.split('\n').map(s => s.replace(/^[-* 0-9.]+/, '').trim()).filter(s => s.length > 0).slice(0, 5);
+
+      throw new Error('Invalid format returned.');
+    } catch {
+      console.error('AI returned invalid JSON:', resultText);
+      const subtasks = resultText
+        .split('\n')
+        .map((line) => line.replace(/^[-* 0-9.]+/, '').trim())
+        .filter((line) => line.length > 0)
+        .slice(0, 5);
       return { mainTask: taskTitle, subtasks };
     }
   } catch (error) {
@@ -93,40 +93,56 @@ Reply ONLY with valid JSON in exactly this format (no explanation, no markdown):
   }
 }
 
-/**
- * 案C強化: コンパニオン労いメッセージ（レベル連動とエラー対応）
- * レベルに応じてキャラクターを変える
- */
-export async function generateCompanionMessage(apiKey, modelName, taskTitle, userLevel = 1) {
-  // レベルによるキャラクター分岐
-  let characterDesc = "RPGの冒険者ギルドの受付嬢";
-  let toneDesc = "元気で丁寧なトーン";
-  
+export function getCompanionProfile(userLevel = 1) {
   if (userLevel >= 20) {
-    characterDesc = "世界の命運を握る威厳ある国王";
-    toneDesc = "威厳がありつつも勇者(ユーザー)を心から信頼し称えるトーン";
-  } else if (userLevel >= 10) {
-    characterDesc = "歴戦のパーティーメンバー（ベテランの傭兵）";
-    toneDesc = "ぶっきらぼうだが仲間思いで、肩を叩いて褒めるようなトーン";
+    return {
+      icon: '🐉',
+      name: '古竜の導師',
+      tone: '威厳がありつつ温かく、達成を大きく称える',
+      fallback: (taskTitle) => `見事だ、勇者よ。「${taskTitle}」を成し遂げた力は本物だ。この調子で次の試練も突破しよう。`
+    };
   }
 
-  const systemPrompt = `
-あなたは${characterDesc}です。
-ユーザー（勇者）がクエスト（タスク）を完了した報告に来ました。
-完了したクエストの内容に基づいて、${toneDesc}で労いの言葉をかけてください。
-必ず日本語で、短く（2〜3文程度）返信してください。
-  `;
+  if (userLevel >= 10) {
+    return {
+      icon: '🧙',
+      name: '旅の魔法使い',
+      tone: '落ち着いていて頼れる、少し知的で前向き',
+      fallback: (taskTitle) => `いい進み方だね。「${taskTitle}」を終えたなら、次の行動もきっと軽くなる。この勢いをつなげよう。`
+    };
+  }
 
+  return {
+    icon: '🧚',
+    name: 'ギルドの案内妖精',
+    tone: '親しみやすく元気で、短く励ます',
+    fallback: (taskTitle) => `やったね。「${taskTitle}」の完了、おみごと。次のクエストもこの調子で進めよう。`
+  };
+}
+
+function buildCompanionPrompt(profile) {
+  return `
+あなたは RPG 風タスク管理アプリの companion character です。
+キャラクター名は「${profile.name}」、雰囲気は「${profile.tone}」です。
+ユーザーがクエストを完了した直後に表示する、短い祝福メッセージを日本語で 1〜2 文だけ返してください。
+大げさすぎる説明や箇条書きは不要です。前向きで、次の一歩が少し軽くなる言い方にしてください。
+`;
+}
+
+export async function generateCompanionMessage(apiKey, modelName, taskTitle, userLevel = 1) {
+  const profile = getCompanionProfile(userLevel);
+
+  if (!apiKey) {
+    return profile.fallback(taskTitle);
+  }
+
+  const systemPrompt = buildCompanionPrompt(profile);
   const userPrompt = `完了したクエスト: 「${taskTitle}」`;
 
   try {
     return await callOpenRouterApi(apiKey, modelName, systemPrompt, userPrompt);
   } catch (error) {
     console.error('generateCompanionMessage Error:', error);
-    // API・通信エラー時のフォールバック（世界観を保つメッセージ）
-    if (error.name === 'AbortError' || error.message.includes('timeout')) {
-       return `（通信が遅延しているようだ…）よくやった！「${taskTitle}」の完了、確かにギルドへ報告しておこう！`;
-    }
-    return `（ギルドの通信網が混雑しているようだ…）おお勇者よ！よくぞ「${taskTitle}」を成し遂げた！次も期待しておるぞ！`;
+    return profile.fallback(taskTitle);
   }
 }

@@ -129,22 +129,25 @@
   background: linear-gradient(to right, rgba(255,255,255,0.9) 0%, transparent 100%);
   transform-origin: right center;
   will-change: transform, opacity;
+  opacity: 0;
+  animation: none;
+  transition: opacity 0.6s ease;
 }
 
 .fantasy-shooting-star.s1 {
   top: 12%;
   left: 65%;
-  animation: shoot1 12s linear 1s infinite;
+  --shoot-animation: shoot1 12s linear 1s infinite;
 }
 .fantasy-shooting-star.s2 {
   top: 7%;
   left: 40%;
-  animation: shoot1 18s linear 6s infinite;
+  --shoot-animation: shoot1 18s linear 6s infinite;
 }
 .fantasy-shooting-star.s3 {
   top: 20%;
   left: 80%;
-  animation: shoot1 22s linear 11s infinite;
+  --shoot-animation: shoot1 22s linear 11s infinite;
 }
 
 @keyframes shoot1 {
@@ -219,6 +222,185 @@
   100% { transform: translateX(-10%); }
 }
 
+/* =============================================
+   村・キャラクターシーン
+   ============================================= */
+.game-scene {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(to bottom, #000818 0%, #0a0620 100%);
+  border: 1px solid rgba(100, 80, 200, 0.3);
+  border-radius: var(--radius-sm, 3px);
+  margin-bottom: 12px;
+}
+
+/* ---- 雲 ---- */
+.gs-cloud {
+  position: absolute;
+  animation: gsCloudMove linear infinite;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+  opacity: 0.55;
+}
+
+@keyframes gsCloudMove {
+  0%   { transform: translateX(-80px); }
+  100% { transform: translateX(calc(100% + 900px)); }
+}
+
+/* ---- 建物・木 ---- */
+.gs-elements {
+  position: absolute;
+  bottom: 28px;
+  left: 0;
+  right: 0;
+}
+
+.gs-building {
+  position: absolute;
+  bottom: 0;
+  filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.7));
+  animation: gsFloat 4s ease-in-out infinite;
+  opacity: 0.85;
+}
+
+.gs-tree {
+  position: absolute;
+  bottom: 0;
+  filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.8));
+  opacity: 0.75;
+}
+
+@keyframes gsFloat {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
+}
+
+/* ---- 勇者 ---- */
+.gs-hero {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.gs-hero-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gs-hero-body {
+  font-size: 2.6rem;
+  animation: gsHeroIdle 1s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 14px rgba(255, 200, 0, 0.7));
+}
+
+@keyframes gsHeroIdle {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-6px); }
+}
+
+.gs-hero-shadow {
+  width: 28px;
+  height: 6px;
+  background: rgba(0,0,0,0.5);
+  border-radius: 50%;
+  animation: gsShadowPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes gsShadowPulse {
+  0%   { width: 28px; opacity: 0.6; }
+  100% { width: 20px; opacity: 0.25; }
+}
+
+/* ---- 歩行NPCキャラ（ピクセルアート） ---- */
+.gs-walker {
+  position: absolute;
+  bottom: 28px;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: gsWalkerMove 12s linear infinite;
+  image-rendering: pixelated;
+  opacity: 0.9;
+}
+
+@keyframes gsWalkerMove {
+  0%   { transform: translateX(-40px); }
+  100% { transform: translateX(900px); }
+}
+
+.gs-walker-head {
+  width: 12px;
+  height: 12px;
+  background: #ffcc88;
+  border: 1px solid #aa7744;
+  border-radius: 2px;
+}
+
+.gs-walker-body {
+  width: 10px;
+  height: 14px;
+  background: #4488cc;
+  border: 1px solid #225588;
+  margin-top: 1px;
+}
+
+.gs-walker-legs {
+  display: flex;
+  gap: 2px;
+  margin-top: 1px;
+}
+
+.gs-walker-leg {
+  width: 4px;
+  height: 10px;
+  background: #223366;
+  border: 1px solid #111833;
+  transform-origin: top center;
+}
+
+.gs-leg-l {
+  animation: gsLegL 0.4s ease-in-out infinite alternate;
+}
+
+.gs-leg-r {
+  animation: gsLegR 0.4s ease-in-out infinite alternate;
+}
+
+@keyframes gsLegL {
+  from { transform: rotate(-25deg); }
+  to   { transform: rotate(25deg); }
+}
+
+@keyframes gsLegR {
+  from { transform: rotate(25deg); }
+  to   { transform: rotate(-25deg); }
+}
+
+.gs-walker-shadow {
+  width: 18px;
+  height: 3px;
+  background: rgba(0,0,0,0.35);
+  border-radius: 50%;
+  margin-top: 1px;
+}
+
+/* ---- 地面 ---- */
+.gs-ground {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  background: rgba(10, 6, 32, 0.6);
+  border-top: 1px solid rgba(100, 80, 200, 0.2);
+}
+
 /* ---- 魔法の光点（地平線付近） ---- */
 .fantasy-magic-light {
   position: absolute;
@@ -231,4 +413,271 @@
   0%, 100% { opacity: 0.3; }
   40%       { opacity: 0.7; }
   70%       { opacity: 0.2; }
+}
+
+/* =============================================
+   時間帯別スタイル
+   night (20-5) / dawn (5-7) / morning (7-11) / noon (11-15) / dusk (15-20)
+   ============================================= */
+
+/* ---- 共通トランジション ---- */
+.fantasy-bg {
+  transition: background 4s ease;
+}
+.fantasy-moon-wrap {
+  transition: opacity 3s ease;
+}
+.fantasy-star {
+  transition: opacity 3s ease;
+}
+.fantasy-shooting-star {
+  transition: opacity 0.6s ease;
+}
+
+[data-time="night"] .fantasy-shooting-star,
+[data-time="dawn"] .fantasy-shooting-star {
+  opacity: 1;
+  animation: var(--shoot-animation);
+}
+
+/* ---- 夜明け (dawn) ---- */
+[data-time="dawn"] .fantasy-bg {
+  background: linear-gradient(
+    to bottom,
+    #1a0828 0%,
+    #3d1545 20%,
+    #8b3060 55%,
+    #e06030 100%
+  );
+}
+[data-time="dawn"] .fantasy-star {
+  opacity: calc(var(--star-opacity, 0.8) * 0.3);
+}
+[data-time="dawn"] .fantasy-moon-wrap {
+  opacity: 0.35;
+}
+[data-time="dawn"] .fantasy-shooting-star {
+  opacity: 1;
+}
+[data-time="dawn"] .fantasy-fog.f1 {
+  background: radial-gradient(ellipse at center,
+    rgba(220, 100, 60, 0.3) 0%, rgba(220, 100, 60, 0.1) 45%, transparent 76%);
+}
+[data-time="dawn"] .fantasy-fog.f2 {
+  background: radial-gradient(ellipse at center,
+    rgba(200, 80, 40, 0.2) 0%, rgba(200, 80, 40, 0.08) 50%, transparent 72%);
+}
+[data-time="dawn"] .game-scene {
+  background: linear-gradient(to bottom, #3d1540 0%, #6b2845 60%, #0a0520 100%);
+}
+[data-time="dawn"] .gs-ground {
+  background: rgba(80, 20, 30, 0.7);
+  border-top-color: rgba(200, 80, 40, 0.3);
+}
+
+/* ---- 朝 (morning) ---- */
+[data-time="morning"] .fantasy-bg {
+  background: linear-gradient(
+    to bottom,
+    #e07030 0%,
+    #f0a060 20%,
+    #7ab8d8 65%,
+    #4080a8 100%
+  );
+}
+[data-time="morning"] .fantasy-star {
+  opacity: 0;
+}
+[data-time="morning"] .fantasy-moon-wrap {
+  opacity: 0;
+}
+[data-time="morning"] .fantasy-shooting-star {
+  opacity: 0;
+  animation: none;
+}
+[data-time="morning"] .fantasy-mountains {
+  filter: brightness(1.6) saturate(0.5);
+  opacity: 0.55;
+}
+[data-time="morning"] .fantasy-fog.f1 {
+  background: radial-gradient(ellipse at center,
+    rgba(255, 190, 120, 0.35) 0%, rgba(255, 190, 120, 0.12) 45%, transparent 76%);
+}
+[data-time="morning"] .fantasy-fog.f2 {
+  background: radial-gradient(ellipse at center,
+    rgba(255, 220, 160, 0.25) 0%, rgba(255, 220, 160, 0.08) 50%, transparent 72%);
+}
+[data-time="morning"] .fantasy-fog.f3 {
+  opacity: 0.4;
+}
+[data-time="morning"] .game-scene {
+  background: linear-gradient(to bottom, #7ab8d8 0%, #4080a8 50%, #2a5828 100%);
+}
+[data-time="morning"] .gs-ground {
+  background: rgba(30, 70, 20, 0.75);
+  border-top-color: rgba(80, 160, 40, 0.4);
+}
+
+/* ---- 昼 (noon) ---- */
+[data-time="noon"] .fantasy-bg {
+  background: linear-gradient(
+    to bottom,
+    #1868c0 0%,
+    #2888e0 30%,
+    #50a8f0 70%,
+    #87d0ff 100%
+  );
+}
+[data-time="noon"] .fantasy-star {
+  opacity: 0;
+}
+[data-time="noon"] .fantasy-moon-wrap {
+  opacity: 0;
+}
+[data-time="noon"] .fantasy-shooting-star {
+  opacity: 0;
+  animation: none;
+}
+[data-time="noon"] .fantasy-mountains {
+  filter: brightness(2) saturate(0.4);
+  opacity: 0.45;
+}
+[data-time="noon"] .fantasy-fog.f1 {
+  background: radial-gradient(ellipse at center,
+    rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.06) 45%, transparent 76%);
+}
+[data-time="noon"] .fantasy-fog.f2 {
+  background: radial-gradient(ellipse at center,
+    rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.04) 50%, transparent 72%);
+}
+[data-time="noon"] .fantasy-fog.f3 {
+  opacity: 0;
+}
+[data-time="noon"] .game-scene {
+  background: linear-gradient(to bottom, #50a8f0 0%, #87d0ff 50%, #3a7028 100%);
+}
+[data-time="noon"] .gs-ground {
+  background: rgba(40, 90, 20, 0.8);
+  border-top-color: rgba(100, 180, 50, 0.5);
+}
+
+/* ---- 夕方 (dusk) ---- */
+[data-time="dusk"] .fantasy-bg {
+  background: linear-gradient(
+    to bottom,
+    #080618 0%,
+    #280830 20%,
+    #8b2018 60%,
+    #e84818 100%
+  );
+}
+[data-time="dusk"] .fantasy-star {
+  opacity: calc(var(--star-opacity, 0.8) * 0.15);
+}
+[data-time="dusk"] .fantasy-moon-wrap {
+  opacity: 0.25;
+}
+[data-time="dusk"] .fantasy-shooting-star {
+  opacity: 0;
+  animation: none;
+}
+[data-time="dusk"] .fantasy-fog.f1 {
+  background: radial-gradient(ellipse at center,
+    rgba(220, 70, 20, 0.35) 0%, rgba(220, 70, 20, 0.12) 45%, transparent 76%);
+}
+[data-time="dusk"] .fantasy-fog.f2 {
+  background: radial-gradient(ellipse at center,
+    rgba(200, 50, 10, 0.25) 0%, rgba(200, 50, 10, 0.08) 50%, transparent 72%);
+}
+[data-time="dusk"] .game-scene {
+  background: linear-gradient(to bottom, #8b2018 0%, #e84818 55%, #0a0520 100%);
+}
+[data-time="dusk"] .gs-ground {
+  background: rgba(60, 15, 5, 0.8);
+  border-top-color: rgba(200, 70, 20, 0.35);
+}
+
+/* ---- 太陽 ---- */
+.fantasy-sun {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 3s ease;
+}
+
+/* 夜は非表示（デフォルト） */
+[data-time="night"] .fantasy-sun {
+  opacity: 0;
+}
+
+/* 夜明け: 左下にオレンジの太陽 */
+[data-time="dawn"] .fantasy-sun {
+  opacity: 1;
+  top: 65%;
+  left: 10%;
+}
+
+/* 朝: 左中ほどに上昇 */
+[data-time="morning"] .fantasy-sun {
+  opacity: 1;
+  top: 28%;
+  left: 14%;
+}
+
+/* 昼: 上部中央に */
+[data-time="noon"] .fantasy-sun {
+  opacity: 1;
+  top: 6%;
+  left: calc(50% - 30px);
+}
+
+/* 夕方: 右下に沈む */
+[data-time="dusk"] .fantasy-sun {
+  opacity: 1;
+  top: 62%;
+  left: auto;
+  right: 10%;
+}
+
+.fantasy-sun-core {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff8c0 0%, #ffdd00 50%, #ffaa00 100%);
+  box-shadow:
+    0 0 30px 10px rgba(255, 220, 0, 0.6),
+    0 0 80px 30px rgba(255, 150, 0, 0.3);
+  animation: sunPulse 4s ease-in-out infinite;
+  position: relative;
+  z-index: 1;
+}
+
+[data-time="dawn"] .fantasy-sun-core,
+[data-time="dusk"] .fantasy-sun-core {
+  background: radial-gradient(circle, #ffe0a0 0%, #ff8020 55%, #cc3800 100%);
+  box-shadow:
+    0 0 40px 15px rgba(255, 100, 0, 0.55),
+    0 0 100px 40px rgba(200, 50, 0, 0.3);
+}
+
+.fantasy-sun-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 220, 0, 0.35) 0%, transparent 65%);
+  animation: sunPulse 4s ease-in-out infinite;
+}
+
+[data-time="dawn"] .fantasy-sun-glow,
+[data-time="dusk"] .fantasy-sun-glow {
+  background: radial-gradient(circle, rgba(255, 100, 0, 0.4) 0%, transparent 65%);
+}
+
+@keyframes sunPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.9; }
+  50%       { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
 }

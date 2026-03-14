@@ -394,42 +394,109 @@ function MainApp({ currentUser, onLogout, colorTheme, onThemeChange, bgTimeLock,
         userLevel={userStats.level}
       />
 
-      {/* レベルアップ演出（RPGメッセージウィンドウ風） */}
+      {/* レベルアップ演出 */}
       {levelUpData && (
         <div
+          onClick={clearLevelUpData}
           style={{
             position: 'fixed',
-            top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.95)',
+            inset: 0,
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 2000,
+            zIndex: 10000,
+            backgroundColor: 'rgba(0, 0, 0, 0.88)',
+            backdropFilter: 'blur(4px)',
+            cursor: 'pointer',
           }}
-          onClick={clearLevelUpData}
         >
+          {/* 背景の放射状グロー */}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'radial-gradient(ellipse at center, rgba(255,220,0,0.12) 0%, rgba(100,60,255,0.08) 50%, transparent 75%)',
+            animation: 'lvupBgPulse 1.2s ease-in-out infinite alternate',
+            pointerEvents: 'none',
+          }} />
+
+          {/* メインコンテンツ */}
           <div style={{
             textAlign: 'center',
-            animation: 'popIn 0.3s ease',
-            maxWidth: '400px',
-            width: '90%'
+            animation: 'lvupEntrance 0.5s cubic-bezier(0.175,0.885,0.32,1.275)',
+            maxWidth: '420px',
+            width: '90%',
+            position: 'relative',
           }}>
-            <div className="rpg-window" style={{ marginBottom: 'var(--spacing-md)' }}>
-              <p style={{ color: 'var(--accent-secondary)', fontSize: '2rem', letterSpacing: '4px', marginBottom: '12px', textAlign: 'center' }}>
+            {/* コーナー装飾 */}
+            {['top:−14px;left:−14px', 'top:−14px;right:−14px', 'bottom:−14px;left:−14px', 'bottom:−14px;right:−14px'].map((pos, i) => (
+              <span key={i} style={{
+                position: 'absolute',
+                ...(Object.fromEntries(pos.split(';').map(p => {
+                  const [k, v] = p.split(':');
+                  return [k, v.replace('−', '-')];
+                }))),
+                fontSize: '1.4rem',
+                color: 'var(--accent-secondary)',
+                filter: 'drop-shadow(0 0 6px var(--accent-secondary))',
+                animation: `cornerSpin 3s linear ${i * 0.75}s infinite`,
+                pointerEvents: 'none',
+              }}>✦</span>
+            ))}
+
+            <div className="rpg-window" style={{
+              padding: 'var(--spacing-xl) var(--spacing-lg)',
+              border: '2px solid var(--accent-secondary)',
+              boxShadow: '0 0 30px rgba(255,220,0,0.4), 0 0 60px rgba(255,220,0,0.15), inset 0 0 20px rgba(0,0,0,0.5)',
+            }}>
+              {/* LEVEL UP テキスト */}
+              <p style={{
+                fontSize: '2.2rem',
+                letterSpacing: '5px',
+                marginBottom: '6px',
+                color: 'var(--accent-secondary)',
+                textShadow: '0 0 10px var(--accent-secondary), 0 0 30px rgba(255,220,0,0.5)',
+                animation: 'lvupTextShine 1.5s ease-in-out infinite alternate',
+              }}>
                 ★ LEVEL UP! ★
               </p>
-              <p style={{ fontSize: '1.2rem', color: 'var(--text-primary)', textAlign: 'center' }}>
-                Lv. {levelUpData.level - 1}
-                <span style={{ color: 'var(--accent-secondary)', margin: '0 12px' }}>→</span>
-                <span style={{ color: 'var(--success)', fontWeight: 'bold', fontSize: '1.5rem' }}>Lv. {levelUpData.level}</span>
+
+              {/* 星の装飾ライン */}
+              <p style={{ color: 'var(--accent-primary)', fontSize: '0.75rem', letterSpacing: '6px', marginBottom: '20px', opacity: 0.7 }}>
+                ・ ・ ・ ・ ・ ・ ・ ・ ・
               </p>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '16px', textAlign: 'center' }}>
-                経験値が上がった！
+
+              {/* レベル数字 */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '16px' }}>
+                <span style={{ fontSize: '1.3rem', color: 'var(--text-muted)' }}>Lv.{levelUpData.level - 1}</span>
+                <span style={{
+                  fontSize: '1.6rem',
+                  color: 'var(--accent-secondary)',
+                  textShadow: '0 0 8px var(--accent-secondary)',
+                  animation: 'lvupArrow 0.6s ease-in-out infinite alternate',
+                }}>▶▶</span>
+                <span style={{
+                  fontSize: '2.8rem',
+                  fontWeight: 'bold',
+                  color: 'var(--success, #44ff88)',
+                  textShadow: '0 0 12px var(--success, #44ff88), 0 0 30px rgba(100,255,150,0.4)',
+                  animation: 'lvupNumber 0.8s cubic-bezier(0.175,0.885,0.32,1.275)',
+                  display: 'inline-block',
+                }}>Lv.{levelUpData.level}</span>
+              </div>
+
+              <p style={{ color: 'var(--accent-primary)', fontSize: '0.95rem', letterSpacing: '2px' }}>
+                ✨ 経験値が上がった！ ✨
               </p>
             </div>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', animation: 'blink 1s infinite' }}>
-              ▼ クリックで閉じる
+
+            <p style={{
+              color: 'var(--text-muted)',
+              fontSize: '0.82rem',
+              marginTop: '16px',
+              animation: 'blink 1.2s infinite',
+              letterSpacing: '1px',
+            }}>
+              ▼ タップして続ける
             </p>
           </div>
         </div>
