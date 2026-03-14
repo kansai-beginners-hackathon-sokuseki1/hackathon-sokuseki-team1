@@ -18,7 +18,6 @@ export function TaskList({
   const [loadingMessageId, setLoadingMessageId] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [questCompletePopup, setQuestCompletePopup] = useState(null);
-
   const [editTitle, setEditTitle] = useState('');
   const [editDueDate, setEditDueDate] = useState('');
   const [editDifficulty, setEditDifficulty] = useState(1);
@@ -79,58 +78,65 @@ export function TaskList({
 
   const cancelEdit = () => setEditingId(null);
 
+  const queueNpcMessage = (taskId, profile, text, loading = false) => {
+    setPendingNpcMessage({
+      taskId,
+      text,
+      icon: profile.icon,
+      name: profile.name,
+      loading
+    });
+  };
+
   const handleToggle = async (task) => {
     setLoadingMessageId(task.id);
-    let updatedTask;
 
+    let result;
     try {
-      updatedTask = await toggleTask(task.id);
+      result = await toggleTask(task.id);
     } catch (error) {
       console.error(error);
       setLoadingMessageId(null);
       return;
     }
 
-    if (!updatedTask || !updatedTask.completed) {
+    if (!result) {
+      setLoadingMessageId(null);
+      return;
+    }
+
+    const { task: updatedTask, completedNow } = result;
+    if (!completedNow) {
       setLoadingMessageId(null);
       return;
     }
 
     if (questPopupTimerRef.current) clearTimeout(questPopupTimerRef.current);
     if (npcHideTimerRef.current) clearTimeout(npcHideTimerRef.current);
+
     setNpcMessage(null);
     setPendingNpcMessage(null);
 
     playQuestComplete();
-    setQuestCompletePopup({ title: task.title, expReward: updatedTask.expReward });
+    setQuestCompletePopup({ title: updatedTask.title, expReward: updatedTask.expReward });
     questPopupTimerRef.current = setTimeout(() => {
       setQuestCompletePopup(null);
     }, 2500);
 
     const profile = getCompanionProfile(userLevel);
-    const queueNpcMessage = (text, loading = false) => {
-      setPendingNpcMessage({
-        taskId: task.id,
-        text,
-        icon: profile.icon,
-        name: profile.name,
-        loading
-      });
-    };
-
-    queueNpcMessage('メッセージを準備中...', true);
+    queueNpcMessage(task.id, profile, 'メッセージを準備中...', true);
 
     try {
       const text = await generateCompanionMessage(
         apiSettings.apiKey,
         apiSettings.modelName,
-        task.title,
+        updatedTask.title,
         userLevel
       );
-      queueNpcMessage(text, false);
+      queueNpcMessage(task.id, profile, text, false);
     } catch (error) {
       console.error(error);
-      queueNpcMessage(profile.fallback(task.title), false);
+      queueNpcMessage(task.id, profile, profile.fallback(updatedTask.title), false);
     } finally {
       setLoadingMessageId(null);
     }
@@ -145,6 +151,18 @@ export function TaskList({
     due.setHours(0, 0, 0, 0);
 
     return Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+  };
+
+  const getStatusSymbol = (status) => {
+    if (status === 'completed') return '✔';
+    if (status === 'in_progress') return '◐';
+    return '○';
+  };
+
+  const getStatusTitle = (status) => {
+    if (status === 'completed') return '未着手に戻す';
+    if (status === 'in_progress') return '完了にする';
+    return '進行中にする';
   };
 
   if (tasks.length === 0) {
@@ -288,11 +306,13 @@ export function TaskList({
                     padding: '2px'
                   }}
                   disabled={loadingMessageId === task.id || isEditing}
-                  title={task.completed ? '完了済み' : '完了にする'}
+                  title={getStatusTitle(task.status)}
                 >
                   {loadingMessageId === task.id ? (
                     <span style={{ animation: 'blink 0.5s infinite' }}>…</span>
-                  ) : task.completed ? '✔' : '○'}
+                  ) : (
+                    getStatusSymbol(task.status)
+                  )}
                 </button>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -344,6 +364,9 @@ export function TaskList({
                       </div>
                       <div style={{ display: 'flex', gap: '12px', marginTop: '2px', fontSize: '0.78rem', flexWrap: 'wrap', alignItems: 'center' }}>
                         <span style={{ color: 'var(--accent-secondary)' }}>+{task.expReward} EXP</span>
+                        <span style={{ color: 'var(--text-secondary)' }}>
+                          {task.status === 'todo' ? '未着手' : task.status === 'in_progress' ? '進行中' : '完了'}
+                        </span>
                         {task.difficulty && (
                           <span style={{ color: 'var(--accent-secondary)' }}>
                             {'★'.repeat(task.difficulty)}
