@@ -1,0 +1,19 @@
+{
+  "name": "クエストマネージャー",
+  "short_name": "クエスト",
+  "description": "RPG風タスク管理アプリ",
+  "start_url": "/hackathon-sokuseki-team1/",
+  "scope": "/hackathon-sokuseki-team1/",
+  "display": "standalone",
+  "background_color": "#000010",
+  "theme_color": "#1a1040",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "/hackathon-sokuseki-team1/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -10,6 +10,28 @@ import { playLevelUp } from './soundEffects';
 import { FantasyBackground, FantasyOverlay } from './FantasyBackground';
 import './index.css';
 
+// Service Worker 登録
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/hackathon-sokuseki-team1/sw.js', {
+      scope: '/hackathon-sokuseki-team1/'
+    }).catch(() => {});
+  });
+}
+
+// 通知送信（Service Worker 経由でモバイル対応）
+async function sendNotification(title, body) {
+  if (Notification.permission !== 'granted') return;
+  if ('serviceWorker' in navigator) {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      await reg.showNotification(title, { body, icon: '/hackathon-sokuseki-team1/icon-192.svg' });
+      return;
+    } catch (_) {}
+  }
+  new Notification(title, { body });
+}
+
 // 認証ラッパー：トークンがある場合はメインアプリを表示
 function App() {
   const [authToken, setAuthToken] = useState(() => localStorage.getItem('authToken'));
@@ -136,12 +158,7 @@ function MainApp({ currentUser, onLogout, colorTheme, onThemeChange, bgTimeLock,
     dueTasks.forEach(t => {
       if (notifiedRef.current.has(t.id)) return;
       notifiedRef.current.add(t.id);
-      if (Notification.permission === 'granted') {
-        new Notification('⚔ クエスト期限アラート', {
-          body: `「${t.title}」の期限が過ぎています！`,
-          icon: '/favicon.ico',
-        });
-      }
+      sendNotification('⚔ クエスト期限アラート', `「${t.title}」の期限が過ぎています！`);
     });
   }, [alertEnabled, dueTasks]);
 
