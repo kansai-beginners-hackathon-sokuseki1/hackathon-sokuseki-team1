@@ -1,11 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Edit2, Save, Trash2, X } from 'lucide-react';
 import { FantasyDatePicker, formatFantasyDate } from './FantasyDatePicker';
 import { generateCompanionMessage, getCompanionProfile } from './aiService';
 import { playQuestComplete } from './soundEffects';
 
-export function TaskList({ tasks, toggleTask, editTask, deleteTask, apiSettings, userLevel }) {
+export function TaskList({
+  tasks,
+  toggleTask,
+  editTask,
+  deleteTask,
+  apiSettings,
+  userLevel,
+  levelUpActive
+}) {
   const [npcMessage, setNpcMessage] = useState(null);
+  const [pendingNpcMessage, setPendingNpcMessage] = useState(null);
   const [loadingMessageId, setLoadingMessageId] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [questCompletePopup, setQuestCompletePopup] = useState(null);
@@ -13,6 +22,30 @@ export function TaskList({ tasks, toggleTask, editTask, deleteTask, apiSettings,
   const [editTitle, setEditTitle] = useState('');
   const [editDueDate, setEditDueDate] = useState('');
   const [editDifficulty, setEditDifficulty] = useState(1);
+
+  const questPopupTimerRef = useRef(null);
+  const npcHideTimerRef = useRef(null);
+
+  useEffect(() => () => {
+    if (questPopupTimerRef.current) clearTimeout(questPopupTimerRef.current);
+    if (npcHideTimerRef.current) clearTimeout(npcHideTimerRef.current);
+  }, []);
+
+  useEffect(() => {
+    if (questCompletePopup || levelUpActive || !pendingNpcMessage) return undefined;
+
+    setNpcMessage(pendingNpcMessage);
+    setPendingNpcMessage(null);
+
+    if (npcHideTimerRef.current) clearTimeout(npcHideTimerRef.current);
+    npcHideTimerRef.current = setTimeout(() => {
+      setNpcMessage((current) => (current?.taskId === pendingNpcMessage.taskId ? null : current));
+    }, 8000);
+
+    return () => {
+      if (npcHideTimerRef.current) clearTimeout(npcHideTimerRef.current);
+    };
+  }, [levelUpActive, pendingNpcMessage, questCompletePopup]);
 
   const startEditing = (task) => {
     setEditingId(task.id);
@@ -33,6 +66,7 @@ export function TaskList({ tasks, toggleTask, editTask, deleteTask, apiSettings,
   const handleToggle = async (task) => {
     setLoadingMessageId(task.id);
     let updatedTask;
+
     try {
       updatedTask = await toggleTask(task.id);
     } catch (error) {
@@ -40,23 +74,35 @@ export function TaskList({ tasks, toggleTask, editTask, deleteTask, apiSettings,
       setLoadingMessageId(null);
       return;
     }
+
     if (!updatedTask || !updatedTask.completed) {
       setLoadingMessageId(null);
       return;
     }
 
+    if (questPopupTimerRef.current) clearTimeout(questPopupTimerRef.current);
+    if (npcHideTimerRef.current) clearTimeout(npcHideTimerRef.current);
+    setNpcMessage(null);
+    setPendingNpcMessage(null);
+
     playQuestComplete();
     setQuestCompletePopup({ title: task.title, expReward: updatedTask.expReward });
-    setTimeout(() => setQuestCompletePopup(null), 3000);
+    questPopupTimerRef.current = setTimeout(() => {
+      setQuestCompletePopup(null);
+    }, 2500);
 
     const profile = getCompanionProfile(userLevel);
-    setNpcMessage({
-      taskId: task.id,
-      text: 'メッセージを準備中...',
-      icon: profile.icon,
-      name: profile.name,
-      loading: true
-    });
+    const queueNpcMessage = (text, loading = false) => {
+      setPendingNpcMessage({
+        taskId: task.id,
+        text,
+        icon: profile.icon,
+        name: profile.name,
+        loading
+      });
+    };
+
+    queueNpcMessage('メッセージを準備中...', true);
 
     try {
       const text = await generateCompanionMessage(
@@ -65,26 +111,10 @@ export function TaskList({ tasks, toggleTask, editTask, deleteTask, apiSettings,
         task.title,
         userLevel
       );
-
-      setNpcMessage({
-        taskId: task.id,
-        text,
-        icon: profile.icon,
-        name: profile.name,
-        loading: false
-      });
-      setTimeout(() => {
-        setNpcMessage((current) => (current?.taskId === task.id ? null : current));
-      }, 8000);
+      queueNpcMessage(text, false);
     } catch (error) {
       console.error(error);
-      setNpcMessage({
-        taskId: task.id,
-        text: profile.fallback(task.title),
-        icon: profile.icon,
-        name: profile.name,
-        loading: false
-      });
+      queueNpcMessage(profile.fallback(task.title), false);
     } finally {
       setLoadingMessageId(null);
     }
@@ -104,7 +134,7 @@ export function TaskList({ tasks, toggleTask, editTask, deleteTask, apiSettings,
   if (tasks.length === 0) {
     return (
       <div className="rpg-window" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 'var(--spacing-xl)' }}>
-        クエストはまだありません。新しい冒険を始めましょう。
+        クエストはまだありません。新しい依頼を始めましょう。
       </div>
     );
   }
@@ -115,24 +145,84 @@ export function TaskList({ tasks, toggleTask, editTask, deleteTask, apiSettings,
         <div
           style={{
             position: 'fixed',
-            bottom: '32px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 1500,
-            width: 'min(480px, 90vw)',
-            animation: 'popIn 0.2s ease',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9500,
             pointerEvents: 'none'
           }}
         >
-          <div className="rpg-window" style={{ padding: 'var(--spacing-md) var(--spacing-lg)', textAlign: 'center' }}>
-            <div style={{ color: 'var(--accent-secondary)', fontSize: '1.1rem', letterSpacing: '2px', marginBottom: '6px' }}>
-              ✦ クエスト完了 ✦
+          <div
+            className="rpg-window"
+            style={{
+              width: 'min(480px, 90vw)',
+              padding: 'var(--spacing-lg)',
+              textAlign: 'center',
+              animation: 'popIn 0.2s ease',
+              boxShadow: '0 0 28px rgba(0, 0, 0, 0.85), 0 0 40px rgba(255, 238, 0, 0.18)'
+            }}
+          >
+            <div style={{ color: 'var(--accent-secondary)', fontSize: '1.1rem', letterSpacing: '2px', marginBottom: '8px' }}>
+              クエスト達成
             </div>
-            <div style={{ color: 'var(--text-primary)', fontSize: '0.95rem', marginBottom: '8px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <div style={{ color: 'var(--text-primary)', fontSize: '1rem', marginBottom: '10px', lineHeight: 1.7 }}>
               「{questCompletePopup.title}」
             </div>
             <div style={{ color: 'var(--accent-primary)', fontSize: '1rem', letterSpacing: '1px' }}>
-              +{questCompletePopup.expReward} EXP を獲得した！
+              +{questCompletePopup.expReward} EXP を獲得
+            </div>
+          </div>
+        </div>
+      )}
+
+      {npcMessage && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9600,
+            pointerEvents: 'none'
+          }}
+        >
+          <div
+            className="rpg-window"
+            style={{
+              width: 'min(420px, 90vw)',
+              padding: 'var(--spacing-md) var(--spacing-lg)',
+              animation: 'popIn 0.2s ease',
+              boxShadow: '0 0 24px rgba(0, 0, 0, 0.85), 0 0 32px rgba(0, 200, 255, 0.14)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+              <div
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.08)',
+                  fontSize: '1.2rem'
+                }}
+              >
+                {npcMessage.icon}
+              </div>
+              <div>
+                <div style={{ color: 'var(--accent-secondary)', fontSize: '0.82rem' }}>NPCメッセージ</div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.76rem' }}>{npcMessage.name}</div>
+              </div>
+            </div>
+            <div style={{ fontSize: '0.92rem', lineHeight: 1.8 }}>
+              {npcMessage.loading ? (
+                <span style={{ color: 'var(--text-muted)' }}>{npcMessage.text}</span>
+              ) : (
+                npcMessage.text
+              )}
             </div>
           </div>
         </div>
@@ -159,7 +249,7 @@ export function TaskList({ tasks, toggleTask, editTask, deleteTask, apiSettings,
           }
 
           return (
-            <div key={task.id} style={{ position: 'relative' }}>
+            <div key={task.id}>
               <div
                 className="rpg-window"
                 style={{
@@ -185,7 +275,7 @@ export function TaskList({ tasks, toggleTask, editTask, deleteTask, apiSettings,
                   title={task.completed ? '完了済み' : '完了にする'}
                 >
                   {loadingMessageId === task.id ? (
-                    <span style={{ animation: 'blink 0.5s infinite' }}>⌛</span>
+                    <span style={{ animation: 'blink 0.5s infinite' }}>…</span>
                   ) : task.completed ? '✔' : '○'}
                 </button>
 
@@ -195,15 +285,12 @@ export function TaskList({ tasks, toggleTask, editTask, deleteTask, apiSettings,
                       <input
                         type="text"
                         value={editTitle}
-                        onChange={(e) => setEditTitle(e.target.value)}
+                        onChange={(event) => setEditTitle(event.target.value)}
                         style={{ padding: '4px 8px', fontSize: '0.95rem' }}
                         autoFocus
                       />
                       <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <FantasyDatePicker
-                          value={editDueDate}
-                          onChange={setEditDueDate}
-                        />
+                        <FantasyDatePicker value={editDueDate} onChange={setEditDueDate} />
                         <div style={{ display: 'flex', gap: '2px' }}>
                           {[1, 2, 3, 4, 5].map((star) => (
                             <button
@@ -292,50 +379,6 @@ export function TaskList({ tasks, toggleTask, editTask, deleteTask, apiSettings,
                   )}
                 </div>
               </div>
-
-              {npcMessage && npcMessage.taskId === task.id && (
-                <div
-                  className="rpg-window"
-                  style={{
-                    position: 'absolute',
-                    bottom: 'calc(100% + 8px)',
-                    right: '0',
-                    zIndex: 10,
-                    maxWidth: '360px',
-                    minWidth: '240px',
-                    animation: 'popIn 0.2s ease',
-                    padding: 'var(--spacing-sm) var(--spacing-md)'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                    <div
-                      style={{
-                        width: '34px',
-                        height: '34px',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: '50%',
-                        background: 'rgba(255,255,255,0.08)',
-                        fontSize: '1.1rem'
-                      }}
-                    >
-                      {npcMessage.icon}
-                    </div>
-                    <div>
-                      <div style={{ color: 'var(--accent-secondary)', fontSize: '0.8rem' }}>NPCメッセージ</div>
-                      <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{npcMessage.name}</div>
-                    </div>
-                  </div>
-                  <div style={{ fontSize: '0.9rem', lineHeight: 1.7 }}>
-                    {npcMessage.loading ? (
-                      <span style={{ color: 'var(--text-muted)' }}>{npcMessage.text}</span>
-                    ) : (
-                      npcMessage.text
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           );
         })}

@@ -423,6 +423,7 @@ function MainApp({
         deleteTask={deleteTask}
         apiSettings={apiSettings}
         userLevel={userStats.level}
+        levelUpActive={Boolean(levelUpData)}
       />
 
       {levelUpData && (
