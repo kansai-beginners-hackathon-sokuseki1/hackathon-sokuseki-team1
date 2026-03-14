@@ -5,6 +5,7 @@ import { THEME_LABELS, THEME_PREVIEW } from './themes';
 export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, colorTheme, onThemeChange }) {
   const [keyInput, setKeyInput] = useState(apiSettings.apiKey);
   const [modelInput, setModelInput] = useState(apiSettings.modelName || 'google/gemini-2.5-flash');
+  const [creditsOpen, setCreditsOpen] = useState(false);
 
   if (!isOpen) return null;
 
@@ -121,31 +122,50 @@ export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, co
         {/* セパレーター */}
         <div style={{ borderTop: '1px solid var(--border-window-inner)', marginBottom: 'var(--spacing-lg)' }} />
 
-        {/* 権利表記 */}
-        <p style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', marginBottom: 'var(--spacing-md)' }}>
-          ▶ 権利表記・クレジット
-        </p>
-        <div style={{
-          fontSize: '0.78rem',
-          color: 'var(--text-muted)',
-          lineHeight: 1.9,
-          background: 'rgba(0,0,0,0.2)',
-          border: '1px solid var(--border-window-inner)',
-          borderRadius: 'var(--radius-sm)',
-          padding: 'var(--spacing-sm) var(--spacing-md)',
-          marginBottom: 'var(--spacing-lg)',
-        }}>
-          <div style={{ marginBottom: '8px' }}>
-            <span style={{ color: 'var(--text-secondary)' }}>🔊 効果音</span>
+        {/* 権利表記（アコーディオン） */}
+        <button
+          type="button"
+          onClick={() => setCreditsOpen(o => !o)}
+          style={{
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            background: 'transparent',
+            border: 'none',
+            padding: '4px 0',
+            cursor: 'pointer',
+            color: 'var(--accent-primary)',
+            fontSize: '0.8rem',
+            marginBottom: creditsOpen ? 'var(--spacing-md)' : 'var(--spacing-lg)',
+          }}
+        >
+          <span>▶ 権利表記・クレジット</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{creditsOpen ? '▲ 閉じる' : '▼ 開く'}</span>
+        </button>
+        {creditsOpen && (
+          <div style={{
+            fontSize: '0.78rem',
+            color: 'var(--text-muted)',
+            lineHeight: 1.9,
+            background: 'rgba(0,0,0,0.2)',
+            border: '1px solid var(--border-window-inner)',
+            borderRadius: 'var(--radius-sm)',
+            padding: 'var(--spacing-sm) var(--spacing-md)',
+            marginBottom: 'var(--spacing-lg)',
+          }}>
+            <div style={{ marginBottom: '8px' }}>
+              <span style={{ color: 'var(--text-secondary)' }}>🔊 効果音</span>
+            </div>
+            <div>
+              OtoLogic（<span style={{ color: 'var(--accent-primary)' }}>https://otologic.jp</span>）
+            </div>
+            <div style={{ marginTop: '6px', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+              本アプリの効果音素材はOtoLogicが提供するフリー素材を使用しています。<br />
+              素材の著作権はOtoLogicに帰属します。素材の二次配布・再販売は禁止されています。
+            </div>
           </div>
-          <div>
-            OtoLogic（<span style={{ color: 'var(--accent-primary)' }}>https://otologic.jp</span>）
-          </div>
-          <div style={{ marginTop: '6px', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-            本アプリの効果音素材はOtoLogicが提供するフリー素材を使用しています。<br />
-            素材の著作権はOtoLogicに帰属します。素材の二次配布・再販売は禁止されています。
-          </div>
-        </div>
+        )}
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-sm)' }}>
           <button onClick={onClose} className="btn-icon" style={{ padding: '8px 16px', border: '2px solid var(--text-muted)' }}>
