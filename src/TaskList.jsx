@@ -31,8 +31,19 @@ export function TaskList({ tasks, toggleTask, editTask, deleteTask, apiSettings,
   const cancelEdit = () => setEditingId(null);
 
   const handleToggle = async (task) => {
-    const updatedTask = await toggleTask(task.id);
-    if (!updatedTask || !updatedTask.completed) return;
+    setLoadingMessageId(task.id);
+    let updatedTask;
+    try {
+      updatedTask = await toggleTask(task.id);
+    } catch (error) {
+      console.error(error);
+      setLoadingMessageId(null);
+      return;
+    }
+    if (!updatedTask || !updatedTask.completed) {
+      setLoadingMessageId(null);
+      return;
+    }
 
     playQuestComplete();
     setQuestCompletePopup({ title: task.title, expReward: updatedTask.expReward });
@@ -47,7 +58,6 @@ export function TaskList({ tasks, toggleTask, editTask, deleteTask, apiSettings,
       loading: true
     });
 
-    setLoadingMessageId(task.id);
     try {
       const text = await generateCompanionMessage(
         apiSettings.apiKey,

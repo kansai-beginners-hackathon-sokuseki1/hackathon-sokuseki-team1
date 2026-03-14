@@ -229,7 +229,9 @@ export function SettingsModal({
   bgTimeLock,
   onBgTimeLockChange,
   alertEnabled,
-  onAlertEnabledChange
+  onAlertEnabledChange,
+  hideCompletedTasks,
+  onHideCompletedTasksChange
 }) {
   const [keyInput, setKeyInput] = useState(apiSettings.apiKey);
   const [modelInput, setModelInput] = useState(apiSettings.modelName || 'google/gemini-2.5-flash');
@@ -372,7 +374,28 @@ export function SettingsModal({
           </Section>
 
           <Section icon={Bell} title="期限アラート" isOpen={openSections.alerts} onToggle={() => toggleSection('alerts')}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'grid', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => onHideCompletedTasksChange(!hideCompletedTasks)}
+                  style={{
+                    padding: '8px 16px',
+                    border: hideCompletedTasks ? '2px solid var(--accent-secondary)' : '1px solid var(--border-window-inner)',
+                    borderRadius: '999px',
+                    background: hideCompletedTasks ? 'rgba(255,255,255,0.06)' : 'transparent',
+                    color: hideCompletedTasks ? 'var(--accent-secondary)' : 'var(--text-muted)',
+                    minWidth: '88px'
+                  }}
+                >
+                  {hideCompletedTasks ? 'ON' : 'OFF'}
+                </button>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  {hideCompletedTasks ? '完了したタスクを通常一覧から隠します。' : '完了したタスクも通常一覧に表示します。'}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
               <button
                 type="button"
                 onClick={() => onAlertEnabledChange(!alertEnabled)}
@@ -390,6 +413,7 @@ export function SettingsModal({
               <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                 {alertEnabled ? '期限切れや当日期限のタスクを通知します。' : '通知は停止しています。'}
               </span>
+              </div>
             </div>
 
             {notificationDenied && (

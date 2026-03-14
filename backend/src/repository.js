@@ -213,21 +213,25 @@ export function createD1Repository(db) {
       const task = await this.findTaskById(userId, taskId);
       if (!task) return { status: "missing" };
 
-      const progress = await this.getUserProgress(userId);
-      if (task.status === "completed") {
-        return { status: "already_completed", task, progress };
+      const markCompleted = await db.prepare(`
+        UPDATE tasks
+        SET status = 'completed', completed_at = ?, updated_at = ?
+        WHERE id = ? AND user_id = ? AND status != 'completed'
+      `).bind(completedAt, completedAt, taskId, userId).run();
+
+      if (markCompleted.meta.changes === 0) {
+        const latestTask = await this.findTaskById(userId, taskId);
+        const progress = await this.getUserProgress(userId);
+        return { status: "already_completed", task: latestTask ?? task, progress };
       }
 
+      const progress = await this.getUserProgress(userId);
       const xpGain = task.expReward;
       const nextXp = Number(progress.xp) + xpGain;
       const nextCompleted = Number(progress.completed_task_count) + 1;
       const { level: nextLevel } = computeLevelFromXp(nextXp);
 
       await db.batch([
-        db.prepare(`
-          UPDATE tasks SET status = 'completed', completed_at = ?, updated_at = ?
-          WHERE id = ? AND user_id = ?
-        `).bind(completedAt, completedAt, taskId, userId),
         db.prepare(`
           UPDATE user_progress SET xp = ?, level = ?, completed_task_count = ?, updated_at = ?
           WHERE user_id = ?

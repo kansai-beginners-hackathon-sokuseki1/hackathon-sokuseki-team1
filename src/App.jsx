@@ -10,6 +10,12 @@ import { playLevelUp } from './soundEffects';
 import { useAppState } from './useAppState';
 import './index.css';
 
+const STATUS_FILTER_OPTIONS = [
+  { value: 'todo', label: '未着手' },
+  { value: 'in_progress', label: '進行中' },
+  { value: 'completed', label: '完了' }
+];
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/hackathon-sokuseki-team1/sw.js', {
@@ -29,7 +35,9 @@ async function sendNotification(title, body) {
         icon: '/hackathon-sokuseki-team1/icon-192.svg'
       });
       return;
-    } catch (_) {}
+    } catch {
+      return;
+    }
   }
 
   new Notification(title, { body });
@@ -43,6 +51,7 @@ function App() {
   });
   const [bgTimeLock, setBgTimeLock] = useState(() => localStorage.getItem('bgTimeLock') ?? 'auto');
   const [alertEnabled, setAlertEnabled] = useState(() => localStorage.getItem('alertEnabled') === 'true');
+  const [hideCompletedTasks, setHideCompletedTasks] = useState(() => localStorage.getItem('hideCompletedTasks') !== 'false');
   const [colorTheme, setColorTheme] = useState(() => localStorage.getItem('colorTheme') ?? 'dark-blue');
 
   useEffect(() => {
@@ -120,6 +129,11 @@ function App() {
           onBgTimeLockChange={handleBgTimeLockChange}
           alertEnabled={alertEnabled}
           onAlertEnabledChange={handleAlertEnabledChange}
+          hideCompletedTasks={hideCompletedTasks}
+          onHideCompletedTasksChange={(enabled) => {
+            localStorage.setItem('hideCompletedTasks', enabled);
+            setHideCompletedTasks(enabled);
+          }}
         />
       )}
     </>
@@ -134,7 +148,9 @@ function MainApp({
   bgTimeLock,
   onBgTimeLockChange,
   alertEnabled,
-  onAlertEnabledChange
+  onAlertEnabledChange,
+  hideCompletedTasks,
+  onHideCompletedTasksChange
 }) {
   const {
     tasks,
@@ -153,7 +169,7 @@ function MainApp({
   } = useAppState();
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [filterMode, setFilterMode] = useState('all');
+  const [statusFilters, setStatusFilters] = useState(['todo', 'in_progress']);
   const [sortMode, setSortMode] = useState('created');
   const notifiedRef = useRef(new Set());
 
@@ -181,10 +197,11 @@ function MainApp({
   }, [levelUpData]);
 
   const displayTasks = useMemo(() => {
-    let result = [...tasks];
-    if (filterMode === 'todo') result = result.filter((task) => task.status === 'todo');
-    else if (filterMode === 'in_progress') result = result.filter((task) => task.status === 'in_progress');
-    else if (filterMode === 'completed') result = result.filter((task) => task.status === 'completed');
+    let result = tasks.filter((task) => statusFilters.includes(task.status));
+
+    if (hideCompletedTasks && !statusFilters.includes('completed')) {
+      result = result.filter((task) => task.status !== 'completed');
+    }
 
     result.sort((a, b) => {
       if (a.completed && !b.completed) return 1;
@@ -200,7 +217,23 @@ function MainApp({
       return b.createdAt - a.createdAt;
     });
     return result;
-  }, [tasks, filterMode, sortMode]);
+  }, [tasks, statusFilters, sortMode, hideCompletedTasks]);
+
+  const toggleStatusFilter = (status) => {
+    setStatusFilters((current) => {
+      const exists = current.includes(status);
+      if (exists && current.length === 1) return current;
+      if (exists) return current.filter((item) => item !== status);
+      return [...current, status];
+    });
+  };
+
+  const selectedStatusLabel = statusFilters.length === STATUS_FILTER_OPTIONS.length
+    ? 'すべて'
+    : STATUS_FILTER_OPTIONS
+        .filter(({ value }) => statusFilters.includes(value))
+        .map(({ label }) => label)
+        .join(' / ');
 
   if (loading) {
     return (
@@ -352,15 +385,24 @@ function MainApp({
         </h2>
 
         <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', border: '2px solid var(--border-window)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
-            <span style={{ padding: '4px 8px', color: 'var(--text-muted)', fontSize: '0.8rem', borderRight: '1px solid var(--border-window-inner)' }}>Filter</span>
-            <select value={filterMode} onChange={(e) => setFilterMode(e.target.value)} style={{ border: 'none', borderRadius: 0, width: 'auto', padding: '4px 8px' }}>
-              <option value="all">すべて</option>
-              <option value="todo">未着手</option>
-              <option value="in_progress">進行中</option>
-              <option value="completed">完了</option>
-            </select>
-          </div>
+          <details className="multi-select-window">
+            <summary className="multi-select-window__summary">
+              <span className="multi-select-window__label">進行度</span>
+              <span className="multi-select-window__value">{selectedStatusLabel}</span>
+            </summary>
+            <div className="multi-select-window__panel rpg-window" style={{ marginBottom: 0 }}>
+              {STATUS_FILTER_OPTIONS.map(({ value, label }) => (
+                <label key={value} className="multi-select-window__option">
+                  <input
+                    type="checkbox"
+                    checked={statusFilters.includes(value)}
+                    onChange={() => toggleStatusFilter(value)}
+                  />
+                  <span>{label}</span>
+                </label>
+              ))}
+            </div>
+          </details>
 
           <div style={{ display: 'flex', alignItems: 'center', border: '2px solid var(--border-window)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
             <span style={{ padding: '4px 8px', color: 'var(--text-muted)', fontSize: '0.8rem', borderRight: '1px solid var(--border-window-inner)' }}>Sort</span>
@@ -490,6 +532,8 @@ function MainApp({
         onBgTimeLockChange={onBgTimeLockChange}
         alertEnabled={alertEnabled}
         onAlertEnabledChange={onAlertEnabledChange}
+        hideCompletedTasks={hideCompletedTasks}
+        onHideCompletedTasksChange={onHideCompletedTasksChange}
       />
     </div>
   );

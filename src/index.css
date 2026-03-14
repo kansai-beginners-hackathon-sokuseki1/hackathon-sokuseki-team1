@@ -204,6 +204,66 @@ button:disabled {
   color: var(--text-primary);
 }
 
+.multi-select-window {
+  position: relative;
+}
+
+.multi-select-window[open] {
+  z-index: 20;
+}
+
+.multi-select-window__summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 4px 10px;
+  border: 2px solid var(--border-window);
+  border-radius: var(--radius-sm);
+  background: var(--bg-window);
+  color: var(--text-primary);
+}
+
+.multi-select-window__summary::-webkit-details-marker {
+  display: none;
+}
+
+.multi-select-window__label {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  padding-right: 10px;
+  border-right: 1px solid var(--border-window-inner);
+}
+
+.multi-select-window__value {
+  font-size: 0.82rem;
+  color: var(--text-primary);
+}
+
+.multi-select-window__panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 180px;
+  padding: 10px 12px;
+}
+
+.multi-select-window__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.multi-select-window__option input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-secondary);
+}
+
 /* =============================================
    Header & Status（EXP バー - RPGゲージ風）
    ============================================= */
