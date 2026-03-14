@@ -118,6 +118,35 @@ export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, co
           </p>
         </div>
 
+        {/* セパレーター */}
+        <div style={{ borderTop: '1px solid var(--border-window-inner)', marginBottom: 'var(--spacing-lg)' }} />
+
+        {/* 権利表記 */}
+        <p style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', marginBottom: 'var(--spacing-md)' }}>
+          ▶ 権利表記・クレジット
+        </p>
+        <div style={{
+          fontSize: '0.78rem',
+          color: 'var(--text-muted)',
+          lineHeight: 1.9,
+          background: 'rgba(0,0,0,0.2)',
+          border: '1px solid var(--border-window-inner)',
+          borderRadius: 'var(--radius-sm)',
+          padding: 'var(--spacing-sm) var(--spacing-md)',
+          marginBottom: 'var(--spacing-lg)',
+        }}>
+          <div style={{ marginBottom: '8px' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>🔊 効果音</span>
+          </div>
+          <div>
+            OtoLogic（<span style={{ color: 'var(--accent-primary)' }}>https://otologic.jp</span>）
+          </div>
+          <div style={{ marginTop: '6px', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+            本アプリの効果音素材はOtoLogicが提供するフリー素材を使用しています。<br />
+            素材の著作権はOtoLogicに帰属します。素材の二次配布・再販売は禁止されています。
+          </div>
+        </div>
+
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-sm)' }}>
           <button onClick={onClose} className="btn-icon" style={{ padding: '8px 16px', border: '2px solid var(--text-muted)' }}>
             キャンセル
