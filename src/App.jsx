@@ -27,6 +27,19 @@ function App() {
     setBgTimeLock(value);
   };
 
+  const [alertEnabled, setAlertEnabled] = useState(
+    () => localStorage.getItem('alertEnabled') === 'true'
+  );
+
+  const handleAlertEnabledChange = async (enabled) => {
+    if (enabled && Notification.permission === 'default') {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') return;
+    }
+    localStorage.setItem('alertEnabled', enabled);
+    setAlertEnabled(enabled);
+  };
+
   // 時間帯をhtmlのdata-time属性に設定（毎分更新）
   useEffect(() => {
     function updateTimePeriod() {
@@ -82,13 +95,13 @@ function App() {
       <FantasyOverlay />
       {!authToken
         ? <AuthScreen onLogin={handleLogin} />
-        : <MainApp currentUser={currentUser} onLogout={handleLogout} colorTheme={colorTheme} onThemeChange={handleThemeChange} bgTimeLock={bgTimeLock} onBgTimeLockChange={handleBgTimeLockChange} />
+        : <MainApp currentUser={currentUser} onLogout={handleLogout} colorTheme={colorTheme} onThemeChange={handleThemeChange} bgTimeLock={bgTimeLock} onBgTimeLockChange={handleBgTimeLockChange} alertEnabled={alertEnabled} onAlertEnabledChange={handleAlertEnabledChange} />
       }
     </>
   );
 }
 
-function MainApp({ currentUser, onLogout, colorTheme, onThemeChange, bgTimeLock, onBgTimeLockChange }) {
+function MainApp({ currentUser, onLogout, colorTheme, onThemeChange, bgTimeLock, onBgTimeLockChange, alertEnabled, onAlertEnabledChange }) {
   const {
     tasks,
     userStats,
@@ -106,6 +119,31 @@ function MainApp({ currentUser, onLogout, colorTheme, onThemeChange, bgTimeLock,
   } = useAppState();
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // 期限アラート（ブラウザ通知 + アプリ内バナー）
+  const notifiedRef = React.useRef(new Set());
+  const dueTasks = React.useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return tasks.filter(t => {
+      if (t.status === 'completed' || !t.dueDate) return false;
+      return new Date(t.dueDate) <= today;
+    });
+  }, [tasks]);
+
+  useEffect(() => {
+    if (!alertEnabled || dueTasks.length === 0) return;
+    dueTasks.forEach(t => {
+      if (notifiedRef.current.has(t.id)) return;
+      notifiedRef.current.add(t.id);
+      if (Notification.permission === 'granted') {
+        new Notification('⚔ クエスト期限アラート', {
+          body: `「${t.title}」の期限が過ぎています！`,
+          icon: '/favicon.ico',
+        });
+      }
+    });
+  }, [alertEnabled, dueTasks]);
 
   // レベルアップSE
   useEffect(() => {
@@ -222,6 +260,28 @@ function MainApp({ currentUser, onLogout, colorTheme, onThemeChange, bgTimeLock,
         </div>
       </header>
 
+      {/* 期限切れアラートバナー */}
+      {dueTasks.length > 0 && (
+        <div style={{
+          marginBottom: 'var(--spacing-md)',
+          padding: '8px 14px',
+          background: 'rgba(200, 30, 30, 0.18)',
+          border: '1px solid rgba(220, 60, 60, 0.5)',
+          borderRadius: 'var(--radius-sm)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          fontSize: '0.85rem',
+          color: 'var(--danger, #ff6666)',
+          animation: 'popIn 0.3s ease',
+        }}>
+          <span style={{ fontSize: '1rem' }}>⚠</span>
+          <span>
+            期限切れ・本日期限のクエストが <strong>{dueTasks.length}件</strong> あります！
+          </span>
+        </div>
+      )}
+
       {/* ステータスバー（Lv, EXP） */}
       <StatusHeader stats={userStats} getRequiredExp={getRequiredExp} />
 
@@ -335,6 +395,8 @@ function MainApp({ currentUser, onLogout, colorTheme, onThemeChange, bgTimeLock,
         onThemeChange={onThemeChange}
         bgTimeLock={bgTimeLock}
         onBgTimeLockChange={onBgTimeLockChange}
+        alertEnabled={alertEnabled}
+        onAlertEnabledChange={onAlertEnabledChange}
       />
     </div>
   );

@@ -11,7 +11,7 @@ const BG_TIME_OPTIONS = [
   { value: 'dusk',    label: '🌇 夕方' },
 ];
 
-export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, colorTheme, onThemeChange, bgTimeLock, onBgTimeLockChange }) {
+export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, colorTheme, onThemeChange, bgTimeLock, onBgTimeLockChange, alertEnabled, onAlertEnabledChange }) {
   const [keyInput, setKeyInput] = useState(apiSettings.apiKey);
   const [modelInput, setModelInput] = useState(apiSettings.modelName || 'google/gemini-2.5-flash');
   const [creditsOpen, setCreditsOpen] = useState(false);
@@ -27,11 +27,12 @@ export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, co
   };
 
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" style={{ alignItems: 'flex-start', overflowY: 'auto', padding: '20px 0' }}>
       <div className="rpg-window" style={{
         width: '90%',
         maxWidth: '500px',
         padding: 'var(--spacing-lg)',
+        margin: 'auto',
       }}>
         {/* ヘッダー */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)', borderBottom: '2px solid var(--border-window-inner)', paddingBottom: 'var(--spacing-sm)' }}>
@@ -123,6 +124,42 @@ export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, co
           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '6px' }}>
             ※ 固定すると時刻に関わらず選んだ時間帯の背景になります。流れ星は夜のみ表示されます。
           </p>
+        </div>
+
+        {/* 期限アラート */}
+        <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+          <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', color: 'var(--accent-primary)' }}>
+            ▶ 期限アラート
+          </label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              type="button"
+              onClick={() => onAlertEnabledChange(!alertEnabled)}
+              style={{
+                padding: '6px 16px',
+                border: alertEnabled
+                  ? '2px solid var(--accent-secondary)'
+                  : '2px solid var(--border-window-inner)',
+                borderRadius: 'var(--radius-sm)',
+                background: alertEnabled ? 'rgba(255,255,255,0.05)' : 'transparent',
+                cursor: 'pointer',
+                color: alertEnabled ? 'var(--accent-secondary)' : 'var(--text-muted)',
+                fontSize: '0.85rem',
+                transition: 'all 0.15s ease',
+                minWidth: '80px',
+              }}
+            >
+              {alertEnabled ? '⚠ ON' : '⚠ OFF'}
+            </button>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              {alertEnabled ? 'ブラウザ通知 + アプリ内バナーで期限をお知らせします' : '期限アラートが無効です'}
+            </span>
+          </div>
+          {alertEnabled && Notification.permission === 'denied' && (
+            <p style={{ fontSize: '0.78rem', color: 'var(--danger, #ff6666)', marginTop: '6px' }}>
+              ⚠ ブラウザの通知がブロックされています。ブラウザ設定から許可してください。
+            </p>
+          )}
         </div>
 
         {/* セパレーター */}
