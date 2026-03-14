@@ -31,7 +31,7 @@ export async function hashPassword(password, salt = toHex(crypto.getRandomValues
     {
       name: "PBKDF2",
       salt: encoder.encode(salt),
-      iterations: 120_000,
+      iterations: 100_000,
       hash: "SHA-256"
     },
     keyMaterial,
