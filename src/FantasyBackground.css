@@ -2,10 +2,12 @@
    ファンタジー背景 アニメーション
    ============================================= */
 
+/* 背景レイヤー: グラデーション・山脈（最背面） */
 .fantasy-bg {
   position: fixed;
   inset: 0;
   z-index: -1;
+  pointer-events: none;
   overflow: hidden;
   background: linear-gradient(
     to bottom,
@@ -14,6 +16,15 @@
     #0a0830 65%,
     #150a40 100%
   );
+}
+
+/* アニメーションレイヤー: 星・月・霧（最前面） */
+.fantasy-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  overflow: hidden;
 }
 
 /* ---- 星 ---- */
@@ -103,7 +114,7 @@
   width: 120px;
   height: 2px;
   border-radius: 1px;
-  background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.9) 100%);
+  background: linear-gradient(to right, rgba(255,255,255,0.9) 0%, transparent 100%);
   transform-origin: right center;
   will-change: transform, opacity;
 }
@@ -174,7 +185,7 @@
     rgba(154, 136, 255, 0.12) 50%,
     transparent 72%
   );
-  animation: fogDrift 28s ease-in-out 4s infinite reverse;
+  animation: fogDrift 28s ease-in-out 4s infinite;
 }
 
 .fantasy-fog.f3 {
@@ -193,8 +204,7 @@
 
 @keyframes fogDrift {
   0%   { transform: translateX(0%); }
-  50%  { transform: translateX(6%); }
-  100% { transform: translateX(0%); }
+  100% { transform: translateX(-10%); }
 }
 
 /* ---- 魔法の光点（地平線付近） ---- */

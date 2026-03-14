@@ -6,7 +6,7 @@ import { TaskList } from './TaskList';
 import { SettingsModal } from './SettingsModal';
 import { AuthScreen } from './AuthScreen';
 import { applyTheme } from './themes';
-import { FantasyBackground } from './FantasyBackground';
+import { FantasyBackground, FantasyOverlay } from './FantasyBackground';
 import './index.css';
 
 // 認証ラッパー：トークンがある場合はメインアプリを表示
@@ -48,6 +48,7 @@ function App() {
   return (
     <>
       <FantasyBackground />
+      <FantasyOverlay />
       {!authToken
         ? <AuthScreen onLogin={handleLogin} />
         : <MainApp currentUser={currentUser} onLogout={handleLogout} colorTheme={colorTheme} onThemeChange={handleThemeChange} />
@@ -93,6 +94,9 @@ function MainApp({ currentUser, onLogout, colorTheme, onThemeChange }) {
       }
       if (sortMode === 'difficulty') {
         return (b.difficulty || 0) - (a.difficulty || 0);
+      }
+      if (sortMode === 'exp') {
+        return (b.expReward || 0) - (a.expReward || 0);
       }
       return b.createdAt - a.createdAt;
     });
@@ -226,6 +230,7 @@ function MainApp({ currentUser, onLogout, colorTheme, onThemeChange }) {
               <option value="created">追加した順</option>
               <option value="dueDate">期限が近い順</option>
               <option value="difficulty">難易度が高い順</option>
+              <option value="exp">EXP が高い順</option>
             </select>
           </div>
         </div>

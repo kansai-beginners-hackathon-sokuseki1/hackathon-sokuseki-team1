@@ -25,40 +25,10 @@ function generateStars(count) {
   });
 }
 
+// 背景レイヤー: グラデーション・山脈・城シルエット（z-index: -1）
 export function FantasyBackground() {
-  const stars = useMemo(() => generateStars(150), []);
-
   return (
     <div className="fantasy-bg" aria-hidden="true">
-
-      {/* 星 */}
-      {stars.map((s, i) => (
-        <div
-          key={i}
-          className="fantasy-star"
-          style={{
-            left:    `${s.x}%`,
-            top:     `${s.y}%`,
-            width:   `${s.size}px`,
-            height:  `${s.size}px`,
-            backgroundColor: s.bright ? '#e8e8ff' : '#ffffff',
-            '--star-opacity': s.opacity,
-            '--star-dur':     `${s.dur}s`,
-            '--star-delay':   `${s.delay}s`,
-          }}
-        />
-      ))}
-
-      {/* 月 */}
-      <div className="fantasy-moon-wrap">
-        <div className="fantasy-moon-glow" />
-        <div className="fantasy-moon" />
-      </div>
-
-      {/* 流れ星 */}
-      <div className="fantasy-shooting-star s1" />
-      <div className="fantasy-shooting-star s2" />
-      <div className="fantasy-shooting-star s3" />
 
       {/* 山脈・城シルエット（SVGインライン） */}
       <svg
@@ -139,6 +109,46 @@ export function FantasyBackground() {
           <rect x="1888" y="660" width="8" height="28" />
         </g>
       </svg>
+
+    </div>
+  );
+}
+
+// アニメーションレイヤー: 星・月・流れ星・霧・魔法の光（z-index: 9999）
+export function FantasyOverlay() {
+  const stars = useMemo(() => generateStars(150), []);
+
+  return (
+    <div className="fantasy-overlay" aria-hidden="true">
+
+      {/* 星 */}
+      {stars.map((s, i) => (
+        <div
+          key={i}
+          className="fantasy-star"
+          style={{
+            left:    `${s.x}%`,
+            top:     `${s.y}%`,
+            width:   `${s.size}px`,
+            height:  `${s.size}px`,
+            backgroundColor: s.bright ? '#e8e8ff' : '#ffffff',
+            '--star-opacity': s.opacity,
+            '--star-dur':     `${s.dur}s`,
+            '--star-delay':   `${s.delay}s`,
+          }}
+        />
+      ))}
+
+      {/* 月 */}
+      <div className="fantasy-moon-wrap">
+        <div className="fantasy-moon-glow" />
+        <div className="fantasy-moon" />
+      </div>
+
+      {/* 流れ星 */}
+      <div className="fantasy-shooting-star s1" />
+      <div className="fantasy-shooting-star s2" />
+      <div className="fantasy-shooting-star s3" />
 
       {/* 霧レイヤー */}
       <div className="fantasy-fog f1" />
