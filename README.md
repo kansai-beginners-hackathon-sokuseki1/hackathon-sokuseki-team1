@@ -1,5 +1,45 @@
 # Hackathon Team Workspace
 
+## Backend MVP
+
+Cloudflare Workers + D1 backend for the RPG-style task manager MVP.
+
+### Run
+
+```bash
+npm install
+npm run db:migrate:local
+npm start
+```
+
+Default server:
+- `http://localhost:8787`
+
+Main endpoints:
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/tasks`
+- `POST /api/tasks`
+- `GET /api/tasks/:id`
+- `PATCH /api/tasks/:id`
+- `DELETE /api/tasks/:id`
+- `POST /api/tasks/:id/complete`
+- `GET /api/progress`
+- `GET /api/rpg-state`
+
+### Test
+
+```bash
+npm test
+```
+
+### D1 setup
+
+- Create a D1 database: `wrangler d1 create hackathon-sokuseki-team1-db`
+- Copy the returned `database_id` into [wrangler.toml](/C:/Users/paramaster/Desktop/hackathon/hackathon-sokuseki-team1/wrangler.toml)
+- Apply local migrations: `npm run db:migrate:local`
+- Apply remote migrations: `npm run db:migrate:remote`
+
 ## この文書で一番大事なこと
 - 作業は必ず個別ブランチで行い、`main` へ直接 push しない。
 - タスクは GitHub Issues に起票してから着手する。

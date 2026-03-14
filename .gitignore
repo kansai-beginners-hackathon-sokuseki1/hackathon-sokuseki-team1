@@ -18,6 +18,7 @@ build/
 coverage/
 node_modules/
 .cache/
+.wrangler/
 
 # Local secrets and settings
 .env
