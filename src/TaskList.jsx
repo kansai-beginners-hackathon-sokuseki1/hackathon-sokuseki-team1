@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { CheckCircle2, Circle, Trash2, ArrowUpCircle, Edit2, Calendar, X, Save } from 'lucide-react';
 import { generateCompanionMessage } from './aiService';
+import { playQuestComplete } from './soundEffects';
 
 export function TaskList({ tasks, toggleTask, editTask, deleteTask, apiSettings, userLevel }) {
   const [npcMessage, setNpcMessage] = useState(null);
   const [loadingMessageId, setLoadingMessageId] = useState(null);
   const [editingId, setEditingId] = useState(null);
+  const [questCompletePopup, setQuestCompletePopup] = useState(null); // { title, expReward }
 
   const [editTitle, setEditTitle] = useState('');
   const [editDueDate, setEditDueDate] = useState('');
@@ -29,16 +31,26 @@ export function TaskList({ tasks, toggleTask, editTask, deleteTask, apiSettings,
 
   const handleToggle = async (task) => {
     const updatedTask = await toggleTask(task.id);
-    if (updatedTask && updatedTask.completed && apiSettings.apiKey) {
-      setLoadingMessageId(task.id);
-      try {
-        const msg = await generateCompanionMessage(apiSettings.apiKey, apiSettings.modelName, task.title, userLevel);
-        setNpcMessage({ taskId: task.id, text: msg });
-        setTimeout(() => setNpcMessage(null), 8000);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoadingMessageId(null);
+    if (updatedTask && updatedTask.completed) {
+      // SE再生
+      playQuestComplete();
+
+      // クエスト完了ポップアップ表示
+      setQuestCompletePopup({ title: task.title, expReward: updatedTask.expReward });
+      setTimeout(() => setQuestCompletePopup(null), 3000);
+
+      // NPCメッセージ（APIキーある場合）
+      if (apiSettings.apiKey) {
+        setLoadingMessageId(task.id);
+        try {
+          const msg = await generateCompanionMessage(apiSettings.apiKey, apiSettings.modelName, task.title, userLevel);
+          setNpcMessage({ taskId: task.id, text: msg });
+          setTimeout(() => setNpcMessage(null), 8000);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setLoadingMessageId(null);
+        }
       }
     }
   };
@@ -61,6 +73,33 @@ export function TaskList({ tasks, toggleTask, editTask, deleteTask, apiSettings,
   }
 
   return (
+    <>
+    {/* クエスト完了ポップアップ（ドラクエ風メッセージウィンドウ） */}
+    {questCompletePopup && (
+      <div style={{
+        position: 'fixed',
+        bottom: '32px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 1500,
+        width: 'min(480px, 90vw)',
+        animation: 'popIn 0.2s ease',
+        pointerEvents: 'none',
+      }}>
+        <div className="rpg-window" style={{ padding: 'var(--spacing-md) var(--spacing-lg)', textAlign: 'center' }}>
+          <div style={{ color: 'var(--accent-secondary)', fontSize: '1.1rem', letterSpacing: '2px', marginBottom: '6px' }}>
+            ✦ クエスト完了！ ✦
+          </div>
+          <div style={{ color: 'var(--text-primary)', fontSize: '0.95rem', marginBottom: '8px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            「{questCompletePopup.title}」
+          </div>
+          <div style={{ color: 'var(--accent-primary)', fontSize: '1rem', letterSpacing: '1px' }}>
+            +{questCompletePopup.expReward} EXP を獲得した！
+          </div>
+        </div>
+      </div>
+    )}
+
     <div
       style={{
         display: 'flex',
@@ -216,5 +255,6 @@ export function TaskList({ tasks, toggleTask, editTask, deleteTask, apiSettings,
         );
       })}
     </div>
+    </>
   );
 }

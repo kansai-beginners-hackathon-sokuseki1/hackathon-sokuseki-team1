@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Wand2, Loader2, Calendar, Star } from 'lucide-react';
+import { Plus, Calendar } from 'lucide-react';
 import { generateSubtasks } from './aiService';
 
 export function TaskInput({ onAdd, apiSettings }) {
@@ -9,41 +9,32 @@ export function TaskInput({ onAdd, apiSettings }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) return;
-    onAdd(title.trim(), difficulty, dueDate || null);
-    setTitle('');
-    setDueDate('');
-    setDifficulty(1);
     setErrorMsg(null);
-  };
 
-  const handleAiSplit = async () => {
-    if (!title.trim()) { setErrorMsg('タスク名を入力してから分割ボタンを押してください。'); return; }
-    if (!apiSettings.apiKey) { setErrorMsg('設定からAPIキーを入力してください。'); return; }
-    setIsGenerating(true);
-    setErrorMsg(null);
-    try {
-      const subtasksText = await generateSubtasks(apiSettings.apiKey, apiSettings.modelName, title.trim());
-      let addedCount = 0;
-      if (Array.isArray(subtasksText)) {
-        subtasksText.forEach(subTitle => {
-          if (subTitle && subTitle.trim()) {
-            onAdd(subTitle.trim(), difficulty, dueDate || null, null);
-            addedCount++;
+    if (apiSettings.apiKey) {
+      setIsGenerating(true);
+      try {
+        const result = await generateSubtasks(apiSettings.apiKey, apiSettings.modelName, title.trim());
+        await onAdd(result.mainTask.trim() || title.trim(), difficulty, dueDate || null);
+        for (const sub of result.subtasks) {
+          if (sub && sub.trim()) {
+            await onAdd(sub.trim(), difficulty, dueDate || null);
           }
-        });
-      }
-      if (addedCount > 0) {
+        }
         setTitle(''); setDueDate(''); setDifficulty(1);
-      } else {
-        setErrorMsg('うまく分割できませんでした。別のタスク名でお試しください。');
+      } catch (err) {
+        setErrorMsg('AIの呼び出し中にエラーが発生しました。');
+      } finally {
+        setIsGenerating(false);
       }
-    } catch (err) {
-      setErrorMsg('AIの呼び出し中にエラーが発生しました。');
-    } finally {
-      setIsGenerating(false);
+    } else {
+      onAdd(title.trim(), difficulty, dueDate || null);
+      setTitle('');
+      setDueDate('');
+      setDifficulty(1);
     }
   };
 
@@ -101,31 +92,23 @@ export function TaskInput({ onAdd, apiSettings }) {
             type="submit"
             className="btn-primary"
             disabled={!title.trim() || isGenerating}
+            title={apiSettings.apiKey ? 'AIがメインタスク＋サブクエストに分解して追加します' : 'クエストを追加します'}
           >
-            <Plus size={16} />
-            追加
+            {isGenerating
+              ? <>⌛ AI分析中...</>
+              : apiSettings.apiKey
+                ? <>✦ AI追加</>
+                : <><Plus size={16} />追加</>
+            }
           </button>
         </div>
       </form>
 
-      {/* AI分割ボタンとエラー */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'var(--spacing-sm)', borderTop: '1px solid var(--border-window-inner)', paddingTop: 'var(--spacing-sm)' }}>
-        <span style={{ fontSize: '0.8rem', color: 'var(--danger)' }}>{errorMsg}</span>
-        <button
-          type="button"
-          onClick={handleAiSplit}
-          disabled={!title.trim() || isGenerating || !apiSettings.apiKey}
-          className="btn-primary"
-          style={{
-            color: (title.trim() && apiSettings.apiKey) ? 'var(--accent-primary)' : 'var(--text-muted)',
-            fontSize: '0.85rem',
-            padding: '6px 12px'
-          }}
-          title={!apiSettings.apiKey ? "⚙設定からAPIキーを登録してください" : "AIがサブクエストに分割します"}
-        >
-          {isGenerating ? <>⌛ AI分割中...</> : <>✦ AIで分割</>}
-        </button>
-      </div>
+      {errorMsg && (
+        <div style={{ marginTop: 'var(--spacing-sm)', fontSize: '0.8rem', color: 'var(--danger)' }}>
+          {errorMsg}
+        </div>
+      )}
     </div>
   );
 }

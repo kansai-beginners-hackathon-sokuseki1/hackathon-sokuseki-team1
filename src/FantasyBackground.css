@@ -108,6 +108,18 @@
   50%       { opacity: 1.0;  transform: scale(1.04); }
 }
 
+/* スマートフォン: 月を右上に移動して文字と被らないようにする */
+@media (max-width: 600px) {
+  .fantasy-moon-wrap {
+    top: 6%;
+    left: auto;
+    right: 8%;
+    width: 140px;
+    height: 140px;
+    transform: translate(50%, -50%);
+  }
+}
+
 /* ---- 流れ星 ---- */
 .fantasy-shooting-star {
   position: absolute;

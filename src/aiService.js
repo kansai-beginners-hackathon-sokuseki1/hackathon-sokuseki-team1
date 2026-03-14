@@ -55,31 +55,37 @@ async function callOpenRouterApi(apiKey, modelName, systemPrompt, userPrompt) {
 }
 
 /**
- * 案A: タスクの自動分割
+ * タスクをメインタスク＋サブタスクに構造化分解する
+ * @returns {{ mainTask: string, subtasks: string[] }}
  */
 export async function generateSubtasks(apiKey, modelName, taskTitle) {
   const systemPrompt = `
-You are a helpful assistant for a task management application. 
-The user will give you a large or vague task. 
-Your job is to break it down into 3 to 5 actionable, concrete sub-tasks.
-Reply ONLY with a valid JSON array of strings, where each string is a sub-task.
-Do not include any explanation or markdown formatting like \`\`\`json.
-Example output: ["Step 1", "Step 2", "Step 3"]
+You are a helpful assistant for a task management application.
+The user will give you a task. Break it down into a main task and 3 to 5 actionable sub-tasks.
+Reply ONLY with valid JSON in exactly this format (no explanation, no markdown):
+{"mainTask": "refined main task title", "subtasks": ["step 1", "step 2", "step 3"]}
+- mainTask: a concise, clarified version of the input task
+- subtasks: 3 to 5 concrete, actionable steps
   `;
 
-  const userPrompt = `Break down this task: "${taskTitle}"`;
+  const userPrompt = `Task: "${taskTitle}"`;
 
   try {
     const resultText = await callOpenRouterApi(apiKey, modelName, systemPrompt, userPrompt);
     try {
       const parsed = JSON.parse(resultText);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+      if (parsed && typeof parsed.mainTask === 'string' && Array.isArray(parsed.subtasks)) {
+        return { mainTask: parsed.mainTask, subtasks: parsed.subtasks.filter(s => s && s.trim()) };
       }
-      throw new Error("Invalid array format returned.");
+      // 旧形式（配列）が返ってきた場合のフォールバック
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return { mainTask: taskTitle, subtasks: parsed };
+      }
+      throw new Error("Invalid format returned.");
     } catch(e) {
       console.error("AI returned invalid JSON:", resultText);
-      return resultText.split('\n').map(s => s.replace(/^[-* 0-9.]+/, '').trim()).filter(s => s.length > 0).slice(0, 5);
+      const subtasks = resultText.split('\n').map(s => s.replace(/^[-* 0-9.]+/, '').trim()).filter(s => s.length > 0).slice(0, 5);
+      return { mainTask: taskTitle, subtasks };
     }
   } catch (error) {
     console.error('generateSubtasks Error:', error);

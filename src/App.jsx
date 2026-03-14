@@ -6,6 +6,7 @@ import { TaskList } from './TaskList';
 import { SettingsModal } from './SettingsModal';
 import { AuthScreen } from './AuthScreen';
 import { applyTheme } from './themes';
+import { playLevelUp } from './soundEffects';
 import { FantasyBackground, FantasyOverlay } from './FantasyBackground';
 import './index.css';
 
@@ -75,6 +76,11 @@ function MainApp({ currentUser, onLogout, colorTheme, onThemeChange }) {
   } = useAppState();
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // レベルアップSE
+  useEffect(() => {
+    if (levelUpData) playLevelUp();
+  }, [levelUpData]);
   const [filterMode, setFilterMode] = useState('all');
   const [sortMode, setSortMode] = useState('created');
 
