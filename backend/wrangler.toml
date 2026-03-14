@@ -1,0 +1,9 @@
+name = "hackathon-sokuseki-team1-backend"
+main = "src/worker.js"
+compatibility_date = "2026-03-14"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "hackathon-sokuseki-team1-db"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"

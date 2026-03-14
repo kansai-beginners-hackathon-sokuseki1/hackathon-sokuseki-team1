@@ -1,13 +1,57 @@
-import React, { useState, useMemo } from 'react';
-import { Settings, Sparkles, Filter } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAppState } from './useAppState';
 import { StatusHeader } from './StatusHeader';
 import { TaskInput } from './TaskInput';
 import { TaskList } from './TaskList';
 import { SettingsModal } from './SettingsModal';
+import { AuthScreen } from './AuthScreen';
+import { applyTheme } from './themes';
 import './index.css';
 
+// 認証ラッパー：トークンがある場合はメインアプリを表示
 function App() {
+  const [authToken, setAuthToken] = useState(() => localStorage.getItem('authToken'));
+  const [currentUser, setCurrentUser] = useState(() => {
+    const saved = localStorage.getItem('currentUser');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  const [colorTheme, setColorTheme] = useState(
+    () => localStorage.getItem('colorTheme') ?? 'dark-blue'
+  );
+
+  // マウント時および変更時にテーマを適用
+  useEffect(() => {
+    applyTheme(colorTheme);
+  }, [colorTheme]);
+
+  const handleThemeChange = (themeKey) => {
+    localStorage.setItem('colorTheme', themeKey);
+    setColorTheme(themeKey);
+  };
+
+  const handleLogin = (token, user) => {
+    localStorage.setItem('authToken', token);
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    setAuthToken(token);
+    setCurrentUser(user);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('currentUser');
+    setAuthToken(null);
+    setCurrentUser(null);
+  };
+
+  if (!authToken) {
+    return <AuthScreen onLogin={handleLogin} />;
+  }
+
+  return <MainApp currentUser={currentUser} onLogout={handleLogout} colorTheme={colorTheme} onThemeChange={handleThemeChange} />;
+}
+
+function MainApp({ currentUser, onLogout, colorTheme, onThemeChange }) {
   const {
     tasks,
     userStats,
@@ -19,7 +63,9 @@ function App() {
     deleteTask,
     getRequiredExp,
     levelUpData,
-    clearLevelUpData
+    clearLevelUpData,
+    loading,
+    error
   } = useAppState();
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -47,6 +93,35 @@ function App() {
     });
     return result;
   }, [tasks, filterMode, sortMode]);
+
+  // 初期ロード中
+  if (loading) {
+    return (
+      <div className="app-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <div className="rpg-window" style={{ textAlign: 'center', padding: 'var(--spacing-xl)' }}>
+          <p style={{ color: 'var(--accent-secondary)', fontSize: '1.2rem', animation: 'blink 1s infinite' }}>
+            ⌛ クエストデータを読み込み中...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // API接続エラー（セッション切れ含む）
+  if (error) {
+    return (
+      <div className="app-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <div className="rpg-window" style={{ textAlign: 'center', padding: 'var(--spacing-xl)', maxWidth: '400px' }}>
+          <p style={{ color: 'var(--danger)', fontSize: '1rem', marginBottom: 'var(--spacing-md)' }}>
+            ⚠ 接続エラー: {error}
+          </p>
+          <button className="btn-primary" onClick={onLogout}>
+            ログイン画面に戻る
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="app-wrapper">
@@ -77,14 +152,29 @@ function App() {
           }}>AI</span>
         </h1>
 
-        <button
-          onClick={() => setIsSettingsOpen(true)}
-          className="btn-icon"
-          title="AI設定"
-          style={{ fontSize: '1.2rem' }}
-        >
-          ⚙
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+          {currentUser && (
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              🗡 {currentUser.username}
+            </span>
+          )}
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="btn-icon"
+            title="AI設定"
+            style={{ fontSize: '1.2rem' }}
+          >
+            ⚙
+          </button>
+          <button
+            onClick={onLogout}
+            className="btn-icon"
+            title="ログアウト"
+            style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}
+          >
+            ⏏
+          </button>
+        </div>
       </header>
 
       {/* ステータスバー（Lv, EXP） */}
@@ -167,7 +257,6 @@ function App() {
             maxWidth: '400px',
             width: '90%'
           }}>
-            {/* RPGウィンドウ風のレベルアップ表示 */}
             <div className="rpg-window" style={{ marginBottom: 'var(--spacing-md)' }}>
               <p style={{ color: 'var(--accent-secondary)', fontSize: '2rem', letterSpacing: '4px', marginBottom: '12px', textAlign: 'center' }}>
                 ★ LEVEL UP! ★
@@ -194,6 +283,8 @@ function App() {
         onClose={() => setIsSettingsOpen(false)}
         apiSettings={apiSettings}
         setApiSettings={setApiSettings}
+        colorTheme={colorTheme}
+        onThemeChange={onThemeChange}
       />
     </div>
   );

@@ -28,7 +28,7 @@ export function TaskList({ tasks, toggleTask, editTask, deleteTask, apiSettings,
   const cancelEdit = () => setEditingId(null);
 
   const handleToggle = async (task) => {
-    const updatedTask = toggleTask(task.id);
+    const updatedTask = await toggleTask(task.id);
     if (updatedTask && updatedTask.completed && apiSettings.apiKey) {
       setLoadingMessageId(task.id);
       try {

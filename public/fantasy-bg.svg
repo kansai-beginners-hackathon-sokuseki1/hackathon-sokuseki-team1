@@ -1,0 +1,265 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <!-- 空のグラデーション -->
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#000008"/>
+      <stop offset="30%"  stop-color="#030318"/>
+      <stop offset="70%"  stop-color="#0a0830"/>
+      <stop offset="100%" stop-color="#150a40"/>
+    </linearGradient>
+    <!-- 月の光輪 -->
+    <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#fffbe8" stop-opacity="0.9"/>
+      <stop offset="35%"  stop-color="#ffd070" stop-opacity="0.5"/>
+      <stop offset="70%"  stop-color="#8855ff" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#220066" stop-opacity="0"/>
+    </radialGradient>
+    <!-- 月の表面 -->
+    <radialGradient id="moonSurface" cx="40%" cy="38%" r="60%">
+      <stop offset="0%"   stop-color="#fffef5"/>
+      <stop offset="60%"  stop-color="#fff8d0"/>
+      <stop offset="100%" stop-color="#ffe090"/>
+    </radialGradient>
+    <!-- 遠景山のグラデーション -->
+    <linearGradient id="mtFar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#1a1060"/>
+      <stop offset="100%" stop-color="#0d0840"/>
+    </linearGradient>
+    <!-- 中景山 -->
+    <linearGradient id="mtMid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#120a40"/>
+      <stop offset="100%" stop-color="#080520"/>
+    </linearGradient>
+    <!-- 近景山 -->
+    <linearGradient id="mtNear" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#0a0620"/>
+      <stop offset="100%" stop-color="#020108"/>
+    </linearGradient>
+    <!-- 霧 -->
+    <linearGradient id="fog1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#4433aa" stop-opacity="0"/>
+      <stop offset="50%"  stop-color="#2211660" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#110844" stop-opacity="0.35"/>
+    </linearGradient>
+    <linearGradient id="fog2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#3322aa" stop-opacity="0.25"/>
+      <stop offset="50%"  stop-color="#6644cc" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#3322aa" stop-opacity="0.25"/>
+    </linearGradient>
+    <!-- 空の光芒 -->
+    <radialGradient id="skyGlow" cx="50%" cy="80%" r="60%">
+      <stop offset="0%"   stop-color="#5533cc" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#000011" stop-opacity="0"/>
+    </radialGradient>
+    <!-- 魔法陣風の光 -->
+    <radialGradient id="magicGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#00ccff" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#0044ff" stop-opacity="0"/>
+    </radialGradient>
+    <!-- 星のフィルター（グロー効果） -->
+    <filter id="starGlow">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="moonFilter">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- 空背景 -->
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <!-- 空の光芒 -->
+  <ellipse cx="960" cy="900" rx="1200" ry="600" fill="url(#skyGlow)"/>
+
+  <!-- 星群 (大) -->
+  <g fill="#ffffff" filter="url(#starGlow)">
+    <circle cx="120"  cy="45"  r="1.8" opacity="0.95"/>
+    <circle cx="245"  cy="92"  r="1.5" opacity="0.85"/>
+    <circle cx="380"  cy="28"  r="2.0" opacity="0.90"/>
+    <circle cx="512"  cy="65"  r="1.6" opacity="0.80"/>
+    <circle cx="630"  cy="38"  r="1.9" opacity="0.92"/>
+    <circle cx="755"  cy="82"  r="1.4" opacity="0.78"/>
+    <circle cx="890"  cy="22"  r="2.1" opacity="0.95"/>
+    <circle cx="1040" cy="55"  r="1.7" opacity="0.88"/>
+    <circle cx="1180" cy="35"  r="1.5" opacity="0.82"/>
+    <circle cx="1320" cy="70"  r="2.0" opacity="0.90"/>
+    <circle cx="1460" cy="42"  r="1.8" opacity="0.87"/>
+    <circle cx="1600" cy="88"  r="1.6" opacity="0.83"/>
+    <circle cx="1740" cy="30"  r="2.0" opacity="0.94"/>
+    <circle cx="1860" cy="60"  r="1.5" opacity="0.79"/>
+  </g>
+  <!-- 星群 (中) -->
+  <g fill="#eeeeff" opacity="0.75">
+    <circle cx="60"   cy="140" r="1.2"/>
+    <circle cx="175"  cy="190" r="1.0"/>
+    <circle cx="290"  cy="155" r="1.3"/>
+    <circle cx="415"  cy="120" r="1.1"/>
+    <circle cx="540"  cy="175" r="1.2"/>
+    <circle cx="660"  cy="130" r="1.0"/>
+    <circle cx="785"  cy="165" r="1.3"/>
+    <circle cx="910"  cy="110" r="1.1"/>
+    <circle cx="1030" cy="150" r="1.2"/>
+    <circle cx="1155" cy="185" r="1.0"/>
+    <circle cx="1280" cy="125" r="1.3"/>
+    <circle cx="1405" cy="160" r="1.1"/>
+    <circle cx="1525" cy="140" r="1.2"/>
+    <circle cx="1650" cy="175" r="1.0"/>
+    <circle cx="1775" cy="120" r="1.3"/>
+    <circle cx="1900" cy="155" r="1.1"/>
+    <!-- 散らばった小星 -->
+    <circle cx="90"   cy="220" r="0.9"/>
+    <circle cx="210"  cy="260" r="1.0"/>
+    <circle cx="340"  cy="240" r="0.8"/>
+    <circle cx="470"  cy="210" r="1.1"/>
+    <circle cx="595"  cy="255" r="0.9"/>
+    <circle cx="720"  cy="230" r="1.0"/>
+    <circle cx="845"  cy="270" r="0.8"/>
+    <circle cx="970"  cy="215" r="1.1"/>
+    <circle cx="1095" cy="245" r="0.9"/>
+    <circle cx="1220" cy="220" r="1.0"/>
+    <circle cx="1345" cy="260" r="0.8"/>
+    <circle cx="1470" cy="235" r="1.1"/>
+    <circle cx="1595" cy="250" r="0.9"/>
+    <circle cx="1720" cy="210" r="1.0"/>
+    <circle cx="1845" cy="240" r="0.8"/>
+    <!-- さらに散らばった星 -->
+    <circle cx="155"  cy="310" r="0.9"/>
+    <circle cx="320"  cy="330" r="0.8"/>
+    <circle cx="480"  cy="305" r="1.0"/>
+    <circle cx="650"  cy="345" r="0.7"/>
+    <circle cx="820"  cy="315" r="0.9"/>
+    <circle cx="985"  cy="340" r="0.8"/>
+    <circle cx="1150" cy="320" r="1.0"/>
+    <circle cx="1310" cy="350" r="0.7"/>
+    <circle cx="1475" cy="325" r="0.9"/>
+    <circle cx="1640" cy="310" r="0.8"/>
+    <circle cx="1805" cy="340" r="1.0"/>
+  </g>
+  <!-- 星群 (小・多数) -->
+  <g fill="#ccccff" opacity="0.55">
+    <circle cx="30"   cy="80"  r="0.7"/><circle cx="80"   cy="300" r="0.6"/>
+    <circle cx="140"  cy="170" r="0.8"/><circle cx="195"  cy="380" r="0.6"/>
+    <circle cx="260"  cy="105" r="0.7"/><circle cx="310"  cy="290" r="0.6"/>
+    <circle cx="365"  cy="200" r="0.8"/><circle cx="430"  cy="355" r="0.6"/>
+    <circle cx="490"  cy="85"  r="0.7"/><circle cx="550"  cy="310" r="0.6"/>
+    <circle cx="605"  cy="195" r="0.8"/><circle cx="670"  cy="380" r="0.6"/>
+    <circle cx="730"  cy="100" r="0.7"/><circle cx="790"  cy="285" r="0.6"/>
+    <circle cx="850"  cy="195" r="0.8"/><circle cx="915"  cy="370" r="0.6"/>
+    <circle cx="975"  cy="90"  r="0.7"/><circle cx="1035" cy="300" r="0.6"/>
+    <circle cx="1095" cy="185" r="0.8"/><circle cx="1160" cy="375" r="0.6"/>
+    <circle cx="1220" cy="95"  r="0.7"/><circle cx="1280" cy="295" r="0.6"/>
+    <circle cx="1340" cy="190" r="0.8"/><circle cx="1400" cy="365" r="0.6"/>
+    <circle cx="1455" cy="88"  r="0.7"/><circle cx="1515" cy="305" r="0.6"/>
+    <circle cx="1575" cy="185" r="0.8"/><circle cx="1635" cy="375" r="0.6"/>
+    <circle cx="1695" cy="92"  r="0.7"/><circle cx="1750" cy="295" r="0.6"/>
+    <circle cx="1810" cy="185" r="0.8"/><circle cx="1870" cy="370" r="0.6"/>
+  </g>
+
+  <!-- 月の光輪 (大) -->
+  <circle cx="310" cy="175" r="220" fill="url(#moonGlow)"/>
+  <!-- 月の光輪 (小) -->
+  <circle cx="310" cy="175" r="110" fill="url(#moonGlow)" opacity="0.6"/>
+  <!-- 月本体 -->
+  <circle cx="310" cy="175" r="72" fill="url(#moonSurface)" filter="url(#moonFilter)"/>
+  <!-- 月のクレーター -->
+  <circle cx="280" cy="155" r="12" fill="#ffe8a0" opacity="0.35"/>
+  <circle cx="335" cy="195" r="8"  fill="#ffe8a0" opacity="0.25"/>
+  <circle cx="295" cy="200" r="6"  fill="#ffe8a0" opacity="0.20"/>
+  <circle cx="350" cy="158" r="10" fill="#ffe8a0" opacity="0.30"/>
+
+  <!-- 流れ星 1 -->
+  <line x1="1400" y1="80"  x2="1500" y2="130" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/>
+  <circle cx="1500" cy="130" r="2" fill="#ffffff" opacity="0.8"/>
+  <!-- 流れ星 2 -->
+  <line x1="700"  y1="45"  x2="780"  y2="85"  stroke="#aaddff" stroke-width="1.2" opacity="0.5"/>
+  <circle cx="780" cy="85" r="1.5" fill="#aaddff" opacity="0.7"/>
+
+  <!-- 遠景山脈 -->
+  <path d="
+    M0,820
+    L60,710 L130,740 L220,660 L310,700 L420,620
+    L520,670 L630,590 L730,640 L850,560
+    L960,610 L1080,550 L1190,600 L1310,530
+    L1430,580 L1550,510 L1670,565 L1790,500
+    L1880,545 L1920,520
+    L1920,1080 L0,1080 Z"
+    fill="url(#mtFar)" opacity="0.9"/>
+
+  <!-- 中景山脈 -->
+  <path d="
+    M0,900
+    L80,800 L170,830 L280,760 L390,800 L500,730
+    L620,780 L740,700 L860,760 L980,690
+    L1100,750 L1220,680 L1340,740 L1460,670
+    L1580,730 L1700,660 L1820,720 L1920,680
+    L1920,1080 L0,1080 Z"
+    fill="url(#mtMid)"/>
+
+  <!-- 近景の崖・丘 -->
+  <path d="
+    M0,970
+    L100,900 L200,930 L330,880 L460,920 L600,870
+    L740,910 L880,860 L1020,900 L1160,855
+    L1300,895 L1440,860 L1580,900 L1720,865
+    L1860,905 L1920,885
+    L1920,1080 L0,1080 Z"
+    fill="url(#mtNear)"/>
+
+  <!-- 霧・靄（横方向） -->
+  <rect x="0" y="880" width="1920" height="200" fill="url(#fog2)" opacity="0.6"/>
+  <!-- 霧（縦方向グラデーション） -->
+  <rect x="0" y="850" width="1920" height="230" fill="url(#fog1)"/>
+
+  <!-- 魔法の光（地平線付近の輝き） -->
+  <ellipse cx="310" cy="870" rx="180" ry="40" fill="url(#magicGlow)" opacity="0.25"/>
+  <ellipse cx="960" cy="890" rx="250" ry="35" fill="#3344ff" opacity="0.08"/>
+  <ellipse cx="1600" cy="875" rx="200" ry="38" fill="url(#magicGlow)" opacity="0.20"/>
+
+  <!-- 城のシルエット（右奥） -->
+  <g fill="#0d0a30" opacity="0.85">
+    <!-- 城壁 -->
+    <rect x="1600" y="680" width="180" height="120"/>
+    <!-- 塔1（メイン） -->
+    <rect x="1650" y="590" width="40" height="110"/>
+    <polygon points="1650,590 1690,590 1670,550" />
+    <!-- 塔2（左） -->
+    <rect x="1605" y="630" width="28" height="80"/>
+    <polygon points="1605,630 1633,630 1619,598" />
+    <!-- 塔3（右） -->
+    <rect x="1752" y="625" width="28" height="85"/>
+    <polygon points="1752,625 1780,625 1766,592" />
+    <!-- 城の窓の光 -->
+    <rect x="1662" y="635" width="6" height="8" fill="#ffcc44" opacity="0.8"/>
+    <rect x="1678" y="635" width="6" height="8" fill="#ffcc44" opacity="0.8"/>
+    <rect x="1662" y="655" width="6" height="8" fill="#ffcc44" opacity="0.6"/>
+  </g>
+
+  <!-- 木々のシルエット（左） -->
+  <g fill="#050310">
+    <!-- 木1 -->
+    <polygon points="120,1000 145,920 170,1000"/>
+    <polygon points="130,960  155,885 180,960"/>
+    <polygon points="140,925  162,855 184,925"/>
+    <rect x="148" y="1000" width="10" height="40"/>
+    <!-- 木2 -->
+    <polygon points="200,1010 228,925 256,1010"/>
+    <polygon points="210,970  235,892 260,970"/>
+    <polygon points="220,935  243,862 266,935"/>
+    <rect x="228" y="1010" width="11" height="35"/>
+    <!-- 木3 -->
+    <polygon points="50,1010  72,940  94,1010"/>
+    <polygon points="58,975   80,908 102,975"/>
+    <rect x="66" y="1010" width="9" height="40"/>
+    <!-- 木4（遠景） -->
+    <polygon points="1820,990 1840,930 1860,990"/>
+    <polygon points="1828,958 1846,900 1864,958"/>
+    <rect x="1836" y="990" width="8" height="35"/>
+    <polygon points="1870,1000 1892,940 1914,1000"/>
+    <polygon points="1878,965  1898,908 1918,965"/>
+    <rect x="1888" y="1000" width="8" height="35"/>
+  </g>
+
+  <!-- 全体に淡い紫の雰囲気オーバーレイ -->
+  <rect width="1920" height="1080" fill="#110022" opacity="0.18"/>
+</svg>

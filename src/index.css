@@ -50,7 +50,10 @@
 body {
   font-family: 'DotGothic16', 'ＭＳ ゴシック', 'MS Gothic', 'Courier New', monospace;
   background-color: var(--bg-dark);
-  background-image: radial-gradient(ellipse at center top, #050520 0%, #000000 60%);
+  background-image: url('/fantasy-bg.svg');
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
   color: var(--text-primary);
   line-height: 1.8;
   min-height: 100vh;
@@ -77,6 +80,8 @@ body {
 .rpg-window,
 .glass-panel {
   background-color: var(--bg-window);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   color: var(--text-primary);
   border: 3px solid var(--border-window);
   border-radius: var(--radius-md);

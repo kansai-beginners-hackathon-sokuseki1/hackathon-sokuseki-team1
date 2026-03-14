@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X, Save, Settings } from 'lucide-react';
+import { X, Save } from 'lucide-react';
+import { THEME_LABELS, THEME_PREVIEW } from './themes';
 
-export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings }) {
+export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, colorTheme, onThemeChange }) {
   const [keyInput, setKeyInput] = useState(apiSettings.apiKey);
   const [modelInput, setModelInput] = useState(apiSettings.modelName || 'google/gemini-2.5-flash');
 
@@ -25,16 +26,70 @@ export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings }) 
         {/* ヘッダー */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)', borderBottom: '2px solid var(--border-window-inner)', paddingBottom: 'var(--spacing-sm)' }}>
           <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-secondary)' }}>
-            ⚙ AI連携設定 (OpenRouter)
+            ⚙ 設定
           </h2>
           <button onClick={onClose} className="btn-icon">
             <X size={20} />
           </button>
         </div>
 
-        <div style={{ marginBottom: 'var(--spacing-md)' }}>
+        {/* カラーテーマ */}
+        <div style={{ marginBottom: 'var(--spacing-lg)' }}>
           <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', color: 'var(--accent-primary)' }}>
-            ▶ OpenRouter API Key
+            ▶ カラーテーマ
+          </label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
+            {Object.entries(THEME_LABELS).map(([key, label]) => {
+              const preview = THEME_PREVIEW[key];
+              const isSelected = colorTheme === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => onThemeChange(key)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '6px 12px',
+                    border: isSelected
+                      ? '2px solid var(--accent-secondary)'
+                      : '2px solid var(--border-window-inner)',
+                    borderRadius: 'var(--radius-sm)',
+                    background: isSelected ? 'rgba(255,255,255,0.05)' : 'transparent',
+                    cursor: 'pointer',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.85rem',
+                    transition: 'border-color 0.15s ease',
+                  }}
+                >
+                  {/* カラーチップ */}
+                  <span style={{
+                    display: 'inline-flex',
+                    gap: '2px',
+                  }}>
+                    <span style={{ width: '12px', height: '12px', borderRadius: '2px', background: preview.bg, border: '1px solid rgba(255,255,255,0.3)', display: 'inline-block' }} />
+                    <span style={{ width: '12px', height: '12px', borderRadius: '2px', background: preview.accent, display: 'inline-block' }} />
+                    <span style={{ width: '12px', height: '12px', borderRadius: '2px', background: preview.text, display: 'inline-block' }} />
+                  </span>
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* セパレーター */}
+        <div style={{ borderTop: '1px solid var(--border-window-inner)', marginBottom: 'var(--spacing-lg)' }} />
+
+        {/* AI設定 */}
+        <p style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', marginBottom: 'var(--spacing-md)' }}>
+          ▶ AI連携設定 (OpenRouter)
+        </p>
+
+        <div style={{ marginBottom: 'var(--spacing-md)' }}>
+          <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+            API Key
           </label>
           <input
             type="text"
@@ -49,8 +104,8 @@ export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings }) 
         </div>
 
         <div style={{ marginBottom: 'var(--spacing-xl)' }}>
-          <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', color: 'var(--accent-primary)' }}>
-            ▶ Model Name (OpenRouter Identifier)
+          <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+            Model Name (OpenRouter Identifier)
           </label>
           <input
             type="text"
