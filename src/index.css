@@ -50,10 +50,6 @@
 body {
   font-family: 'DotGothic16', 'ＭＳ ゴシック', 'MS Gothic', 'Courier New', monospace;
   background-color: var(--bg-dark);
-  background-image: url('/fantasy-bg.svg');
-  background-size: cover;
-  background-position: center center;
-  background-attachment: fixed;
   color: var(--text-primary);
   line-height: 1.8;
   min-height: 100vh;

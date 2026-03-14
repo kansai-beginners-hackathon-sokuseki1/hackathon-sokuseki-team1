@@ -1,0 +1,204 @@
+/* =============================================
+   ファンタジー背景 アニメーション
+   ============================================= */
+
+.fantasy-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: linear-gradient(
+    to bottom,
+    #000008 0%,
+    #030318 25%,
+    #0a0830 65%,
+    #150a40 100%
+  );
+}
+
+/* ---- 星 ---- */
+.fantasy-star {
+  position: absolute;
+  border-radius: 50%;
+  will-change: opacity, transform;
+  animation: twinkle var(--star-dur, 3s) ease-in-out var(--star-delay, 0s) infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: var(--star-opacity, 0.8);
+    transform: scale(1);
+  }
+  50% {
+    opacity: calc(var(--star-opacity, 0.8) * 0.2);
+    transform: scale(0.7);
+  }
+}
+
+/* ---- 月 ---- */
+.fantasy-moon-wrap {
+  position: absolute;
+  top: 10%;
+  left: 16%;
+  width: 220px;
+  height: 220px;
+  transform: translate(-50%, -50%);
+}
+
+.fantasy-moon-glow {
+  position: absolute;
+  inset: -60%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 248, 180, 0.55) 0%,
+    rgba(200, 140, 255, 0.18) 40%,
+    transparent 70%
+  );
+  animation: moonPulse 5s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+.fantasy-moon {
+  position: absolute;
+  inset: 20%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 35%, #ffffff, #fff8d0 60%, #ffe090);
+  box-shadow:
+    0 0 30px 10px rgba(255, 240, 150, 0.5),
+    0 0 80px 30px rgba(200, 150, 255, 0.2);
+  animation: moonPulse 5s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+/* クレーター */
+.fantasy-moon::before {
+  content: '';
+  position: absolute;
+  top: 26%; left: 22%;
+  width: 18%; height: 18%;
+  border-radius: 50%;
+  background: rgba(220, 190, 80, 0.3);
+}
+.fantasy-moon::after {
+  content: '';
+  position: absolute;
+  top: 52%; left: 55%;
+  width: 12%; height: 12%;
+  border-radius: 50%;
+  background: rgba(220, 190, 80, 0.25);
+}
+
+@keyframes moonPulse {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50%       { opacity: 1.0;  transform: scale(1.04); }
+}
+
+/* ---- 流れ星 ---- */
+.fantasy-shooting-star {
+  position: absolute;
+  width: 120px;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.9) 100%);
+  transform-origin: right center;
+  will-change: transform, opacity;
+}
+
+.fantasy-shooting-star.s1 {
+  top: 12%;
+  left: 65%;
+  animation: shoot1 12s linear 1s infinite;
+}
+.fantasy-shooting-star.s2 {
+  top: 7%;
+  left: 40%;
+  animation: shoot1 18s linear 6s infinite;
+}
+.fantasy-shooting-star.s3 {
+  top: 20%;
+  left: 80%;
+  animation: shoot1 22s linear 11s infinite;
+}
+
+@keyframes shoot1 {
+  0%   { transform: translateX(0)    translateY(0)    rotate(-35deg); opacity: 0; }
+  2%   { opacity: 1; }
+  18%  { transform: translateX(-480px) translateY(240px) rotate(-35deg); opacity: 0; }
+  100% { transform: translateX(-480px) translateY(240px) rotate(-35deg); opacity: 0; }
+}
+
+/* ---- 山脈シルエット ---- */
+.fantasy-mountains {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 65%;
+  pointer-events: none;
+}
+
+/* ---- 霧 ---- */
+.fantasy-fog {
+  position: absolute;
+  bottom: 0;
+  left: -10%;
+  width: 120%;
+  pointer-events: none;
+  border-radius: 50%;
+  will-change: transform, opacity;
+}
+
+.fantasy-fog.f1 {
+  height: 180px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(80, 60, 160, 0.22) 0%,
+    transparent 70%
+  );
+  animation: fogDrift 20s ease-in-out infinite;
+}
+
+.fantasy-fog.f2 {
+  height: 120px;
+  bottom: 30px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(100, 80, 200, 0.16) 0%,
+    transparent 65%
+  );
+  animation: fogDrift 28s ease-in-out 4s infinite reverse;
+}
+
+.fantasy-fog.f3 {
+  height: 90px;
+  bottom: 60px;
+  left: 20%;
+  width: 80%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(60, 40, 140, 0.14) 0%,
+    transparent 65%
+  );
+  animation: fogDrift 35s ease-in-out 10s infinite;
+}
+
+@keyframes fogDrift {
+  0%   { transform: translateX(0%); }
+  50%  { transform: translateX(6%); }
+  100% { transform: translateX(0%); }
+}
+
+/* ---- 魔法の光点（地平線付近） ---- */
+.fantasy-magic-light {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: magicFlicker 7s ease-in-out infinite;
+  will-change: opacity;
+}
+@keyframes magicFlicker {
+  0%, 100% { opacity: 0.3; }
+  40%       { opacity: 0.7; }
+  70%       { opacity: 0.2; }
+}

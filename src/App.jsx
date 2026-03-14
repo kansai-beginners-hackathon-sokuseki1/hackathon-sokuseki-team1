@@ -6,6 +6,7 @@ import { TaskList } from './TaskList';
 import { SettingsModal } from './SettingsModal';
 import { AuthScreen } from './AuthScreen';
 import { applyTheme } from './themes';
+import { FantasyBackground } from './FantasyBackground';
 import './index.css';
 
 // 認証ラッパー：トークンがある場合はメインアプリを表示
@@ -44,11 +45,15 @@ function App() {
     setCurrentUser(null);
   };
 
-  if (!authToken) {
-    return <AuthScreen onLogin={handleLogin} />;
-  }
-
-  return <MainApp currentUser={currentUser} onLogout={handleLogout} colorTheme={colorTheme} onThemeChange={handleThemeChange} />;
+  return (
+    <>
+      <FantasyBackground />
+      {!authToken
+        ? <AuthScreen onLogin={handleLogin} />
+        : <MainApp currentUser={currentUser} onLogout={handleLogout} colorTheme={colorTheme} onThemeChange={handleThemeChange} />
+      }
+    </>
+  );
 }
 
 function MainApp({ currentUser, onLogout, colorTheme, onThemeChange }) {
