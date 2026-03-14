@@ -241,6 +241,8 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
 
           if (request.method === "PATCH") {
             const body = await readBody(request);
+            const currentTask = await repository.findTaskById(user.id, taskId);
+            if (!currentTask) return errorResponse(404, "not_found", "The requested resource was not found.");
             const patch = {};
             if (body.title !== undefined) {
               if (typeof body.title !== "string" || !body.title.trim()) {
@@ -277,8 +279,39 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
             patch.updatedAt = new Date().toISOString();
             const updated = await repository.updateTask(user.id, taskId, patch);
             if (!updated) return errorResponse(404, "not_found", "The requested resource was not found.");
+
+            let progress = null;
+            const statusChanged = currentTask.status !== updated.status;
+            if (statusChanged && currentTask.status !== "completed" && updated.status === "completed") {
+              progress = await repository.adjustProgress(user.id, {
+                xpDelta: updated.expReward,
+                completedDelta: 1,
+                updatedAt: patch.updatedAt
+              });
+            } else if (statusChanged && currentTask.status === "completed" && updated.status !== "completed") {
+              progress = await repository.adjustProgress(user.id, {
+                xpDelta: -currentTask.expReward,
+                completedDelta: -1,
+                updatedAt: patch.updatedAt
+              });
+            } else if (!statusChanged && updated.status === "completed" && currentTask.expReward !== updated.expReward) {
+              progress = await repository.adjustProgress(user.id, {
+                xpDelta: updated.expReward - currentTask.expReward,
+                updatedAt: patch.updatedAt
+              });
+            }
+
             await repository.createAuditLog({ userId: user.id, action: "task.update", targetId: taskId, ipAddress: clientIp, createdAt: patch.updatedAt });
-            return json(200, { task: pickTask(updated) });
+            return json(200, {
+              task: pickTask(updated),
+              progress: progress
+                ? {
+                    xp: Number(progress.xp),
+                    level: Number(progress.level),
+                    completedTaskCount: Number(progress.completed_task_count ?? progress.completedTaskCount ?? 0)
+                  }
+                : null
+            });
           }
 
           if (request.method === "DELETE") {

@@ -139,7 +139,12 @@ export function createD1Repository(db) {
         difficulty:  patch.difficulty  ?? current.difficulty,
         expReward:   patch.expReward   ?? current.expReward,
         dueDate:     patch.dueDate === undefined ? current.dueDate : patch.dueDate,
-        completedAt: patch.status && patch.status !== "completed" ? null : current.completedAt,
+        completedAt:
+          patch.status === "completed" && current.status !== "completed"
+            ? patch.updatedAt
+            : patch.status && patch.status !== "completed"
+              ? null
+              : current.completedAt,
         updatedAt:   patch.updatedAt
       };
 
@@ -155,6 +160,27 @@ export function createD1Repository(db) {
       ).run();
 
       return this.findTaskById(userId, taskId);
+    },
+
+    async adjustProgress(userId, { xpDelta = 0, completedDelta = 0, updatedAt }) {
+      const current = await this.getUserProgress(userId);
+      if (!current) return null;
+
+      const nextXp = Math.max(0, Number(current.xp) + xpDelta);
+      const nextCompleted = Math.max(0, Number(current.completed_task_count) + completedDelta);
+      const { level: nextLevel } = computeLevelFromXp(nextXp);
+
+      await db.prepare(`
+        UPDATE user_progress
+        SET xp = ?, level = ?, completed_task_count = ?, updated_at = ?
+        WHERE user_id = ?
+      `).bind(nextXp, nextLevel, nextCompleted, updatedAt, userId).run();
+
+      return {
+        xp: nextXp,
+        level: nextLevel,
+        completed_task_count: nextCompleted
+      };
     },
 
     async deleteTask(userId, taskId) {

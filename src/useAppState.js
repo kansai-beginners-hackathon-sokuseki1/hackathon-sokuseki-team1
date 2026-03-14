@@ -33,7 +33,6 @@ export const getRequiredExp = (level) => Math.floor(100 * Math.pow(1.2, level - 
 export const useAppState = () => {
   const [tasks, setTasks] = useState([]);
   const [userStats, setUserStats] = useState({ level: 1, currentExp: 0 });
-  const [totalXp, setTotalXp] = useState(0);
   const [apiSettings, setApiSettings] = useState(() => {
     const saved = localStorage.getItem('apiSettings');
     return saved ? JSON.parse(saved) : { apiKey: '', modelName: 'google/gemini-2.5-flash' };
@@ -58,7 +57,6 @@ export const useAppState = () => {
       ]);
       setTasks(tasksData.tasks.map(normalizeTask));
       const xp = Number(progressData.progress.xp);
-      setTotalXp(xp);
       setUserStats(computeLevelFromXp(xp));
     } catch (err) {
       setError(err.message);
@@ -95,7 +93,6 @@ export const useAppState = () => {
         const prevLevel = userStats.level;
         const newXp = Number(res.progress.xp);
         const newStats = computeLevelFromXp(newXp);
-        setTotalXp(newXp);
         setUserStats(newStats);
         if (newStats.level > prevLevel) {
           setLevelUpData(newStats);
@@ -103,10 +100,14 @@ export const useAppState = () => {
       }
       return updated;
     } else {
-      // 未完了に戻す（EXPは変化しない）
+      // 未完了に戻すときは、サーバー側で EXP と進捗も巻き戻す
       const res = await api.updateTask(id, { status: 'todo' });
       const updated = normalizeTask(res.task);
       setTasks(prev => prev.map(t => t.id === id ? updated : t));
+      if (res.progress) {
+        const newXp = Number(res.progress.xp);
+        setUserStats(computeLevelFromXp(newXp));
+      }
       return updated;
     }
   };
