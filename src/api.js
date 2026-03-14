@@ -18,7 +18,16 @@ async function request(method, path, body) {
     body: body !== undefined ? JSON.stringify(body) : undefined
   });
 
-  const data = await res.json();
+  let data = {};
+  try {
+    data = await res.json();
+  } catch {
+    // レスポンスボディが空またはJSONでない（バックエンド未起動時など）
+    const err = new Error("バックエンドに接続できません。サーバーが起動しているか確認してください。");
+    err.code = "network_error";
+    err.status = res.status;
+    throw err;
+  }
   if (!res.ok) {
     const err = new Error(data.error?.message || `API Error: ${res.status}`);
     err.code = data.error?.code;
