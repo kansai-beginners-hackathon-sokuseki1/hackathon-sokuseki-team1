@@ -2,26 +2,26 @@ import React, { useState } from 'react';
 import { api } from './api';
 
 export function AuthScreen({ onLogin }) {
-  const [mode, setMode] = useState('login'); // 'login' | 'register'
+  const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError(null);
     setLoading(true);
+
     try {
       if (mode === 'register') {
         await api.register(email, username, password);
-        // 登録後に自動ログイン
-        const res = await api.login(email, password);
-        onLogin(res.token, res.user);
+        const result = await api.login(email, password);
+        onLogin(result.token, result.user);
       } else {
-        const res = await api.login(email, password);
-        onLogin(res.token, res.user);
+        const result = await api.login(email, password);
+        onLogin(result.token, result.user);
       }
     } catch (err) {
       if (err.code === 'email_exists') {
@@ -37,34 +37,39 @@ export function AuthScreen({ onLogin }) {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'var(--bg-primary)',
-      padding: 'var(--spacing-md)'
-    }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'var(--bg-primary)',
+        padding: 'var(--spacing-md)'
+      }}
+    >
       <div style={{ width: '100%', maxWidth: '400px' }}>
-        {/* タイトル */}
-        <h1 style={{
-          textAlign: 'center',
-          fontSize: '1.6rem',
-          color: 'var(--accent-secondary)',
-          letterSpacing: '2px',
-          marginBottom: 'var(--spacing-xl)'
-        }}>
-          ⚔ クエストマネージャー
+        <h1
+          style={{
+            textAlign: 'center',
+            fontSize: '1.6rem',
+            color: 'var(--accent-secondary)',
+            letterSpacing: '2px',
+            marginBottom: 'var(--spacing-xl)'
+          }}
+        >
+          クエストマネージャー
         </h1>
 
         <div className="rpg-window">
-          <p style={{
-            color: 'var(--accent-secondary)',
-            fontSize: '0.85rem',
-            borderBottom: '1px solid var(--border-window-inner)',
-            paddingBottom: '6px',
-            marginBottom: 'var(--spacing-md)'
-          }}>
+          <p
+            style={{
+              color: 'var(--accent-secondary)',
+              fontSize: '0.85rem',
+              borderBottom: '1px solid var(--border-window-inner)',
+              paddingBottom: '6px',
+              marginBottom: 'var(--spacing-md)'
+            }}
+          >
             ▶ {mode === 'login' ? 'ギルドにログイン' : '新しい冒険者として登録'}
           </p>
 
@@ -76,7 +81,7 @@ export function AuthScreen({ onLogin }) {
               <input
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="adventurer@example.com"
                 disabled={loading}
                 required
@@ -91,8 +96,8 @@ export function AuthScreen({ onLogin }) {
                 <input
                   type="text"
                   value={username}
-                  onChange={e => setUsername(e.target.value)}
-                  placeholder="勇者の名前"
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="名前を入力"
                   disabled={loading}
                   minLength={2}
                   required
@@ -107,7 +112,7 @@ export function AuthScreen({ onLogin }) {
               <input
                 type="password"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 disabled={loading}
                 minLength={8}
@@ -128,22 +133,28 @@ export function AuthScreen({ onLogin }) {
               style={{ marginTop: 'var(--spacing-sm)' }}
             >
               {loading
-                ? '⌛ 処理中...'
+                ? '認証中...'
                 : mode === 'login' ? '▶ ログイン' : '▶ 登録してはじめる'}
             </button>
           </form>
 
-          <p style={{
-            textAlign: 'center',
-            marginTop: 'var(--spacing-md)',
-            fontSize: '0.85rem',
-            color: 'var(--text-muted)'
-          }}>
+          <p
+            style={{
+              textAlign: 'center',
+              marginTop: 'var(--spacing-md)',
+              fontSize: '0.85rem',
+              color: 'var(--text-muted)'
+            }}
+          >
             {mode === 'login' ? (
               <>
-                アカウントがない？{' '}
+                アカウントがない？
+                {' '}
                 <button
-                  onClick={() => { setMode('register'); setError(null); }}
+                  onClick={() => {
+                    setMode('register');
+                    setError(null);
+                  }}
                   style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
                 >
                   新規登録
@@ -151,9 +162,13 @@ export function AuthScreen({ onLogin }) {
               </>
             ) : (
               <>
-                すでに登録済み？{' '}
+                すでに登録済み？
+                {' '}
                 <button
-                  onClick={() => { setMode('login'); setError(null); }}
+                  onClick={() => {
+                    setMode('login');
+                    setError(null);
+                  }}
                   style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
                 >
                   ログイン

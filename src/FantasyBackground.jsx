@@ -3,47 +3,49 @@ import './FantasyBackground.css';
 
 const SCENE = {
   buildings: ['🏠', '⛪', '🏘️'],
-  trees:     ['🌲', '🌳', '🌲', '🌳'],
-  clouds:    4,
+  trees: ['🌲', '🌳', '🌲', '🌳'],
+  clouds: 4
 };
 
-// シード付き疑似乱数（毎レンダーで同じ星配置になるよう）
 function seededRandom(seed) {
-  let s = seed;
+  let value = seed;
   return () => {
-    s = (s * 1664525 + 1013904223) & 0xffffffff;
-    return (s >>> 0) / 0xffffffff;
+    value = (value * 1664525 + 1013904223) & 0xffffffff;
+    return (value >>> 0) / 0xffffffff;
   };
 }
 
 function generateStars(count) {
   const rand = seededRandom(42);
-  return Array.from({ length: count }, (_, i) => {
-    const size   = 1.2 + rand() * 2.8;
-    const x      = rand() * 100;
-    const y      = rand() * 62;          // 空の上部62%に配置
+  return Array.from({ length: count }, (_, index) => {
+    const size = 1.2 + rand() * 2.8;
+    const x = rand() * 100;
+    const y = rand() * 62;
     const opacity = 0.55 + rand() * 0.45;
-    const dur    = 3 + rand() * 4;
-    const delay  = rand() * 9;
-    // 明るい星（上位15%）は少し大きく
-    const bright = i < count * 0.22;
-    return { size: bright ? size * 1.4 : size, x, y, opacity, dur, delay, bright };
+    const duration = 3 + rand() * 4;
+    const delay = rand() * 9;
+    const bright = index < count * 0.22;
+    return {
+      size: bright ? size * 1.4 : size,
+      x,
+      y,
+      opacity,
+      dur: duration,
+      delay,
+      bright
+    };
   });
 }
 
-// 背景レイヤー: グラデーション・山脈・城シルエット（z-index: -1）
 export function FantasyBackground() {
   return (
     <div className="fantasy-bg" aria-hidden="true">
-
-      {/* 山脈・城シルエット（SVGインライン） */}
       <svg
         className="fantasy-mountains"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 1920 700"
         preserveAspectRatio="xMidYMax slice"
       >
-        {/* 遠景山脈 */}
         <path
           d="M0,520 L60,420 L130,450 L220,370 L310,410 L420,330
              L520,380 L630,300 L730,350 L850,270 L960,320
@@ -53,7 +55,6 @@ export function FantasyBackground() {
           fill="#1a1060"
           opacity="0.85"
         />
-        {/* 中景山脈 */}
         <path
           d="M0,580 L80,490 L170,520 L280,450 L390,490 L500,420
              L620,470 L740,390 L860,450 L980,380 L1100,440
@@ -62,7 +63,6 @@ export function FantasyBackground() {
              L1920,700 L0,700 Z"
           fill="#120a40"
         />
-        {/* 近景の丘 */}
         <path
           d="M0,630 L100,568 L200,590 L330,550 L460,580 L600,545
              L740,575 L880,540 L1020,572 L1160,538
@@ -72,7 +72,6 @@ export function FantasyBackground() {
           fill="#0a0620"
         />
 
-        {/* 城シルエット */}
         <g fill="#0d0a30">
           <rect x="1598" y="378" width="184" height="122" />
           <rect x="1648" y="288" width="42" height="112" />
@@ -81,82 +80,54 @@ export function FantasyBackground() {
           <polygon points="1602,328 1632,328 1617,294" />
           <rect x="1752" y="322" width="30" height="88" />
           <polygon points="1752,322 1782,322 1767,287" />
-          {/* 窓の灯り */}
           <rect x="1660" y="340" width="7" height="9" fill="#ffcc44" opacity="0.9" />
           <rect x="1676" y="340" width="7" height="9" fill="#ffcc44" opacity="0.9" />
           <rect x="1660" y="362" width="7" height="9" fill="#ffcc44" opacity="0.7" />
         </g>
-
-        {/* 左側の木々 */}
-        <g fill="#050310">
-          <polygon points="118,640 143,558 168,640" />
-          <polygon points="128,602 150,524 172,602" />
-          <polygon points="138,568 158,494 178,568" />
-          <rect x="146" y="640" width="10" height="38" />
-
-          <polygon points="198,648 226,562 254,648" />
-          <polygon points="208,610 233,528 258,610" />
-          <polygon points="218,576 241,498 264,576" />
-          <rect x="226" y="648" width="11" height="32" />
-
-          <polygon points="50,648 72,578 94,648" />
-          <polygon points="58,614 78,546 98,614" />
-          <rect x="65" y="648" width="9" height="35" />
-        </g>
-
-        {/* 右側の木々 */}
-        <g fill="#050310">
-          <polygon points="1818,652 1840,590 1862,652" />
-          <polygon points="1826,620 1846,560 1866,620" />
-          <rect x="1834" y="652" width="8" height="32" />
-
-          <polygon points="1870,660 1894,596 1918,660" />
-          <polygon points="1878,626 1900,564 1922,626" />
-          <rect x="1888" y="660" width="8" height="28" />
-        </g>
       </svg>
-
     </div>
   );
 }
 
-// 村・キャラクターシーン（z-index: 0）
 export function GameScene() {
   return (
     <div className="game-scene" aria-hidden="true">
-      {/* 雲 */}
-      {Array.from({ length: SCENE.clouds }, (_, i) => (
+      {Array.from({ length: SCENE.clouds }, (_, index) => (
         <div
-          key={i}
+          key={index}
           className="gs-cloud"
           style={{
-            animationDuration: `${22 + i * 9}s`,
-            animationDelay:    `${-i * 7}s`,
-            top:               `${8 + i * 14}%`,
-            fontSize:          `${1.4 + (i % 2) * 0.6}rem`,
+            animationDuration: `${22 + index * 9}s`,
+            animationDelay: `${-index * 7}s`,
+            top: `${8 + index * 14}%`,
+            fontSize: `${1.4 + (index % 2) * 0.6}rem`
           }}
-        >☁️</div>
+        >
+          ☁️
+        </div>
       ))}
 
-      {/* 建物・木 */}
       <div className="gs-elements">
-        {SCENE.buildings.map((b, i) => (
+        {SCENE.buildings.map((building, index) => (
           <span
-            key={`b${i}`}
+            key={`building-${index}`}
             className="gs-building"
-            style={{ left: `${18 + i * 22}%`, fontSize: '2.4rem' }}
-          >{b}</span>
+            style={{ left: `${18 + index * 22}%`, fontSize: '2.4rem' }}
+          >
+            {building}
+          </span>
         ))}
-        {SCENE.trees.map((t, i) => (
+        {SCENE.trees.map((tree, index) => (
           <span
-            key={`t${i}`}
+            key={`tree-${index}`}
             className="gs-tree"
-            style={{ left: `${8 + i * (84 / SCENE.trees.length)}%`, fontSize: '1.9rem' }}
-          >{t}</span>
+            style={{ left: `${8 + index * (84 / SCENE.trees.length)}%`, fontSize: '1.9rem' }}
+          >
+            {tree}
+          </span>
         ))}
       </div>
 
-      {/* 勇者スプライト */}
       <div className="gs-hero">
         <div className="gs-hero-inner">
           <div className="gs-hero-body">⚔️</div>
@@ -164,7 +135,6 @@ export function GameScene() {
         </div>
       </div>
 
-      {/* 歩行NPCキャラ（ピクセルアート） */}
       <div className="gs-walker">
         <div className="gs-walker-head" />
         <div className="gs-walker-body" />
@@ -175,78 +145,83 @@ export function GameScene() {
         <div className="gs-walker-shadow" />
       </div>
 
-      {/* 地面 */}
       <div className="gs-ground" />
     </div>
   );
 }
 
-// アニメーションレイヤー: 星・月・流れ星・霧・魔法の光（z-index: 9999）
 export function FantasyOverlay() {
   const stars = useMemo(() => generateStars(150), []);
 
   return (
     <div className="fantasy-overlay" aria-hidden="true">
-
-      {/* 星 */}
-      {stars.map((s, i) => (
+      {stars.map((star, index) => (
         <div
-          key={i}
+          key={index}
           className="fantasy-star"
           style={{
-            left:    `${s.x}%`,
-            top:     `${s.y}%`,
-            width:   `${s.size}px`,
-            height:  `${s.size}px`,
-            backgroundColor: s.bright ? '#e8e8ff' : '#ffffff',
-            '--star-opacity': s.opacity,
-            '--star-dur':     `${s.dur}s`,
-            '--star-delay':   `${s.delay}s`,
+            left: `${star.x}%`,
+            top: `${star.y}%`,
+            width: `${star.size}px`,
+            height: `${star.size}px`,
+            backgroundColor: star.bright ? '#e8e8ff' : '#ffffff',
+            '--star-opacity': star.opacity,
+            '--star-dur': `${star.dur}s`,
+            '--star-delay': `${star.delay}s`
           }}
         />
       ))}
 
-      {/* 太陽 */}
       <div className="fantasy-sun">
         <div className="fantasy-sun-glow" />
         <div className="fantasy-sun-core" />
       </div>
 
-      {/* 月 */}
       <div className="fantasy-moon-wrap">
         <div className="fantasy-moon-glow" />
         <div className="fantasy-moon" />
       </div>
 
-      {/* 流れ星 */}
       <div className="fantasy-shooting-star s1" />
       <div className="fantasy-shooting-star s2" />
       <div className="fantasy-shooting-star s3" />
 
-      {/* 霧レイヤー */}
       <div className="fantasy-fog f1" />
       <div className="fantasy-fog f2" />
       <div className="fantasy-fog f3" />
 
-      {/* 魔法の光点 */}
-      <div className="fantasy-magic-light" style={{
-        bottom: '18%', left: '16%',
-        width: '360px', height: '80px',
-        background: 'radial-gradient(ellipse, rgba(0,200,255,0.2) 0%, transparent 70%)',
-      }} />
-      <div className="fantasy-magic-light" style={{
-        bottom: '16%', left: '50%',
-        width: '480px', height: '60px',
-        background: 'radial-gradient(ellipse, rgba(80,50,200,0.15) 0%, transparent 70%)',
-        animationDelay: '3s',
-      }} />
-      <div className="fantasy-magic-light" style={{
-        bottom: '17%', right: '12%',
-        width: '320px', height: '70px',
-        background: 'radial-gradient(ellipse, rgba(0,180,255,0.18) 0%, transparent 70%)',
-        animationDelay: '5s',
-      }} />
-
+      <div
+        className="fantasy-magic-light"
+        style={{
+          bottom: '18%',
+          left: '16%',
+          width: '360px',
+          height: '80px',
+          background: 'radial-gradient(ellipse, rgba(0,200,255,0.2) 0%, transparent 70%)'
+        }}
+      />
+      <div
+        className="fantasy-magic-light"
+        style={{
+          bottom: '16%',
+          left: '50%',
+          width: '480px',
+          height: '60px',
+          background: 'radial-gradient(ellipse, rgba(80,50,200,0.15) 0%, transparent 70%)',
+          animationDelay: '3s'
+        }}
+      />
+      <div
+        className="fantasy-magic-light"
+        style={{
+          bottom: '17%',
+          right: '12%',
+          width: '320px',
+          height: '70px',
+          background: 'radial-gradient(ellipse, rgba(0,180,255,0.18) 0%, transparent 70%)',
+          animationDelay: '5s'
+        }}
+      />
     </div>
   );
 }

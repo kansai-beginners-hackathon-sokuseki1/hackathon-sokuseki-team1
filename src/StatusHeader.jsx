@@ -13,9 +13,10 @@ export function StatusHeader({ stats, getRequiredExp }) {
     if (level !== prevLevel.current) {
       prevLevel.current = level;
       setLevelAnim(true);
-      const t = setTimeout(() => setLevelAnim(false), 600);
-      return () => clearTimeout(t);
+      const timer = setTimeout(() => setLevelAnim(false), 600);
+      return () => clearTimeout(timer);
     }
+    return undefined;
   }, [level]);
 
   return (
@@ -30,22 +31,24 @@ export function StatusHeader({ stats, getRequiredExp }) {
           {currentExp} / {requiredExp} EXP
         </div>
       </div>
-      
+
       <div className="exp-bar-container">
-        <div 
+        <div
           className="exp-bar-fill"
           style={{ width: `${percentage}%` }}
         />
       </div>
 
-      <div style={{ 
-        display: 'flex',
-        alignItems: 'center',
-        marginTop: 'var(--spacing-xs)',
-        gap: 'var(--spacing-xs)',
-        color: 'var(--text-muted)',
-        fontSize: '0.8rem'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          marginTop: 'var(--spacing-xs)',
+          gap: 'var(--spacing-xs)',
+          color: 'var(--text-muted)',
+          fontSize: '0.8rem'
+        }}
+      >
         <Target size={13} />
         <span>次のレベルまであと {requiredExp - currentExp} EXP</span>
       </div>

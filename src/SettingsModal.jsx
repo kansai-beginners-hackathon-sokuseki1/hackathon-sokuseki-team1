@@ -1,17 +1,28 @@
 import React, { useState } from 'react';
-import { X, Save } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { THEME_LABELS, THEME_PREVIEW } from './themes';
 
 const BG_TIME_OPTIONS = [
-  { value: 'auto',    label: '自動（現在時刻）' },
-  { value: 'night',   label: '🌙 夜' },
-  { value: 'dawn',    label: '🌄 夜明け' },
-  { value: 'morning', label: '🌅 朝' },
-  { value: 'noon',    label: '☀ 昼' },
-  { value: 'dusk',    label: '🌇 夕方' },
+  { value: 'auto', label: '自動（現在時刻）' },
+  { value: 'night', label: '🌙 夜' },
+  { value: 'dawn', label: '🌄 夜明け' },
+  { value: 'morning', label: '☀ 朝' },
+  { value: 'noon', label: '🌞 昼' },
+  { value: 'dusk', label: '🌆 夕方' }
 ];
 
-export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, colorTheme, onThemeChange, bgTimeLock, onBgTimeLockChange, alertEnabled, onAlertEnabledChange }) {
+export function SettingsModal({
+  isOpen,
+  onClose,
+  apiSettings,
+  setApiSettings,
+  colorTheme,
+  onThemeChange,
+  bgTimeLock,
+  onBgTimeLockChange,
+  alertEnabled,
+  onAlertEnabledChange
+}) {
   const [keyInput, setKeyInput] = useState(apiSettings.apiKey);
   const [modelInput, setModelInput] = useState(apiSettings.modelName || 'google/gemini-2.5-flash');
   const [creditsOpen, setCreditsOpen] = useState(false);
@@ -28,13 +39,15 @@ export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, co
 
   return (
     <div className="modal-overlay" style={{ alignItems: 'flex-start', overflowY: 'auto', padding: '20px 0' }}>
-      <div className="rpg-window" style={{
-        width: '90%',
-        maxWidth: '500px',
-        padding: 'var(--spacing-lg)',
-        margin: 'auto',
-      }}>
-        {/* ヘッダー */}
+      <div
+        className="rpg-window"
+        style={{
+          width: '90%',
+          maxWidth: '500px',
+          padding: 'var(--spacing-lg)',
+          margin: 'auto'
+        }}
+      >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)', borderBottom: '2px solid var(--border-window-inner)', paddingBottom: 'var(--spacing-sm)' }}>
           <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-secondary)' }}>
             ⚙ 設定
@@ -44,7 +57,6 @@ export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, co
           </button>
         </div>
 
-        {/* カラーテーマ */}
         <div style={{ marginBottom: 'var(--spacing-lg)' }}>
           <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', color: 'var(--accent-primary)' }}>
             ▶ カラーテーマ
@@ -63,22 +75,15 @@ export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, co
                     alignItems: 'center',
                     gap: '8px',
                     padding: '6px 12px',
-                    border: isSelected
-                      ? '2px solid var(--accent-secondary)'
-                      : '2px solid var(--border-window-inner)',
+                    border: isSelected ? '2px solid var(--accent-secondary)' : '2px solid var(--border-window-inner)',
                     borderRadius: 'var(--radius-sm)',
                     background: isSelected ? 'rgba(255,255,255,0.05)' : 'transparent',
-                    cursor: 'pointer',
                     color: 'var(--text-primary)',
                     fontSize: '0.85rem',
-                    transition: 'border-color 0.15s ease',
+                    transition: 'border-color 0.15s ease'
                   }}
                 >
-                  {/* カラーチップ */}
-                  <span style={{
-                    display: 'inline-flex',
-                    gap: '2px',
-                  }}>
+                  <span style={{ display: 'inline-flex', gap: '2px' }}>
                     <span style={{ width: '12px', height: '12px', borderRadius: '2px', background: preview.bg, border: '1px solid rgba(255,255,255,0.3)', display: 'inline-block' }} />
                     <span style={{ width: '12px', height: '12px', borderRadius: '2px', background: preview.accent, display: 'inline-block' }} />
                     <span style={{ width: '12px', height: '12px', borderRadius: '2px', background: preview.text, display: 'inline-block' }} />
@@ -90,10 +95,9 @@ export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, co
           </div>
         </div>
 
-        {/* 背景時間帯 */}
         <div style={{ marginBottom: 'var(--spacing-lg)' }}>
           <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', color: 'var(--accent-primary)' }}>
-            ▶ 背景時間帯
+            ▶ 背景の時間帯
           </label>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
             {BG_TIME_OPTIONS.map(({ value, label }) => {
@@ -105,15 +109,12 @@ export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, co
                   onClick={() => onBgTimeLockChange(value)}
                   style={{
                     padding: '6px 12px',
-                    border: isSelected
-                      ? '2px solid var(--accent-secondary)'
-                      : '2px solid var(--border-window-inner)',
+                    border: isSelected ? '2px solid var(--accent-secondary)' : '2px solid var(--border-window-inner)',
                     borderRadius: 'var(--radius-sm)',
                     background: isSelected ? 'rgba(255,255,255,0.05)' : 'transparent',
-                    cursor: 'pointer',
                     color: 'var(--text-primary)',
                     fontSize: '0.85rem',
-                    transition: 'border-color 0.15s ease',
+                    transition: 'border-color 0.15s ease'
                   }}
                 >
                   {label}
@@ -122,11 +123,10 @@ export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, co
             })}
           </div>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '6px' }}>
-            ※ 固定すると時刻に関わらず選んだ時間帯の背景になります。流れ星は夜のみ表示されます。
+            自動を選ぶと現在時刻に応じて背景が切り替わります。固定すると指定した時間帯の見た目を確認できます。
           </p>
         </div>
 
-        {/* 期限アラート */}
         <div style={{ marginBottom: 'var(--spacing-lg)' }}>
           <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', color: 'var(--accent-primary)' }}>
             ▶ 期限アラート
@@ -137,37 +137,32 @@ export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, co
               onClick={() => onAlertEnabledChange(!alertEnabled)}
               style={{
                 padding: '6px 16px',
-                border: alertEnabled
-                  ? '2px solid var(--accent-secondary)'
-                  : '2px solid var(--border-window-inner)',
+                border: alertEnabled ? '2px solid var(--accent-secondary)' : '2px solid var(--border-window-inner)',
                 borderRadius: 'var(--radius-sm)',
                 background: alertEnabled ? 'rgba(255,255,255,0.05)' : 'transparent',
-                cursor: 'pointer',
                 color: alertEnabled ? 'var(--accent-secondary)' : 'var(--text-muted)',
                 fontSize: '0.85rem',
                 transition: 'all 0.15s ease',
-                minWidth: '80px',
+                minWidth: '80px'
               }}
             >
-              {alertEnabled ? '⚠ ON' : '⚠ OFF'}
+              {alertEnabled ? '🔔 ON' : '🔕 OFF'}
             </button>
             <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-              {alertEnabled ? 'ブラウザ通知 + アプリ内バナーで期限をお知らせします' : '期限アラートが無効です'}
+              {alertEnabled ? 'ブラウザ通知で期限切れのクエストを知らせます。' : '期限アラートは無効です。'}
             </span>
           </div>
           {alertEnabled && Notification.permission === 'denied' && (
             <p style={{ fontSize: '0.78rem', color: 'var(--danger, #ff6666)', marginTop: '6px' }}>
-              ⚠ ブラウザの通知がブロックされています。ブラウザ設定から許可してください。
+              通知権限がブラウザで拒否されています。ブラウザ設定から許可してください。
             </p>
           )}
         </div>
 
-        {/* セパレーター */}
         <div style={{ borderTop: '1px solid var(--border-window-inner)', marginBottom: 'var(--spacing-lg)' }} />
 
-        {/* AI設定 */}
         <p style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', marginBottom: 'var(--spacing-md)' }}>
-          ▶ AI連携設定 (OpenRouter)
+          ▶ AI 連携設定（OpenRouter）
         </p>
 
         <div style={{ marginBottom: 'var(--spacing-md)' }}>
@@ -182,7 +177,7 @@ export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, co
             style={{ fontFamily: 'monospace' }}
           />
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-            ※ APIキーはお使いのブラウザのLocal Storageにのみ保存されます。
+            APIキーはこのブラウザの Local Storage にのみ保存されます。
           </p>
         </div>
 
@@ -197,17 +192,15 @@ export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, co
             placeholder="google/gemini-2.5-flash"
           />
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-            例: google/gemini-2.5-flash, anthropic/claude-3-haiku, openai/gpt-4o-mini
+            例: `google/gemini-2.5-flash`, `anthropic/claude-3-haiku`, `openai/gpt-4o-mini`
           </p>
         </div>
 
-        {/* セパレーター */}
         <div style={{ borderTop: '1px solid var(--border-window-inner)', marginBottom: 'var(--spacing-lg)' }} />
 
-        {/* 権利表記（アコーディオン） */}
         <button
           type="button"
-          onClick={() => setCreditsOpen(o => !o)}
+          onClick={() => setCreditsOpen((open) => !open)}
           style={{
             width: '100%',
             display: 'flex',
@@ -216,35 +209,39 @@ export function SettingsModal({ isOpen, onClose, apiSettings, setApiSettings, co
             background: 'transparent',
             border: 'none',
             padding: '4px 0',
-            cursor: 'pointer',
             color: 'var(--accent-primary)',
             fontSize: '0.8rem',
-            marginBottom: creditsOpen ? 'var(--spacing-md)' : 'var(--spacing-lg)',
+            marginBottom: creditsOpen ? 'var(--spacing-md)' : 'var(--spacing-lg)'
           }}
         >
-          <span>▶ 権利表記・クレジット</span>
+          <span>▶ 効果音クレジット</span>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{creditsOpen ? '▲ 閉じる' : '▼ 開く'}</span>
         </button>
+
         {creditsOpen && (
-          <div style={{
-            fontSize: '0.78rem',
-            color: 'var(--text-muted)',
-            lineHeight: 1.9,
-            background: 'rgba(0,0,0,0.2)',
-            border: '1px solid var(--border-window-inner)',
-            borderRadius: 'var(--radius-sm)',
-            padding: 'var(--spacing-sm) var(--spacing-md)',
-            marginBottom: 'var(--spacing-lg)',
-          }}>
+          <div
+            style={{
+              fontSize: '0.78rem',
+              color: 'var(--text-muted)',
+              lineHeight: 1.9,
+              background: 'rgba(0,0,0,0.2)',
+              border: '1px solid var(--border-window-inner)',
+              borderRadius: 'var(--radius-sm)',
+              padding: 'var(--spacing-sm) var(--spacing-md)',
+              marginBottom: 'var(--spacing-lg)'
+            }}
+          >
             <div style={{ marginBottom: '8px' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>🔊 効果音</span>
+              <span style={{ color: 'var(--text-secondary)' }}>効果音提供</span>
             </div>
             <div>
-              OtoLogic（<span style={{ color: 'var(--accent-primary)' }}>https://otologic.jp</span>）
+              OtoLogic
+              {' '}
+              <span style={{ color: 'var(--accent-primary)' }}>https://otologic.jp</span>
             </div>
             <div style={{ marginTop: '6px', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-              本アプリの効果音素材はOtoLogicが提供するフリー素材を使用しています。<br />
-              素材の著作権はOtoLogicに帰属します。素材の二次配布・再販売は禁止されています。
+              本アプリの効果音は OtoLogic のフリー素材を利用しています。
+              クレジット表記と利用条件は OtoLogic の案内に従っています。
             </div>
           </div>
         )}
