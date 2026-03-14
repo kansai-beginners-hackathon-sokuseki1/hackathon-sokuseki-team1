@@ -254,8 +254,41 @@ function MainApp({ currentUser, onLogout, colorTheme, onThemeChange, bgTimeLock,
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
           {currentUser && (
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-              🗡 {currentUser.username}
+            <span style={{
+              display: 'inline-flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              padding: '3px 10px 4px',
+              border: '1px solid var(--accent-primary)',
+              borderRadius: 'var(--radius-sm)',
+              background: 'rgba(0,0,0,0.35)',
+              boxShadow: '0 0 8px var(--accent-primary), inset 0 0 6px rgba(0,0,0,0.4)',
+              lineHeight: 1.2,
+              cursor: 'default',
+            }}>
+              <span style={{
+                fontSize: '0.6rem',
+                color: 'var(--accent-primary)',
+                letterSpacing: '2px',
+                opacity: 0.8,
+              }}>冒険者</span>
+              <span style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                fontSize: '0.82rem',
+                color: 'var(--accent-secondary)',
+                letterSpacing: '1px',
+                fontWeight: 'bold',
+                textShadow: '0 0 6px var(--accent-secondary)',
+              }}>
+                <span style={{
+                  fontSize: '0.9rem',
+                  filter: 'drop-shadow(0 0 4px var(--accent-secondary))',
+                  animation: 'swordGlow 2.5s ease-in-out infinite',
+                }}>⚔</span>
+                {currentUser.username}
+              </span>
             </span>
           )}
           <button
