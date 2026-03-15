@@ -69,6 +69,64 @@ function todayIsoDate() {
   return new Date().toISOString().slice(0, 10);
 }
 
+const KEEPALIVE_BONUS_TIERS = {
+  1: { minutes: 15, xpAward: 8, label: "Quarter Watch" },
+  2: { minutes: 30, xpAward: 12, label: "Half-Hour Watch" },
+  3: { minutes: 60, xpAward: 18, label: "One-Hour Watch" },
+  4: { minutes: 120, xpAward: 25, label: "Long Watch" }
+};
+
+function resolveProgressBonus(body) {
+  const dayKey = typeof body.dayKey === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.dayKey)
+    ? body.dayKey
+    : null;
+
+  if (!dayKey) {
+    throw Object.assign(new Error("dayKey must be provided in YYYY-MM-DD format."), {
+      statusCode: 400,
+      code: "invalid_input"
+    });
+  }
+
+  if (body.bonusType === "daily_login") {
+    return {
+      bonusType: "daily_login",
+      claimKey: `daily_login:${dayKey}`,
+      xpAward: 25,
+      label: "Daily Login Bonus",
+      metadata: { dayKey }
+    };
+  }
+
+  if (body.bonusType === "session_keepalive") {
+    const tier = Math.floor(Number(body.tier));
+    const config = KEEPALIVE_BONUS_TIERS[tier];
+    if (!config) {
+      throw Object.assign(new Error("tier must be between 1 and 4."), {
+        statusCode: 400,
+        code: "invalid_input"
+      });
+    }
+
+    return {
+      bonusType: "session_keepalive",
+      claimKey: `session_keepalive:${dayKey}:tier${tier}`,
+      xpAward: config.xpAward,
+      label: config.label,
+      metadata: {
+        dayKey,
+        tier,
+        minutes: config.minutes
+      }
+    };
+  }
+
+  throw Object.assign(new Error("Unsupported bonusType."), {
+    statusCode: 400,
+    code: "invalid_input"
+  });
+}
+
 function normalizeProfilePayload(body) {
   const preferences = Array.isArray(body.preferences) ? body.preferences : [];
   return preferences
@@ -270,6 +328,46 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
               level,
               currentExp,
               completedTaskCount: Number(progress.completed_task_count ?? 0)
+            }
+          });
+        }
+
+        if (request.method === "POST" && url.pathname === "/api/progress/bonus") {
+          const body = await readBody(request);
+          const bonus = resolveProgressBonus(body);
+          const now = new Date().toISOString();
+          const result = await repository.claimProgressBonus(user.id, {
+            bonusType: bonus.bonusType,
+            claimKey: bonus.claimKey,
+            xpAward: bonus.xpAward,
+            metadata: bonus.metadata,
+            claimedAt: now
+          });
+          if (!result) {
+            return errorResponse(404, "not_found", "The requested resource was not found.");
+          }
+
+          await repository.createAuditLog({
+            userId: user.id,
+            action: `progress.bonus.${bonus.bonusType}`,
+            targetId: bonus.claimKey,
+            ipAddress: clientIp,
+            createdAt: now
+          });
+
+          return json(200, {
+            claimed: result.claimed,
+            bonus: {
+              type: bonus.bonusType,
+              label: bonus.label,
+              claimKey: bonus.claimKey,
+              xpAward: bonus.xpAward,
+              ...bonus.metadata
+            },
+            progress: {
+              xp: Number(result.progress.xp),
+              level: Number(result.progress.level),
+              completedTaskCount: Number(result.progress.completed_task_count ?? result.progress.completedTaskCount ?? 0)
             }
           });
         }

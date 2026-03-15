@@ -8,6 +8,22 @@ import { playLevelUp } from './soundEffects';
 import { useAppState } from './useAppState';
 import { sendNotification } from './notifications';
 
+const SESSION_BONUS_TIERS = [
+  { tier: 1, minutes: 15, xpAward: 8, label: 'Quarter Watch' },
+  { tier: 2, minutes: 30, xpAward: 12, label: 'Half-Hour Watch' },
+  { tier: 3, minutes: 60, xpAward: 18, label: 'One-Hour Watch' },
+  { tier: 4, minutes: 120, xpAward: 25, label: 'Long Watch' }
+];
+
+const ACTIVE_TIME_TICK_MS = 30_000;
+
+function getLocalDayKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 const STATUS_FILTER_OPTIONS = [
   { value: 'todo', label: '未着手' },
   { value: 'in_progress', label: '進行中' },
@@ -43,6 +59,7 @@ export function MainApp({
     toggleTask,
     editTask,
     deleteTask,
+    claimProgressBonus,
     getRequiredExp,
     levelUpData,
     clearLevelUpData,
@@ -55,7 +72,15 @@ export function MainApp({
   const [statusFilters, setStatusFilters] = useState(['todo', 'in_progress']);
   const [sortMode, setSortMode] = useState('created');
   const [stagedCompletedTaskIds, setStagedCompletedTaskIds] = useState([]);
+  const [dailyBonusStatus, setDailyBonusStatus] = useState('checking');
+  const [activeMinutes, setActiveMinutes] = useState(0);
+  const [claimedSessionTiers, setClaimedSessionTiers] = useState([]);
+  const [bonusToasts, setBonusToasts] = useState([]);
   const notifiedRef = useRef(new Set());
+  const sessionActiveMsRef = useRef(0);
+  const lastVisibleAtRef = useRef(Date.now());
+  const activeDayKeyRef = useRef(getLocalDayKey());
+  const pendingSessionClaimsRef = useRef(new Set());
 
   const dueTasks = useMemo(() => {
     const today = new Date();
@@ -79,6 +104,132 @@ export function MainApp({
   useEffect(() => {
     if (levelUpData) playLevelUp();
   }, [levelUpData]);
+
+  const pushBonusToast = useCallback((bonus) => {
+    const toastId = `${bonus.type}-${bonus.claimKey ?? Math.random().toString(36).slice(2)}`;
+    setBonusToasts((current) => [...current, { id: toastId, bonus }]);
+    window.setTimeout(() => {
+      setBonusToasts((current) => current.filter((item) => item.id !== toastId));
+    }, 4200);
+  }, []);
+
+  const applyBonusResult = useCallback((result) => {
+    if (!result?.bonus) return;
+
+    if (result.bonus.type === 'daily_login') {
+      setDailyBonusStatus('claimed');
+    }
+
+    if (result.bonus.type === 'session_keepalive' && typeof result.bonus.tier === 'number') {
+      setClaimedSessionTiers((current) => (
+        current.includes(result.bonus.tier) ? current : [...current, result.bonus.tier].sort((a, b) => a - b)
+      ));
+    }
+
+    if (result.claimed) {
+      pushBonusToast(result.bonus);
+    }
+  }, [pushBonusToast]);
+
+  useEffect(() => {
+    const dayKey = getLocalDayKey();
+    activeDayKeyRef.current = dayKey;
+    sessionActiveMsRef.current = 0;
+    lastVisibleAtRef.current = Date.now();
+    pendingSessionClaimsRef.current.clear();
+    setActiveMinutes(0);
+    setClaimedSessionTiers([]);
+    setDailyBonusStatus('checking');
+
+    let cancelled = false;
+    claimProgressBonus({ bonusType: 'daily_login', dayKey })
+      .then((result) => {
+        if (cancelled) return;
+        applyBonusResult(result);
+      })
+      .catch(() => {
+        if (!cancelled) setDailyBonusStatus('idle');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [claimProgressBonus, applyBonusResult, currentUser?.id]);
+
+  useEffect(() => {
+    let disposed = false;
+
+    const syncActiveTime = () => {
+      const nextDayKey = getLocalDayKey();
+      if (nextDayKey !== activeDayKeyRef.current) {
+        activeDayKeyRef.current = nextDayKey;
+        sessionActiveMsRef.current = 0;
+        pendingSessionClaimsRef.current.clear();
+        setActiveMinutes(0);
+        setClaimedSessionTiers([]);
+        setDailyBonusStatus('checking');
+        claimProgressBonus({ bonusType: 'daily_login', dayKey: nextDayKey })
+          .then((result) => {
+            if (!disposed) applyBonusResult(result);
+          })
+          .catch(() => {
+            if (!disposed) setDailyBonusStatus('idle');
+          });
+        lastVisibleAtRef.current = Date.now();
+        return;
+      }
+
+      const now = Date.now();
+      if (document.hidden) {
+        lastVisibleAtRef.current = now;
+        return;
+      }
+
+      const last = lastVisibleAtRef.current ?? now;
+      sessionActiveMsRef.current += Math.max(0, now - last);
+      lastVisibleAtRef.current = now;
+      setActiveMinutes(Math.floor(sessionActiveMsRef.current / 60_000));
+
+      SESSION_BONUS_TIERS.forEach((tierConfig) => {
+        const reached = sessionActiveMsRef.current >= tierConfig.minutes * 60_000;
+        if (!reached || pendingSessionClaimsRef.current.has(tierConfig.tier) || claimedSessionTiers.includes(tierConfig.tier)) return;
+
+        pendingSessionClaimsRef.current.add(tierConfig.tier);
+        claimProgressBonus({
+          bonusType: 'session_keepalive',
+          dayKey: activeDayKeyRef.current,
+          tier: tierConfig.tier
+        })
+          .then((result) => {
+            pendingSessionClaimsRef.current.delete(tierConfig.tier);
+            if (!disposed) applyBonusResult(result);
+          })
+          .catch(() => {
+            pendingSessionClaimsRef.current.delete(tierConfig.tier);
+          });
+      });
+    };
+
+    const handleVisibilityChange = () => {
+      lastVisibleAtRef.current = Date.now();
+      if (!document.hidden) syncActiveTime();
+    };
+
+    const intervalId = window.setInterval(syncActiveTime, ACTIVE_TIME_TICK_MS);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    syncActiveTime();
+
+    return () => {
+      disposed = true;
+      window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [claimProgressBonus, applyBonusResult, claimedSessionTiers]);
+
+  const nextSessionBonus = useMemo(
+    () => SESSION_BONUS_TIERS.find(({ tier }) => !claimedSessionTiers.includes(tier)) ?? null,
+    [claimedSessionTiers]
+  );
 
   const displayTasks = useMemo(() => {
     let result = tasks.filter((task) => statusFilters.includes(task.status));
@@ -290,6 +441,43 @@ export function MainApp({
       )}
 
       <StatusHeader stats={userStats} getRequiredExp={getRequiredExp} />
+      <div
+        className="rpg-window"
+        style={{
+          marginBottom: 'var(--spacing-md)',
+          padding: '12px 14px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          gap: 'var(--spacing-md)',
+          flexWrap: 'wrap',
+          background: 'linear-gradient(135deg, rgba(27, 39, 82, 0.72), rgba(12, 18, 40, 0.9))'
+        }}
+      >
+        <div style={{ minWidth: '220px' }}>
+          <div style={{ fontSize: '0.72rem', letterSpacing: '0.12em', color: 'var(--accent-primary)', marginBottom: 4 }}>
+            BONUS EXP
+          </div>
+          <div style={{ fontSize: '0.92rem', color: 'var(--accent-secondary)' }}>
+            Daily login: {
+              dailyBonusStatus === 'checking'
+                ? 'checking...'
+                : dailyBonusStatus === 'claimed'
+                  ? '+25 EXP secured'
+                  : 'unavailable'
+            }
+          </div>
+        </div>
+        <div style={{ minWidth: '260px', flex: 1 }}>
+          <div style={{ fontSize: '0.86rem', color: 'var(--text-main)' }}>
+            Active watch time: {activeMinutes} min
+          </div>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 4 }}>
+            {nextSessionBonus
+              ? `Next keep-open bonus: ${nextSessionBonus.minutes} min / +${nextSessionBonus.xpAward} EXP`
+              : 'All keep-open bonuses claimed for today'}
+          </div>
+        </div>
+      </div>
       <TaskInput onAdd={addTask} scoreDifficulty={scoreDifficulty} />
 
       <div
@@ -397,6 +585,43 @@ export function MainApp({
         hideCompletedTasks={hideCompletedTasks}
         onHideCompletedTasksChange={onHideCompletedTasksChange}
       />
+      {bonusToasts.length > 0 && (
+        <div
+          style={{
+            position: 'fixed',
+            right: '16px',
+            bottom: '16px',
+            zIndex: 10001,
+            display: 'grid',
+            gap: '10px',
+            width: 'min(320px, calc(100vw - 32px))'
+          }}
+        >
+          {bonusToasts.map(({ id, bonus }) => (
+            <div
+              key={id}
+              className="rpg-window"
+              style={{
+                marginBottom: 0,
+                padding: '12px 14px',
+                borderColor: 'rgba(92, 171, 255, 0.7)',
+                background: 'linear-gradient(135deg, rgba(20, 48, 105, 0.95), rgba(8, 17, 39, 0.98))',
+                boxShadow: '0 10px 24px rgba(0, 0, 0, 0.32)'
+              }}
+            >
+              <div style={{ fontSize: '0.72rem', letterSpacing: '0.12em', color: 'var(--accent-primary)', marginBottom: 4 }}>
+                BONUS CLAIMED
+              </div>
+              <div style={{ fontSize: '0.95rem', color: 'var(--accent-secondary)' }}>
+                {bonus.label}
+              </div>
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-main)', marginTop: 4 }}>
+                +{bonus.xpAward} EXP
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

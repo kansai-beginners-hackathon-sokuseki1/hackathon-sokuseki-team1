@@ -187,6 +187,18 @@ export const useAppState = () => {
 
   const clearLevelUpData = () => setLevelUpData(null);
 
+  const claimProgressBonus = async (payload) => {
+    const prevLevel = userStats.level;
+    const result = await api.claimProgressBonus(payload);
+    const nextStats = applyProgress(result.progress);
+
+    if (result.claimed && nextStats && nextStats.level > prevLevel) {
+      setLevelUpData(nextStats);
+    }
+
+    return result;
+  };
+
   return {
     tasks,
     userStats,
@@ -201,6 +213,7 @@ export const useAppState = () => {
     toggleTask,
     editTask,
     deleteTask,
+    claimProgressBonus,
     getRequiredExp,
     levelUpData,
     clearLevelUpData,

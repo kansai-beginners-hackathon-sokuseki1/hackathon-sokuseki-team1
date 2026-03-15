@@ -63,6 +63,7 @@ export const api = {
   deleteTask: (id) => request("DELETE", `/tasks/${id}`),
   completeTask: (id) => request("POST", `/tasks/${id}/complete`),
   getProgress: () => request("GET", "/progress"),
+  claimProgressBonus: (data) => request("POST", "/progress/bonus", data),
 
   getProfile: () => request("GET", "/me/profile"),
   saveProfile: (data) => request("PUT", "/me/profile", data),
@@ -73,4 +74,3 @@ export const api = {
 
   scoreDifficulty: (data) => request("POST", "/ai/difficulty", data)
 };
-

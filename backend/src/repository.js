@@ -233,6 +233,71 @@ export function createD1Repository(db) {
       };
     },
 
+    async claimProgressBonus(userId, { bonusType, claimKey, xpAward, metadata = {}, claimedAt }) {
+      const current = await this.getUserProgress(userId);
+      if (!current) return null;
+
+      const insert = await db.prepare(`
+        INSERT OR IGNORE INTO progress_bonus_claims (id, user_id, bonus_type, claim_key, xp_award, metadata_json, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        createId("bonus"),
+        userId,
+        bonusType,
+        claimKey,
+        xpAward,
+        JSON.stringify(metadata),
+        claimedAt
+      ).run();
+
+      if ((insert.meta?.changes ?? 0) === 0) {
+        return {
+          claimed: false,
+          progress: {
+            xp: Number(current.xp),
+            level: Number(current.level),
+            completed_task_count: Number(current.completed_task_count)
+          }
+        };
+      }
+
+      const nextXp = Number(current.xp) + xpAward;
+      const nextCompleted = Number(current.completed_task_count);
+      const { level: nextLevel } = computeLevelFromXp(nextXp);
+
+      await db.batch([
+        db.prepare(`
+          UPDATE user_progress SET xp = ?, level = ?, completed_task_count = ?, updated_at = ?
+          WHERE user_id = ?
+        `).bind(nextXp, nextLevel, nextCompleted, claimedAt, userId),
+        db.prepare(`
+          INSERT INTO milestone_events (id, user_id, type, metadata_json, created_at)
+          VALUES (?, ?, 'progress_bonus', ?, ?)
+        `).bind(
+          createId("event"),
+          userId,
+          JSON.stringify({ bonusType, claimKey, xpAward, ...metadata }),
+          claimedAt
+        )
+      ]);
+
+      if (nextLevel > Number(current.level)) {
+        await db.prepare(`
+          INSERT INTO milestone_events (id, user_id, type, metadata_json, created_at)
+          VALUES (?, ?, 'level_up', ?, ?)
+        `).bind(createId("event"), userId, JSON.stringify({ level: nextLevel }), claimedAt).run();
+      }
+
+      return {
+        claimed: true,
+        progress: {
+          xp: nextXp,
+          level: nextLevel,
+          completed_task_count: nextCompleted
+        }
+      };
+    },
+
     async deleteTask(userId, taskId) {
       const result = await db.prepare("DELETE FROM tasks WHERE id = ? AND user_id = ?").bind(taskId, userId).run();
       return result.meta.changes > 0;
