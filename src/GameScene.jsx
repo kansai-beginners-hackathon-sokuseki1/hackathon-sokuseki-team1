@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './FantasyBackground.css';
 import './FantasyBackgroundStages.css';
 import {
@@ -427,6 +427,8 @@ const SCENE_RULES = [
   '前景の情報量はUIを邪魔しない範囲に抑える'
 ];
 
+const COMPACT_SCENE_MEDIA_QUERY = '(max-width: 640px)';
+
 export function getAdventureStage(level = 1) {
   let currentStage = STAGE_DEFINITIONS[0];
   for (const stage of STAGE_DEFINITIONS) {
@@ -479,9 +481,23 @@ function StageBackdrop({ stage }) {
   );
 }
 
-function StageProps({ scene, stageKey }) {
-  const { props } = scene;
+function getCompactSceneProps(props) {
+  return {
+    ...props,
+    houseCount: Math.max(0, Math.min(props.houseCount ?? 0, 2) - (props.houseCount > 1 ? 1 : 0)),
+    treeCount: Math.max(1, (props.denseTrees ? 2 : 3) - 1),
+    lanternCount: props.showLanterns ? 1 : 0,
+    showFence: false,
+    showFlowers: false,
+    showSmoke: Boolean(props.showSmoke) && Boolean(props.showWatchtower)
+  };
+}
+
+function StageProps({ scene, stageKey, compact = false }) {
+  const props = compact ? getCompactSceneProps(scene.props) : scene.props;
   const houses = GAME_SCENE_CONFIG.houses.slice(0, props.houseCount);
+  const trees = GAME_SCENE_CONFIG.trees.slice(0, props.treeCount ?? GAME_SCENE_CONFIG.trees.length);
+  const lanterns = GAME_SCENE_CONFIG.lanterns.slice(0, props.lanternCount ?? GAME_SCENE_CONFIG.lanterns.length);
   const structureComponents = {
     village: <VillageStructures props={props} houses={houses} stageKey={stageKey} />,
     harbor: <HarborStructures props={props} houses={houses} stageKey={stageKey} />,
@@ -499,13 +515,13 @@ function StageProps({ scene, stageKey }) {
         {props.showDuneField && <div className="gs-dune-field" />}
         {structureComponents[props.structureSet] ?? null}
         <SceneLights
-          lanterns={GAME_SCENE_CONFIG.lanterns}
+          lanterns={lanterns}
           showLanterns={props.showLanterns}
           showCrystal={props.showCrystal !== false}
           stageKey={stageKey}
         />
 
-        {props.showTrees && GAME_SCENE_CONFIG.trees.map((tree, index) => (
+        {props.showTrees && trees.map((tree, index) => (
           <div
             key={`${stageKey}-tree-${index}`}
             className={`${tree.className}${props.denseTrees ? ' gs-tree--dense' : ''}${props.snowTrees ? ' gs-tree--snow' : ''}`}
@@ -599,11 +615,33 @@ function StageCharacters({ scene, stageKey }) {
 
 export function GameScene({ level = 1, stage: explicitStage = null }) {
   const stage = explicitStage ?? getAdventureStage(level);
+  const [compactScene, setCompactScene] = useState(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+    return window.matchMedia(COMPACT_SCENE_MEDIA_QUERY).matches;
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined;
+
+    const mediaQuery = window.matchMedia(COMPACT_SCENE_MEDIA_QUERY);
+    const syncCompactScene = (event) => {
+      setCompactScene(event.matches);
+    };
+
+    setCompactScene(mediaQuery.matches);
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', syncCompactScene);
+      return () => mediaQuery.removeEventListener('change', syncCompactScene);
+    }
+
+    mediaQuery.addListener(syncCompactScene);
+    return () => mediaQuery.removeListener(syncCompactScene);
+  }, []);
 
   return (
     <div className="game-scene" data-stage={stage.key} style={stage.theme} aria-hidden="true">
       <StageBackdrop stage={stage} />
-      <StageProps scene={stage.scene} stageKey={stage.key} />
+      <StageProps scene={stage.scene} stageKey={stage.key} compact={compactScene} />
       <StageCharacters scene={stage.scene} stageKey={stage.key} />
     </div>
   );
