@@ -1,6 +1,6 @@
-const SERVICE_WORKER_PATH = '/hackathon-sokuseki-team1/sw.js';
-const SERVICE_WORKER_SCOPE = '/hackathon-sokuseki-team1/';
-const NOTIFICATION_ICON_PATH = '/hackathon-sokuseki-team1/icon-192.svg';
+const SERVICE_WORKER_PATH = '/sw.js';
+const SERVICE_WORKER_SCOPE = '/';
+const NOTIFICATION_ICON_PATH = '/icon-192.svg';
 
 export function registerAppServiceWorker() {
   if (!('serviceWorker' in navigator)) return;

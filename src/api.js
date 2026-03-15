@@ -1,6 +1,4 @@
-const API_BASE = import.meta.env.PROD
-  ? "https://hackathon-sokuseki-team1-backend.btsi10-558.workers.dev/api"
-  : "/api";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
 
 function getToken() {
   return localStorage.getItem("authToken");

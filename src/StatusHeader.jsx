@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useEffect, useRef, useState } from 'react';
 import { Target } from 'lucide-react';
-import { GameScene } from './FantasyBackground';
+import { GameScene } from './GameScene';
 
 export function StatusHeader({ stats, getRequiredExp }) {
   const { level, currentExp } = stats;

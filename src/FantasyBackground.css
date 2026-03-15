@@ -366,12 +366,29 @@
 .gs-hill,
 .gs-fog-bank,
 .gs-ground,
-.gs-village,
+.gs-props-layer,
+.gs-scene-props,
 .gs-fence,
-.gs-path {
+.gs-path,
+.gs-characters-layer {
   position: absolute;
   left: 0;
   right: 0;
+}
+
+.gs-hill,
+.gs-fog-bank,
+.gs-ground {
+  z-index: 1;
+}
+
+.gs-props-layer,
+.gs-scene-props {
+  z-index: 2;
+}
+
+.gs-characters-layer {
+  z-index: 3;
 }
 
 .gs-hill--back {
@@ -389,7 +406,8 @@
   clip-path: ellipse(64% 100% at 50% 100%);
 }
 
-.gs-village {
+.gs-props-layer,
+.gs-scene-props {
   bottom: 26px;
   height: 88px;
 }
@@ -401,6 +419,207 @@
 .gs-castle,
 .gs-dune-field {
   position: absolute;
+}
+
+.gs-characters-layer {
+  bottom: 14px;
+  height: 72px;
+}
+
+.gs-character {
+  position: absolute;
+  bottom: 0;
+  width: 28px;
+  height: 56px;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.34));
+  animation: gsCharacterIdle 3.2s ease-in-out infinite;
+}
+
+.gs-character-shadow,
+.gs-character-body,
+.gs-character-head,
+.gs-character-cloak,
+.gs-character-pack,
+.gs-character-weapon,
+.gs-character-cargo,
+.gs-character-aura,
+.gs-character-horns {
+  position: absolute;
+}
+
+.gs-character-shadow {
+  left: 4px;
+  right: 4px;
+  bottom: -1px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(8, 8, 16, 0.42);
+  filter: blur(2px);
+}
+
+.gs-character-head {
+  left: 8px;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--scene-window) 74%, #f0c39f 26%);
+  border: 1px solid rgba(42, 24, 18, 0.28);
+}
+
+.gs-character-body {
+  left: 9px;
+  top: 18px;
+  width: 10px;
+  height: 18px;
+  border-radius: 4px 4px 3px 3px;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--scene-house) 72%, white 8%), var(--scene-house-trim));
+}
+
+.gs-character-cloak {
+  left: 4px;
+  top: 18px;
+  width: 20px;
+  height: 30px;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--scene-roof) 78%, white 6%), var(--scene-roof));
+  clip-path: polygon(50% 0, 100% 26%, 88% 100%, 12% 100%, 0 26%);
+}
+
+.gs-character-pack {
+  left: 2px;
+  top: 20px;
+  width: 7px;
+  height: 13px;
+  border-radius: 3px 2px 2px 3px;
+  background: linear-gradient(to bottom, #8f6a45, #5d3d24);
+}
+
+.gs-character-weapon {
+  right: 2px;
+  top: 16px;
+  width: 3px;
+  height: 28px;
+  border-radius: 999px;
+  background: linear-gradient(to bottom, #d3def2, #65738f);
+}
+
+.gs-character-cargo {
+  right: 1px;
+  top: 24px;
+  width: 9px;
+  height: 10px;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, #d1a167, #8b5b28);
+}
+
+.gs-character-aura {
+  left: -4px;
+  top: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--scene-crystal) 34%, white 66%) 0%, transparent 72%);
+  opacity: 0.6;
+  filter: blur(3px);
+}
+
+.gs-character-horns::before,
+.gs-character-horns::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  width: 6px;
+  height: 8px;
+  background: linear-gradient(to bottom, #d5b4ab, #7b4541);
+}
+
+.gs-character-horns::before {
+  left: 6px;
+  clip-path: polygon(100% 0, 0 100%, 100% 100%);
+}
+
+.gs-character-horns::after {
+  right: 6px;
+  clip-path: polygon(0 0, 0 100%, 100% 100%);
+}
+
+.gs-character--hero .gs-character-cloak,
+.gs-character--traveler .gs-character-cloak,
+.gs-character--adventurer .gs-character-cloak,
+.gs-character--champion .gs-character-cloak {
+  background: linear-gradient(to bottom, #4f6ecf, #263a74);
+}
+
+.gs-character--villager .gs-character-cloak,
+.gs-character--merchant .gs-character-cloak,
+.gs-character--dockhand .gs-character-cloak {
+  background: linear-gradient(to bottom, #bf8b52, #7a4e25);
+}
+
+.gs-character--ranger .gs-character-cloak,
+.gs-character--warden .gs-character-cloak,
+.gs-character--guard .gs-character-cloak {
+  background: linear-gradient(to bottom, #4f8765, #254131);
+}
+
+.gs-character--mage .gs-character-cloak,
+.gs-character--sprite .gs-character-cloak {
+  background: linear-gradient(to bottom, #8c69de, #4a2b86);
+}
+
+.gs-character--boss .gs-character-cloak {
+  background: linear-gradient(to bottom, #912e35, #451015);
+}
+
+.gs-character--guide,
+.gs-character--worker,
+.gs-character--merchant,
+.gs-character--guard,
+.gs-character--spirit,
+.gs-character--boss {
+  transform: translateX(-50%) scale(0.94);
+}
+
+.gs-character--spirit {
+  opacity: 0.88;
+}
+
+.gs-character--spirit .gs-character-shadow {
+  opacity: 0.35;
+}
+
+.gs-character--spirit .gs-character-head,
+.gs-character--spirit .gs-character-body {
+  background: color-mix(in srgb, var(--scene-crystal) 70%, white 30%);
+}
+
+.gs-character--boss {
+  transform: translateX(-50%) scale(1.08);
+  filter: drop-shadow(0 6px 8px rgba(60, 0, 0, 0.42));
+}
+
+.gs-character--boss .gs-character-head {
+  background: color-mix(in srgb, var(--scene-window) 40%, #c36d5b 60%);
+}
+
+.gs-character--boss .gs-character-body {
+  background: linear-gradient(to bottom, #69313a, #2f1318);
+}
+
+.gs-character--boss .gs-character-aura {
+  opacity: 0.82;
+  background: radial-gradient(circle, rgba(255, 101, 84, 0.42) 0%, transparent 74%);
+}
+
+.gs-character--mage .gs-character-head,
+.gs-character--sprite .gs-character-head {
+  box-shadow: 0 0 8px color-mix(in srgb, var(--scene-crystal) 40%, white 60%);
+}
+
+@keyframes gsCharacterIdle {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-2px); }
 }
 
 .gs-watchtower {
