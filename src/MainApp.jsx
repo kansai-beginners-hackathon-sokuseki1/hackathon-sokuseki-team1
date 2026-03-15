@@ -236,6 +236,7 @@ export function MainApp({
     () => SESSION_BONUS_TIERS.find(({ tier }) => !claimedSessionTiers.includes(tier)) ?? null,
     [claimedSessionTiers]
   );
+  const needsProfileOnboarding = !profile.onboardingCompleted && !profilePromptDismissed;
 
   const displayTasks = useMemo(() => {
     let result = tasks.filter((task) => statusFilters.includes(task.status));
@@ -424,7 +425,7 @@ export function MainApp({
         </div>
       </header>
 
-      {!profile.hasProfile && !profilePromptDismissed && (
+      {needsProfileOnboarding ? (
         <ProfilePrompt
           profile={profile}
           onSaveProfile={async (payload) => {
@@ -433,8 +434,8 @@ export function MainApp({
           }}
           onDismiss={() => setProfilePromptDismissed(true)}
         />
-      )}
-
+      ) : (
+        <>
       {dueTasks.length > 0 && (
         <div
           style={{
@@ -639,6 +640,8 @@ export function MainApp({
             </div>
           ))}
         </div>
+      )}
+        </>
       )}
     </div>
   );
