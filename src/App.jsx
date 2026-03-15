@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AuthScreen } from './AuthScreen';
+import { ErrorBoundary } from './ErrorBoundary';
 import { FantasyBackground, FantasyOverlay } from './FantasyBackground';
 import { MainApp } from './MainApp';
 import { registerAppServiceWorker } from './notifications';
@@ -106,25 +107,27 @@ function App() {
       {!authToken ? (
         <AuthScreen onLogin={handleLogin} />
       ) : (
-        <MainApp
-          currentUser={currentUser}
-          onLogout={handleLogout}
-          colorTheme={colorTheme}
-          onThemeChange={handleThemeChange}
-          bgTimeLock={bgTimeLock}
-          onBgTimeLockChange={handleBgTimeLockChange}
-          alertEnabled={alertEnabled}
-          onAlertEnabledChange={handleAlertEnabledChange}
-          seVolume={seVolume}
-          onSeVolumeChange={handleSeVolumeChange}
-          bgmVolume={bgmVolume}
-          onBgmVolumeChange={handleBgmVolumeChange}
-          hideCompletedTasks={hideCompletedTasks}
-          onHideCompletedTasksChange={(enabled) => {
-            localStorage.setItem('hideCompletedTasks', enabled);
-            setHideCompletedTasks(enabled);
-          }}
-        />
+        <ErrorBoundary resetKey={authToken}>
+          <MainApp
+            currentUser={currentUser}
+            onLogout={handleLogout}
+            colorTheme={colorTheme}
+            onThemeChange={handleThemeChange}
+            bgTimeLock={bgTimeLock}
+            onBgTimeLockChange={handleBgTimeLockChange}
+            alertEnabled={alertEnabled}
+            onAlertEnabledChange={handleAlertEnabledChange}
+            seVolume={seVolume}
+            onSeVolumeChange={handleSeVolumeChange}
+            bgmVolume={bgmVolume}
+            onBgmVolumeChange={handleBgmVolumeChange}
+            hideCompletedTasks={hideCompletedTasks}
+            onHideCompletedTasksChange={(enabled) => {
+              localStorage.setItem('hideCompletedTasks', enabled);
+              setHideCompletedTasks(enabled);
+            }}
+          />
+        </ErrorBoundary>
       )}
     </>
   );

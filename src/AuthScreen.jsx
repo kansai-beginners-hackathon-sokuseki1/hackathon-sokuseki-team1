@@ -6,8 +6,15 @@ export function AuthScreen({ onLogin }) {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const switchMode = (nextMode) => {
+    setMode(nextMode);
+    setError(null);
+    setShowPassword(false);
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -29,7 +36,7 @@ export function AuthScreen({ onLogin }) {
       } else if (err.code === 'invalid_credentials') {
         setError('メールアドレスまたはパスワードが正しくありません。');
       } else {
-        setError(err.message || 'エラーが発生しました。もう一度お試しください。');
+        setError(err.message || 'エラーが発生しました。もう一度試してください。');
       }
     } finally {
       setLoading(false);
@@ -81,7 +88,7 @@ export function AuthScreen({ onLogin }) {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(event) => setEmail(event.target.value)}
                 placeholder="adventurer@example.com"
                 disabled={loading}
                 required
@@ -96,7 +103,7 @@ export function AuthScreen({ onLogin }) {
                 <input
                   type="text"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(event) => setUsername(event.target.value)}
                   placeholder="表示名を入力"
                   disabled={loading}
                   minLength={2}
@@ -109,15 +116,27 @@ export function AuthScreen({ onLogin }) {
               <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
                 パスワード（8文字以上）
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                disabled={loading}
-                minLength={8}
-                required
-              />
+              <div className="password-field">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="••••••••"
+                  disabled={loading}
+                  minLength={8}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword((current) => !current)}
+                  disabled={loading}
+                  aria-label={showPassword ? 'パスワードを隠す' : 'パスワードを表示する'}
+                  aria-pressed={showPassword}
+                >
+                  {showPassword ? '隠す' : '表示'}
+                </button>
+              </div>
             </div>
 
             {error && (
@@ -133,7 +152,7 @@ export function AuthScreen({ onLogin }) {
               style={{ marginTop: 'var(--spacing-sm)' }}
             >
               {loading
-                ? '処理中...'
+                ? '送信中...'
                 : mode === 'login' ? '▶ ログイン' : '▶ 登録してはじめる'}
             </button>
           </form>
@@ -150,10 +169,8 @@ export function AuthScreen({ onLogin }) {
               <>
                 アカウントがない場合は{' '}
                 <button
-                  onClick={() => {
-                    setMode('register');
-                    setError(null);
-                  }}
+                  type="button"
+                  onClick={() => switchMode('register')}
                   style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
                 >
                   新規登録
@@ -163,10 +180,8 @@ export function AuthScreen({ onLogin }) {
               <>
                 すでに登録済みなら{' '}
                 <button
-                  onClick={() => {
-                    setMode('login');
-                    setError(null);
-                  }}
+                  type="button"
+                  onClick={() => switchMode('login')}
                   style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
                 >
                   ログイン

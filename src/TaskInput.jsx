@@ -53,6 +53,9 @@ export function TaskInput({ onAdd, scoreDifficulty }) {
       setDueDate('');
       setDifficulty(1);
       setDifficultyMeta(null);
+    } catch (error) {
+      console.error(error);
+      setErrorMsg(error.message || 'タスクの追加に失敗しました。');
     } finally {
       setIsSubmitting(false);
     }

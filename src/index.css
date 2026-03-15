@@ -135,6 +135,30 @@ input[type="text"]:disabled {
   cursor: not-allowed;
 }
 
+.password-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.password-toggle {
+  min-width: 56px;
+  padding: 6px 10px;
+  border: 2px solid var(--border-window);
+  border-radius: var(--radius-sm);
+  background: #000030;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.password-toggle:hover:not(:disabled),
+.password-toggle[aria-pressed="true"] {
+  border-color: var(--accent-secondary);
+  color: var(--accent-secondary);
+}
+
 select option {
   background-color: var(--bg-window);
   color: var(--text-primary);
