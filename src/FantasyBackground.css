@@ -600,19 +600,41 @@
 }
 
 .gs-fence {
-  bottom: 12px;
+  bottom: 1px;
   display: flex;
   justify-content: center;
   gap: 10px;
-  height: 18px;
+  height: 20px;
+  align-items: flex-end;
 }
 
 .gs-fence-post {
+  position: relative;
   width: 4px;
-  height: 16px;
+  height: 18px;
   background: var(--scene-fence);
   border-radius: 2px 2px 0 0;
   box-shadow: 0 -2px 0 color-mix(in srgb, var(--scene-fence) 80%, white 20%);
+}
+
+.gs-fence-post::before,
+.gs-fence-post::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 14px;
+  height: 3px;
+  transform: translateX(-50%);
+  background: color-mix(in srgb, var(--scene-fence) 88%, black 12%);
+  border-radius: 999px;
+}
+
+.gs-fence-post::before {
+  top: 4px;
+}
+
+.gs-fence-post::after {
+  top: 10px;
 }
 
 .gs-path {

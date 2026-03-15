@@ -15,13 +15,56 @@ import { PreferenceSwipeCard } from './PreferenceSwipeCard';
 import { THEME_LABELS, THEME_PREVIEW } from './themes';
 
 const BG_TIME_OPTIONS = [
-  { value: 'auto', label: '自動', description: '現在時刻に合わせます。' },
-  { value: 'night', label: '夜', description: '夜空の表示です。' },
-  { value: 'dawn', label: '明け方', description: '早朝の表示です。' },
-  { value: 'morning', label: '朝', description: '朝の表示です。' },
-  { value: 'noon', label: '昼', description: '日中の表示です。' },
-  { value: 'dusk', label: '夕方', description: '夕暮れの表示です。' }
+  { value: 'auto', label: '自動', description: '現在時刻に合わせて背景の時間帯を切り替えます。' },
+  { value: 'night', label: '夜', description: '星空と月が映える深夜の景色です。' },
+  { value: 'dawn', label: '夜明け', description: '朝焼けが差し込む静かな空気を表現します。' },
+  { value: 'morning', label: '朝', description: '爽やかな光が入る軽やかな時間帯です。' },
+  { value: 'noon', label: '昼', description: '明るく視認性の高い日中の景色です。' },
+  { value: 'dusk', label: '夕方', description: '夕焼けが残る少し落ち着いた景色です。' }
 ];
+
+const TIME_PREVIEW = {
+  night: {
+    sky: 'linear-gradient(180deg, #041026 0%, #101a45 50%, #1d2858 100%)',
+    glow: 'rgba(173, 216, 255, 0.38)',
+    orb: '#f4f7ff',
+    horizon: 'rgba(133, 153, 255, 0.25)',
+    stars: true,
+    label: '月と星がはっきり見える時間帯です。'
+  },
+  dawn: {
+    sky: 'linear-gradient(180deg, #26153f 0%, #7f5aa8 48%, #f4b37e 100%)',
+    glow: 'rgba(255, 210, 160, 0.42)',
+    orb: '#ffe9ba',
+    horizon: 'rgba(255, 187, 138, 0.30)',
+    stars: true,
+    label: '紫から橙へ移る夜明け前後の空です。'
+  },
+  morning: {
+    sky: 'linear-gradient(180deg, #7fd6ff 0%, #a9e4ff 55%, #fff0b5 100%)',
+    glow: 'rgba(255, 233, 150, 0.44)',
+    orb: '#fff7ce',
+    horizon: 'rgba(255, 240, 189, 0.30)',
+    stars: false,
+    label: 'すっきり明るい朝の雰囲気です。'
+  },
+  noon: {
+    sky: 'linear-gradient(180deg, #4bbcff 0%, #8bddff 55%, #daf7ff 100%)',
+    glow: 'rgba(255, 245, 194, 0.48)',
+    orb: '#fff4ae',
+    horizon: 'rgba(255, 255, 255, 0.22)',
+    stars: false,
+    label: '最も明るく、コントラストの高い時間帯です。'
+  },
+  dusk: {
+    sky: 'linear-gradient(180deg, #1b2446 0%, #8f4f7f 52%, #f09c6f 100%)',
+    glow: 'rgba(255, 176, 120, 0.40)',
+    orb: '#ffd7a1',
+    horizon: 'rgba(255, 158, 118, 0.30)',
+    stars: false,
+    label: '夕焼けから夜へ切り替わる穏やかな色味です。'
+  }
+};
 
 function resolveAutoTime() {
   const hour = new Date().getHours();
@@ -79,6 +122,110 @@ function Section({ icon, title, isOpen, onToggle, children }) {
   );
 }
 
+function TimePreview({ bgTimeLock }) {
+  const resolvedTime = bgTimeLock === 'auto' ? resolveAutoTime() : bgTimeLock;
+  const preview = TIME_PREVIEW[resolvedTime];
+  const option = BG_TIME_OPTIONS.find(({ value }) => value === bgTimeLock);
+  const resolvedOption = BG_TIME_OPTIONS.find(({ value }) => value === resolvedTime);
+
+  if (!preview) return null;
+
+  return (
+    <div
+      style={{
+        border: '1px solid var(--border-window-inner)',
+        borderRadius: 'var(--radius-sm)',
+        padding: '12px',
+        background: 'rgba(0, 0, 0, 0.14)'
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ color: 'var(--accent-secondary)', fontSize: '0.88rem' }}>背景プレビュー</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.76rem', marginTop: '2px' }}>
+            {bgTimeLock === 'auto'
+              ? `自動設定中: 現在は「${resolvedOption?.label ?? resolvedTime}」`
+              : option?.description}
+          </div>
+        </div>
+        <div
+          style={{
+            alignSelf: 'flex-start',
+            padding: '4px 8px',
+            borderRadius: '999px',
+            border: '1px solid var(--border-window-inner)',
+            color: 'var(--text-secondary)',
+            fontSize: '0.74rem'
+          }}
+        >
+          {option?.label}
+        </div>
+      </div>
+
+      <div
+        style={{
+          position: 'relative',
+          height: '140px',
+          borderRadius: '12px',
+          overflow: 'hidden',
+          background: preview.sky,
+          border: '1px solid rgba(255,255,255,0.15)',
+          boxShadow: 'inset 0 0 18px rgba(0,0,0,0.18)'
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            top: '18px',
+            right: '20px',
+            width: '28px',
+            height: '28px',
+            borderRadius: '50%',
+            background: preview.orb,
+            boxShadow: `0 0 22px ${preview.glow}`
+          }}
+        />
+
+        {preview.stars && (
+          <>
+            <span style={{ position: 'absolute', top: '28px', left: '34px', width: '3px', height: '3px', borderRadius: '50%', background: 'rgba(255,255,255,0.95)', boxShadow: '0 0 8px rgba(255,255,255,0.85)' }} />
+            <span style={{ position: 'absolute', top: '50px', left: '74px', width: '2px', height: '2px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', boxShadow: '0 0 6px rgba(255,255,255,0.7)' }} />
+            <span style={{ position: 'absolute', top: '22px', left: '118px', width: '2px', height: '2px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', boxShadow: '0 0 6px rgba(255,255,255,0.7)' }} />
+          </>
+        )}
+
+        <div
+          style={{
+            position: 'absolute',
+            left: '-8%',
+            right: '-8%',
+            bottom: '-26px',
+            height: '84px',
+            borderRadius: '50%',
+            background: preview.horizon,
+            filter: 'blur(2px)'
+          }}
+        />
+
+        <div
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: '42px',
+            background: 'linear-gradient(180deg, rgba(8, 20, 24, 0.12) 0%, rgba(8, 20, 24, 0.34) 100%)'
+          }}
+        />
+      </div>
+
+      <div style={{ marginTop: '10px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+        {preview.label}
+      </div>
+    </div>
+  );
+}
+
 export function SettingsModal({
   isOpen,
   onClose,
@@ -114,6 +261,7 @@ export function SettingsModal({
   const [connectionResult, setConnectionResult] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   const notificationDenied = typeof Notification !== 'undefined' && Notification.permission === 'denied';
   const selectedTime = useMemo(
@@ -128,6 +276,12 @@ export function SettingsModal({
   useEffect(() => {
     setDraftPreferences(profile.preferences);
   }, [profile.preferences]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSaveError(null);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -146,14 +300,19 @@ export function SettingsModal({
 
   const handleSave = async () => {
     setIsSaving(true);
+    setSaveError(null);
     setConnectionResult(null);
     try {
-      await onSaveAiSettings(draftSettings);
-      await onSaveProfile({
-        preferences: draftPreferences,
-        onboardingCompleted: true
-      });
+      await Promise.all([
+        onSaveAiSettings(draftSettings),
+        onSaveProfile({
+          preferences: draftPreferences,
+          onboardingCompleted: true
+        })
+      ]);
       onClose();
+    } catch (error) {
+      setSaveError(error.message);
     } finally {
       setIsSaving(false);
     }
@@ -195,7 +354,7 @@ export function SettingsModal({
         >
           <div>
             <h2 style={{ color: 'var(--accent-secondary)', fontSize: '1.2rem', marginBottom: '4px' }}>設定</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>見た目、AI 接続、プロフィール設定を管理します。</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>表示、通知、AI、プロフィール設定をまとめて調整できます。</p>
           </div>
           <button onClick={onClose} className="btn-icon" aria-label="設定を閉じる">
             <X size={20} />
@@ -203,7 +362,7 @@ export function SettingsModal({
         </div>
 
         <div style={{ display: 'grid', gap: '12px' }}>
-          <Section icon={Palette} title="テーマ" isOpen={openSections.theme} onToggle={() => toggleSection('theme')}>
+          <Section icon={Palette} title="カラーテーマ" isOpen={openSections.theme} onToggle={() => toggleSection('theme')}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
               {Object.entries(THEME_LABELS).map(([key, label]) => {
                 const preview = THEME_PREVIEW[key];
@@ -239,7 +398,7 @@ export function SettingsModal({
           </Section>
 
           <Section icon={Clock3} title="背景の時間帯" isOpen={openSections.time} onToggle={() => toggleSection('time')}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
               {BG_TIME_OPTIONS.map(({ value, label, description }) => (
                 <button
                   key={value}
@@ -259,9 +418,10 @@ export function SettingsModal({
                 </button>
               ))}
             </div>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '12px' }}>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
               現在の設定: {selectedTime.label}。表示時間帯: {bgTimeLock === 'auto' ? resolveAutoTime() : bgTimeLock}。
             </p>
+            <TimePreview bgTimeLock={bgTimeLock} />
           </Section>
 
           <Section icon={Bell} title="タスク表示" isOpen={openSections.alerts} onToggle={() => toggleSection('alerts')}>
@@ -280,7 +440,7 @@ export function SettingsModal({
                 >
                   {hideCompletedTasks ? 'ON' : 'OFF'}
                 </button>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>完了したタスクを初期表示で隠します。</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>完了したタスクを一覧から自動で隠します。</span>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
@@ -297,13 +457,13 @@ export function SettingsModal({
                 >
                   {alertEnabled ? 'ON' : 'OFF'}
                 </button>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>期限タスクのブラウザ通知を有効にします。</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>期限切れや当日期限のタスクをブラウザ通知します。</span>
               </div>
             </div>
 
             {notificationDenied && (
               <p style={{ fontSize: '0.78rem', color: 'var(--danger)', marginTop: '10px' }}>
-                ブラウザ通知がブロックされています。ブラウザ設定で許可してください。
+                ブラウザ通知が拒否されています。ブラウザ設定から通知を許可してください。
               </p>
             )}
           </Section>
@@ -348,7 +508,7 @@ export function SettingsModal({
                   checked={draftSettings.useServerDefault}
                   onChange={(event) => setDraftSettings((current) => ({ ...current, useServerDefault: event.target.checked }))}
                 />
-                サーバー既定の認証情報を使う
+                サーバー既定の接続設定を使う
               </label>
 
               <div style={{ display: 'grid', gap: '6px' }}>
@@ -416,7 +576,7 @@ export function SettingsModal({
             </div>
           </Section>
 
-          <Section icon={Info} title="得意・苦手設定" isOpen={openSections.profile} onToggle={() => toggleSection('profile')}>
+          <Section icon={Info} title="プロフィール設定" isOpen={openSections.profile} onToggle={() => toggleSection('profile')}>
             <div style={{ display: 'grid', gap: '8px' }}>
               {profile.categories.map((category) => (
                 <PreferenceSwipeCard
@@ -436,13 +596,19 @@ export function SettingsModal({
           </Section>
         </div>
 
+        {saveError && (
+          <p style={{ marginTop: '12px', color: 'var(--danger)', fontSize: '0.82rem' }}>
+            {saveError}
+          </p>
+        )}
+
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-lg)' }}>
-          <button onClick={onClose} className="btn-icon" style={{ padding: '8px 16px', border: '2px solid var(--text-muted)' }}>
+          <button type="button" onClick={onClose} className="btn-icon" style={{ padding: '8px 16px', border: '2px solid var(--text-muted)' }}>
             キャンセル
           </button>
-          <button onClick={handleSave} className="btn-primary" disabled={isSaving}>
+          <button type="button" onClick={handleSave} className="btn-primary" disabled={isSaving}>
             <Save size={18} />
-            {isSaving ? '保存中...' : '保存'}
+            {isSaving ? '保存中...' : '保存する'}
           </button>
         </div>
       </div>
