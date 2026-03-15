@@ -246,6 +246,8 @@
    ============================================= */
 
 .game-scene {
+  --gs-props-bleed: 0px;
+  --gs-props-scale: 1;
   --scene-sky-top: #08111f;
   --scene-sky-bottom: #201339;
   --scene-glow: rgba(108, 92, 255, 0.22);
@@ -410,6 +412,16 @@
 .gs-scene-props {
   bottom: 26px;
   height: 88px;
+}
+
+.gs-props-layer {
+  left: calc(var(--gs-props-bleed) * -1);
+  right: calc(var(--gs-props-bleed) * -1);
+}
+
+.gs-scene-props {
+  transform: scale(var(--gs-props-scale));
+  transform-origin: bottom center;
 }
 
 .gs-water,
@@ -2298,23 +2310,39 @@
 
 @media (max-width: 640px) {
   .game-scene {
-    height: 132px;
+    --gs-props-bleed: 24px;
+    --gs-props-scale: 0.94;
+    height: 140px;
   }
 
   .gs-house--left {
-    left: 8% !important;
+    left: 6% !important;
   }
 
   .gs-house--center {
-    left: 38% !important;
+    left: 35% !important;
   }
 
   .gs-house--right {
-    left: 70% !important;
+    left: 66% !important;
+  }
+
+  .gs-tree--left {
+    left: 2% !important;
+  }
+
+  .gs-tree--mid {
+    left: 25% !important;
+  }
+
+  .gs-tree--right {
+    left: 78% !important;
   }
 
   .gs-watchtower {
-    left: 51%;
+    left: 49%;
+    transform: translateX(-50%) scale(0.92);
+    transform-origin: bottom center;
   }
 
   .gs-fence {
