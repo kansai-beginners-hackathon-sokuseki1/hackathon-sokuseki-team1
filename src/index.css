@@ -431,6 +431,8 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 10px;
+  position: relative;
+  z-index: 3;
 }
 
 .level-ring {
@@ -593,6 +595,8 @@ button:disabled {
 }
 
 .exp-info {
+  position: relative;
+  z-index: 1;
   font-size: 0.9rem;
   color: rgba(244, 247, 255, 0.96);
   text-shadow:
