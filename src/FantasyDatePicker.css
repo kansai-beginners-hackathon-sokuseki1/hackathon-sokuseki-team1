@@ -1,6 +1,7 @@
 .fdp-wrap {
   position: relative;
   display: inline-block;
+  z-index: 30;
 }
 
 /* ---- トリガーボタン ---- */
@@ -38,8 +39,10 @@
    古文書風ポップアップ
    ============================================ */
 .fdp-popup {
-  position: fixed;
-  z-index: 100000;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 100;
   width: 272px;
 
   /* 経年変化した和紙のような背景 */
