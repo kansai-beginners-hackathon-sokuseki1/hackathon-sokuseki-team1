@@ -87,10 +87,10 @@ async function createAuthenticatedSession(repository, userId, userPayload, audit
 }
 
 const KEEPALIVE_BONUS_TIERS = {
-  1: { minutes: 15, xpAward: 8, label: "Quarter Watch" },
-  2: { minutes: 30, xpAward: 12, label: "Half-Hour Watch" },
-  3: { minutes: 60, xpAward: 18, label: "One-Hour Watch" },
-  4: { minutes: 120, xpAward: 25, label: "Long Watch" }
+  1: { minutes: 15, xpAward: 8, label: "15分継続ボーナス" },
+  2: { minutes: 30, xpAward: 12, label: "30分継続ボーナス" },
+  3: { minutes: 60, xpAward: 18, label: "60分継続ボーナス" },
+  4: { minutes: 120, xpAward: 25, label: "120分継続ボーナス" }
 };
 
 function resolveProgressBonus(body) {
@@ -110,7 +110,7 @@ function resolveProgressBonus(body) {
       bonusType: "daily_login",
       claimKey: `daily_login:${dayKey}`,
       xpAward: 25,
-      label: "Daily Login Bonus",
+      label: "ログインボーナス",
       metadata: { dayKey }
     };
   }

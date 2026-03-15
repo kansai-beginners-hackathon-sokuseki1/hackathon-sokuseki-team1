@@ -9,10 +9,10 @@ import { useAppState } from './useAppState';
 import { sendNotification } from './notifications';
 
 const SESSION_BONUS_TIERS = [
-  { tier: 1, minutes: 15, xpAward: 8, label: 'Quarter Watch' },
-  { tier: 2, minutes: 30, xpAward: 12, label: 'Half-Hour Watch' },
-  { tier: 3, minutes: 60, xpAward: 18, label: 'One-Hour Watch' },
-  { tier: 4, minutes: 120, xpAward: 25, label: 'Long Watch' }
+  { tier: 1, minutes: 15, xpAward: 8, label: '15分継続ボーナス' },
+  { tier: 2, minutes: 30, xpAward: 12, label: '30分継続ボーナス' },
+  { tier: 3, minutes: 60, xpAward: 18, label: '60分継続ボーナス' },
+  { tier: 4, minutes: 120, xpAward: 25, label: '120分継続ボーナス' }
 ];
 
 const ACTIVE_TIME_TICK_MS = 30_000;
@@ -460,26 +460,26 @@ export function MainApp({
       >
         <div style={{ minWidth: '220px' }}>
           <div style={{ fontSize: '0.72rem', letterSpacing: '0.12em', color: 'var(--accent-primary)', marginBottom: 4 }}>
-            BONUS EXP
+            ボーナスEXP
           </div>
           <div style={{ fontSize: '0.92rem', color: 'var(--accent-secondary)' }}>
-            Daily login: {
+            ログインボーナス: {
               dailyBonusStatus === 'checking'
-                ? 'checking...'
+                ? '確認中...'
                 : dailyBonusStatus === 'claimed'
-                  ? '+25 EXP secured'
-                  : 'unavailable'
+                  ? '+25 EXP 受け取り済み'
+                  : '受け取れません'
             }
           </div>
         </div>
         <div style={{ minWidth: '260px', flex: 1 }}>
           <div style={{ fontSize: '0.86rem', color: 'var(--text-main)' }}>
-            Active watch time: {activeMinutes} min
+            継続時間: {activeMinutes} 分
           </div>
           <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 4 }}>
             {nextSessionBonus
-              ? `Next keep-open bonus: ${nextSessionBonus.minutes} min / +${nextSessionBonus.xpAward} EXP`
-              : 'All keep-open bonuses claimed for today'}
+              ? `次の継続ボーナス: ${nextSessionBonus.minutes}分で +${nextSessionBonus.xpAward} EXP`
+              : '本日の継続ボーナスはすべて受け取り済みです'}
           </div>
         </div>
       </div>
@@ -615,7 +615,7 @@ export function MainApp({
               }}
             >
               <div style={{ fontSize: '0.72rem', letterSpacing: '0.12em', color: 'var(--accent-primary)', marginBottom: 4 }}>
-                BONUS CLAIMED
+                ボーナス獲得
               </div>
               <div style={{ fontSize: '0.95rem', color: 'var(--accent-secondary)' }}>
                 {bonus.label}

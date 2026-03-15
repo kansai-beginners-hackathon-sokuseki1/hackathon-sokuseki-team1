@@ -1,10 +1,11 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useEffect, useRef, useState } from 'react';
 import { Target } from 'lucide-react';
-import { GameScene } from './GameScene';
+import { GameScene, getAdventureStage } from './GameScene';
 
 export function StatusHeader({ stats, getRequiredExp }) {
   const { level, currentExp } = stats;
+  const stage = getAdventureStage(level);
   const requiredExp = getRequiredExp(level);
   const percentage = Math.min(100, Math.round((currentExp / requiredExp) * 100));
   const prevLevel = useRef(level);
@@ -22,11 +23,17 @@ export function StatusHeader({ stats, getRequiredExp }) {
 
   return (
     <div className="rpg-window user-status-header">
-      <GameScene level={level} />
+      <GameScene level={level} stage={stage} />
       <div className="status-row">
-        <div className={`level-ring${levelAnim ? ' level-ring--up' : ''}`}>
-          <span className="lv-label">Lv</span>
-          <span className="lv-num">{level}</span>
+        <div className="status-row__primary">
+          <div className={`level-ring${levelAnim ? ' level-ring--up' : ''}`}>
+            <span className="lv-label">Lv</span>
+            <span className="lv-num">{level}</span>
+          </div>
+          <div className="stage-chip" aria-label={`Current stage ${stage.label}`}>
+            <span className="stage-chip__label">STAGE</span>
+            <span className="stage-chip__value">{stage.label}</span>
+          </div>
         </div>
         <div className="exp-info">
           {currentExp} / {requiredExp} EXP

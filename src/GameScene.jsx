@@ -422,7 +422,7 @@ const SCENE_RULES = [
   '前景の情報量はUIを邪魔しない範囲に抑える'
 ];
 
-function getAdventureStage(level = 1) {
+export function getAdventureStage(level = 1) {
   let currentStage = STAGE_DEFINITIONS[0];
   for (const stage of STAGE_DEFINITIONS) {
     if (level >= stage.minLevel) currentStage = stage;
@@ -583,8 +583,8 @@ function StageCharacters({ scene, stageKey }) {
   );
 }
 
-export function GameScene({ level = 1 }) {
-  const stage = getAdventureStage(level);
+export function GameScene({ level = 1, stage: explicitStage = null }) {
+  const stage = explicitStage ?? getAdventureStage(level);
 
   return (
     <div className="game-scene" data-stage={stage.key} style={stage.theme} aria-hidden="true">
