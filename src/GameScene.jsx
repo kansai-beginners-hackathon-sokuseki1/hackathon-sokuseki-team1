@@ -1,7 +1,15 @@
 import React from 'react';
 import './FantasyBackground.css';
 import './FantasyBackgroundStages.css';
-import { HarborStructures, RuinsStructures, VillageStructures } from './StageStructures';
+import {
+  CastleStructures,
+  ForestStructures,
+  HarborStructures,
+  MagicCityStructures,
+  RuinsStructures,
+  SceneLights,
+  VillageStructures
+} from './StageStructures';
 
 const GAME_SCENE_CONFIG = {
   clouds: [
@@ -88,7 +96,7 @@ const STAGE_DEFINITIONS = [
     scene: {
       focus: 'road',
       props: {
-        structureSet: 'none',
+        structureSet: 'forest',
         showWatchtower: false,
         houseCount: 0,
         showLanterns: false,
@@ -337,7 +345,7 @@ const STAGE_DEFINITIONS = [
     scene: {
       focus: 'arcane-city',
       props: {
-        structureSet: 'village',
+        structureSet: 'magic-city',
         showWatchtower: false,
         houseCount: 1,
         showLanterns: true,
@@ -385,7 +393,7 @@ const STAGE_DEFINITIONS = [
     scene: {
       focus: 'boss-castle',
       props: {
-        structureSet: 'none',
+        structureSet: 'castle',
         showWatchtower: false,
         houseCount: 0,
         showLanterns: true,
@@ -469,32 +477,23 @@ function StageProps({ scene, stageKey }) {
   const structureComponents = {
     village: <VillageStructures props={props} houses={houses} stageKey={stageKey} />,
     harbor: <HarborStructures props={props} houses={houses} stageKey={stageKey} />,
-    ruins: <RuinsStructures props={props} />
+    ruins: <RuinsStructures props={props} />,
+    forest: <ForestStructures />,
+    'magic-city': <MagicCityStructures props={props} houses={houses} stageKey={stageKey} />,
+    castle: <CastleStructures props={props} />
   };
 
   return (
     <div className="gs-props-layer" data-focus={scene.focus}>
       <div className="gs-scene-props">
         {props.showSnowcaps && <div className="gs-snowcaps" />}
-        {props.showMagicSpires && <div className="gs-magic-spires" />}
-        {props.showCastle && <div className="gs-castle" />}
         {props.showDuneField && <div className="gs-dune-field" />}
         {structureComponents[props.structureSet] ?? null}
-
-        {props.showLanterns && GAME_SCENE_CONFIG.lanterns.map((lantern, index) => (
-          <div
-            key={`${stageKey}-lantern-${index}`}
-            className="gs-lantern"
-            style={{
-              left: lantern.left,
-              bottom: `${lantern.bottom}px`,
-              animationDelay: lantern.delay
-            }}
-          >
-            <span className="gs-lantern-post" />
-            <span className="gs-lantern-light" />
-          </div>
-        ))}
+        <SceneLights
+          lanterns={GAME_SCENE_CONFIG.lanterns}
+          showLanterns={props.showLanterns}
+          stageKey={stageKey}
+        />
 
         {props.showTrees && GAME_SCENE_CONFIG.trees.map((tree, index) => (
           <div
@@ -518,11 +517,9 @@ function StageProps({ scene, stageKey }) {
             ))}
           </div>
         )}
-
         <div className="gs-path" />
         {props.showFlowers && <div className="gs-flower-cluster gs-flower-cluster--left" />}
         {props.showFlowers && <div className="gs-flower-cluster gs-flower-cluster--right" />}
-        <div className="gs-crystal" />
 
         {props.showSmoke && (
           <div className="gs-smoke-stack gs-smoke-stack--left">

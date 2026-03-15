@@ -767,6 +767,14 @@
 .gs-window--1 { left: 12px; }
 .gs-window--2 { left: 50%; transform: translateX(-50%); }
 .gs-window--3 { right: 12px; }
+.gs-window--warehouse {
+  left: 50%;
+  top: 7px;
+  width: 10px;
+  height: 10px;
+  transform: translateX(-50%);
+  animation: gsWindowFlicker 3.1s ease-in-out infinite;
+}
 
 .gs-house-body::before,
 .gs-house-body::after,
@@ -1025,6 +1033,53 @@
   border-radius: 4px 4px 0 0;
 }
 
+.gs-forest-shrine {
+  position: absolute;
+  left: 16%;
+  bottom: 18px;
+  width: 38px;
+  height: 28px;
+  border: 2px solid rgba(72, 98, 60, 0.84);
+  border-bottom-width: 4px;
+  border-radius: 4px 4px 2px 2px;
+  background: linear-gradient(to bottom, rgba(77, 103, 69, 0.78), rgba(39, 58, 38, 0.92));
+}
+
+.gs-forest-shrine::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  width: calc(100% + 8px);
+  height: 12px;
+  transform: translateX(-50%);
+  background: linear-gradient(to bottom, rgba(103, 83, 54, 0.86), rgba(61, 45, 29, 0.96));
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.gs-forest-shrine-core {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  width: 10px;
+  height: 10px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(172, 255, 196, 0.9) 0%, rgba(95, 215, 134, 0.4) 55%, transparent 72%);
+  box-shadow: 0 0 10px rgba(125, 255, 165, 0.4);
+}
+
+.gs-fallen-log {
+  position: absolute;
+  right: 18%;
+  bottom: 12px;
+  width: 44px;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(to right, #63442d, #8a6548, #5d3a22);
+  transform: rotate(-12deg);
+}
+
 .gs-snowcaps {
   left: 8%;
   right: 8%;
@@ -1094,6 +1149,29 @@
   height: 34px;
 }
 
+.gs-ruin-shrine {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  width: 28px;
+  height: 18px;
+  transform: translateX(-50%);
+  border: 2px solid rgba(113, 94, 73, 0.88);
+  border-radius: 3px 3px 2px 2px;
+  background: linear-gradient(to bottom, rgba(175, 155, 123, 0.65), rgba(100, 82, 63, 0.94));
+}
+
+.gs-ruin-shrine-core {
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  width: 8px;
+  height: 8px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 228, 164, 0.86) 0%, rgba(255, 211, 124, 0.28) 58%, transparent 74%);
+}
+
 .gs-magic-spires {
   left: 58%;
   bottom: 18px;
@@ -1115,6 +1193,42 @@
   filter: drop-shadow(0 0 8px rgba(174, 155, 255, 0.45));
 }
 
+.gs-arcane-ring {
+  position: absolute;
+  left: 18%;
+  bottom: 16px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid rgba(189, 179, 255, 0.72);
+  box-shadow:
+    0 0 12px rgba(146, 220, 255, 0.24),
+    inset 0 0 12px rgba(146, 220, 255, 0.18);
+}
+
+.gs-arcane-ring::before,
+.gs-arcane-ring::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
+
+.gs-arcane-ring::before {
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(135, 255, 246, 0.58);
+}
+
+.gs-arcane-ring::after {
+  width: 6px;
+  height: 6px;
+  background: rgba(213, 250, 255, 0.88);
+  box-shadow: 0 0 10px rgba(147, 238, 255, 0.62);
+}
+
 .gs-castle {
   left: 50%;
   bottom: 20px;
@@ -1129,6 +1243,25 @@
   clip-path: polygon(0 100%, 0 32%, 12% 32%, 12% 0, 24% 0, 24% 32%, 38% 32%, 38% 16%, 62% 16%, 62% 32%, 76% 32%, 76% 0, 88% 0, 88% 32%, 100% 32%, 100% 100%);
   border: 1px solid rgba(188, 110, 96, 0.3);
   box-shadow: 0 0 18px rgba(120, 32, 32, 0.18);
+}
+
+.gs-castle-beacon {
+  position: absolute;
+  bottom: 56px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 155, 122, 0.95) 0%, rgba(255, 88, 58, 0.52) 50%, transparent 72%);
+  filter: blur(0.4px);
+  box-shadow: 0 0 14px rgba(255, 88, 58, 0.32);
+}
+
+.gs-castle-beacon--left {
+  left: calc(50% - 52px);
+}
+
+.gs-castle-beacon--right {
+  left: calc(50% + 40px);
 }
 
 @keyframes gsCrystalPulse {

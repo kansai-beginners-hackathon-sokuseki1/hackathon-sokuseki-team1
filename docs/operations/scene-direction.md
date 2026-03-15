@@ -33,4 +33,4 @@ Stage scenes are built from three independent layers:
 
 The source of truth for stage composition lives in `src/GameScene.jsx` under `STAGE_DEFINITIONS[].scene`.
 
-Structure-specific rendering components live in `src/StageStructures.jsx`.
+Structure-specific rendering components and shared scene-light helpers live in `src/StageStructures.jsx`.
