@@ -16,6 +16,11 @@ dist-ssr
 .env
 .env.*
 !.env.example
+backend/.dev.vars
+*.png
+*.jpg
+design/*
+!design/README.md
 
 # Editor directories and files
 .vscode/*
