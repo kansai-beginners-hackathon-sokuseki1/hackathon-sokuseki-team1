@@ -1,7 +1,7 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown, Lock, Target } from 'lucide-react';
-import { GameScene, getAdventureStage } from './GameScene';
+import { GameScene } from './GameScene';
+import { getAdventureStage } from './gameSceneStages';
 
 export function StatusHeader({
   stats,

@@ -93,7 +93,8 @@ export const api = {
   saveAiSettings: (data) => request("PUT", "/me/ai-settings", data),
   testAiSettings: (data) => request("POST", "/me/ai-settings/test", data),
 
-  scoreDifficulty: (data) => request("POST", "/ai/difficulty", data)
+  scoreDifficulty: (data) => request("POST", "/ai/difficulty", data),
+  generateCompanionMessage: (data) => request("POST", "/ai/companion-message", data)
 };
 
 export { AUTH_EVENT_NAME };

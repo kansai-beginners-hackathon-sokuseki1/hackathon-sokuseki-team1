@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './FantasyBackground.css';
 import './FantasyBackgroundStages.css';
+import { getAdventureStage } from './gameSceneStages';
 import {
   CastleStructures,
   ForestStructures,
@@ -429,22 +430,6 @@ const SCENE_RULES = [
 
 const COMPACT_SCENE_MEDIA_QUERY = '(max-width: 640px)';
 
-export function getAdventureStages() {
-  return STAGE_DEFINITIONS;
-}
-
-export function getAdventureStageByKey(stageKey) {
-  return STAGE_DEFINITIONS.find((stage) => stage.key === stageKey) ?? null;
-}
-
-export function getAdventureStage(level = 1) {
-  let currentStage = STAGE_DEFINITIONS[0];
-  for (const stage of STAGE_DEFINITIONS) {
-    if (level >= stage.minLevel) currentStage = stage;
-  }
-  return currentStage;
-}
-
 function StageBackdrop({ stage }) {
   return (
     <>
@@ -687,7 +672,6 @@ export function GameScene({ level = 1, stage: explicitStage = null }) {
       setCompactScene(event.matches);
     };
 
-    setCompactScene(mediaQuery.matches);
     if (typeof mediaQuery.addEventListener === 'function') {
       mediaQuery.addEventListener('change', syncCompactScene);
       return () => mediaQuery.removeEventListener('change', syncCompactScene);

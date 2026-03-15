@@ -397,6 +397,221 @@ button:disabled {
   z-index: 40;
 }
 
+.task-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 5px 8px;
+  border: 2px solid var(--border-window);
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.task-meta-chip--deadline {
+  background: linear-gradient(180deg, rgba(28, 47, 78, 0.96) 0%, rgba(10, 22, 40, 0.96) 100%);
+}
+
+.task-meta-chip--difficulty {
+  background: linear-gradient(180deg, rgba(70, 44, 10, 0.96) 0%, rgba(34, 18, 4, 0.96) 100%);
+  border-color: rgba(255, 224, 138, 0.9);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 225, 160, 0.15),
+    0 0 18px rgba(255, 180, 70, 0.08);
+}
+
+.task-meta-chip__label {
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.task-difficulty-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.task-difficulty-stars__button {
+  padding: 0 2px;
+}
+
+.task-difficulty-stars__icon {
+  color: rgba(160, 140, 104, 0.95);
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.35);
+  transition: transform 0.14s ease, color 0.14s ease, text-shadow 0.14s ease;
+}
+
+.task-difficulty-stars__button:hover .task-difficulty-stars__icon,
+.task-difficulty-stars__icon.is-active {
+  color: #ffe56c;
+  text-shadow:
+    0 0 8px rgba(255, 216, 84, 0.55),
+    0 0 16px rgba(255, 173, 46, 0.24);
+}
+
+.task-difficulty-stars__button:hover .task-difficulty-stars__icon {
+  transform: translateY(-1px) scale(1.08);
+}
+
+.levelup-modal {
+  position: relative;
+  width: min(560px, 92vw);
+  padding: 44px 28px 28px;
+  overflow: hidden;
+  text-align: center;
+  border: 2px solid rgba(255, 227, 119, 0.95);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 50% 25%, rgba(255, 240, 169, 0.2) 0%, rgba(255, 240, 169, 0) 34%),
+    radial-gradient(circle at 50% 100%, rgba(39, 111, 255, 0.2) 0%, rgba(39, 111, 255, 0) 54%),
+    linear-gradient(180deg, rgba(16, 18, 45, 0.98) 0%, rgba(6, 8, 24, 0.98) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 0 24px rgba(255, 220, 94, 0.24),
+    0 24px 60px rgba(0, 0, 0, 0.62);
+  animation: lvupEntrance 0.48s var(--trans-bounce);
+}
+
+.levelup-burst {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.levelup-burst--outer {
+  width: 310px;
+  height: 310px;
+  border: 2px solid rgba(255, 230, 132, 0.22);
+  box-shadow:
+    0 0 40px rgba(255, 227, 112, 0.18),
+    inset 0 0 30px rgba(255, 227, 112, 0.12);
+  animation: levelupHalo 2.6s ease-in-out infinite;
+}
+
+.levelup-burst--inner {
+  width: 190px;
+  height: 190px;
+  background: radial-gradient(circle, rgba(255, 235, 136, 0.32) 0%, rgba(255, 235, 136, 0) 68%);
+  filter: blur(2px);
+  animation: levelupCorePulse 1.4s ease-in-out infinite;
+}
+
+.levelup-runes,
+.levelup-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.levelup-runes span,
+.levelup-particles span {
+  position: absolute;
+  display: block;
+}
+
+.levelup-runes span {
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgba(255, 229, 132, 0.7);
+  background: rgba(255, 229, 132, 0.12);
+  box-shadow: 0 0 10px rgba(255, 229, 132, 0.2);
+  animation: levelupRuneOrbit 4.5s linear infinite;
+}
+
+.levelup-runes span:nth-child(1) { transform: translate(-50%, -50%) rotate(0deg) translateY(-132px) rotate(0deg); }
+.levelup-runes span:nth-child(2) { transform: translate(-50%, -50%) rotate(60deg) translateY(-132px) rotate(-60deg); }
+.levelup-runes span:nth-child(3) { transform: translate(-50%, -50%) rotate(120deg) translateY(-132px) rotate(-120deg); }
+.levelup-runes span:nth-child(4) { transform: translate(-50%, -50%) rotate(180deg) translateY(-132px) rotate(-180deg); }
+.levelup-runes span:nth-child(5) { transform: translate(-50%, -50%) rotate(240deg) translateY(-132px) rotate(-240deg); }
+.levelup-runes span:nth-child(6) { transform: translate(-50%, -50%) rotate(300deg) translateY(-132px) rotate(-300deg); }
+
+.levelup-particles span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 245, 200, 1) 0%, rgba(255, 214, 95, 0.9) 58%, rgba(255, 214, 95, 0) 100%);
+  box-shadow: 0 0 16px rgba(255, 219, 123, 0.4);
+  animation: levelupSpark 2.2s ease-in-out infinite;
+}
+
+.levelup-particles span:nth-child(1) { top: 18%; left: 22%; animation-delay: 0s; }
+.levelup-particles span:nth-child(2) { top: 24%; right: 24%; animation-delay: 0.28s; }
+.levelup-particles span:nth-child(3) { top: 38%; left: 14%; animation-delay: 0.52s; }
+.levelup-particles span:nth-child(4) { top: 42%; right: 15%; animation-delay: 0.8s; }
+.levelup-particles span:nth-child(5) { bottom: 28%; left: 18%; animation-delay: 0.36s; }
+.levelup-particles span:nth-child(6) { bottom: 24%; right: 18%; animation-delay: 1.06s; }
+.levelup-particles span:nth-child(7) { bottom: 16%; left: 45%; animation-delay: 0.6s; }
+.levelup-particles span:nth-child(8) { top: 12%; left: 48%; animation-delay: 1.22s; }
+
+.levelup-eyebrow {
+  position: relative;
+  z-index: 1;
+  color: rgba(140, 211, 255, 0.95);
+  font-size: 0.78rem;
+  letter-spacing: 0.35em;
+  margin-bottom: 12px;
+}
+
+.levelup-title {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 12px;
+  color: #ffec8a;
+  font-size: clamp(2.2rem, 7vw, 3.8rem);
+  line-height: 1;
+  letter-spacing: 0.18em;
+  animation: lvupTextShine 1.15s ease-in-out infinite alternate;
+}
+
+.levelup-level-row {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.levelup-level-label {
+  color: rgba(196, 230, 255, 0.88);
+  font-size: 1.2rem;
+  letter-spacing: 0.14em;
+}
+
+.levelup-level-value {
+  color: #ffffff;
+  font-size: clamp(3rem, 10vw, 5.6rem);
+  line-height: 0.9;
+  text-shadow:
+    0 0 16px rgba(112, 194, 255, 0.55),
+    0 0 38px rgba(255, 223, 112, 0.24);
+  animation: lvupNumber 0.55s 0.08s both;
+}
+
+.levelup-caption,
+.levelup-close-hint {
+  position: relative;
+  z-index: 1;
+}
+
+.levelup-caption {
+  color: rgba(240, 246, 255, 0.92);
+  font-size: 0.96rem;
+  margin-bottom: 14px;
+}
+
+.levelup-close-hint {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+}
+
 /* =============================================
    Header & Status（EXP バー - RPGゲージ風）
    ============================================= */
@@ -532,9 +747,12 @@ button:disabled {
   left: 0;
   z-index: 90;
   width: min(280px, calc(100vw - 48px));
+  max-height: min(360px, calc(100vh - 160px));
   padding: 8px;
   display: grid;
   gap: 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: #000818;
   box-shadow:
     inset 0 0 0 1px var(--border-window-inner),
@@ -698,6 +916,7 @@ button:disabled {
     left: auto;
     right: 0;
     width: min(260px, calc(100vw - 40px));
+    max-height: min(320px, calc(100vh - 140px));
   }
 
   .exp-info {
@@ -766,6 +985,64 @@ button:disabled {
   0%   { transform: scale(0.3) rotate(-10deg); opacity: 0; }
   70%  { transform: scale(1.15) rotate(3deg); }
   100% { transform: scale(1) rotate(0deg);    opacity: 1; }
+}
+
+@keyframes levelupHalo {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(0.96);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.05);
+    opacity: 1;
+  }
+}
+
+@keyframes levelupCorePulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(0.92);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.12);
+    opacity: 1;
+  }
+}
+
+@keyframes levelupRuneOrbit {
+  from { filter: brightness(0.9); }
+  50% { filter: brightness(1.2); }
+  to { filter: brightness(0.9); }
+}
+
+@keyframes levelupSpark {
+  0%, 100% {
+    transform: translateY(0) scale(0.7);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-18px) scale(1.15);
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .levelup-modal,
+  .levelup-burst,
+  .levelup-runes span,
+  .levelup-particles span,
+  .levelup-title,
+  .levelup-level-value,
+  .task-difficulty-stars__icon {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 @keyframes cornerSpin {

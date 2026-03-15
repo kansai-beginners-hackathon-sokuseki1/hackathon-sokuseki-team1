@@ -1,6 +1,13 @@
 import { calculateExpByDifficulty, computeLevelFromXp } from "./rpg.js";
 import { decryptSecret, encryptSecret, createToken, hashPassword, verifyPassword } from "./crypto.js";
-import { PROFILE_CATEGORIES, getDefaultAiDescriptor, resolveActiveAiConfig, scoreTaskDifficulty, testAiConnection } from "./ai.js";
+import {
+  PROFILE_CATEGORIES,
+  generateCompanionMessage,
+  getDefaultAiDescriptor,
+  resolveActiveAiConfig,
+  scoreTaskDifficulty,
+  testAiConnection
+} from "./ai.js";
 import { verifyGoogleIdToken } from "./google-auth.js";
 
 function json(status, payload) {
@@ -570,6 +577,25 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
             env
           });
           return json(200, result);
+        }
+
+        if (request.method === "POST" && url.pathname === "/api/ai/companion-message") {
+          const body = await readBody(request);
+          const taskTitle = typeof body.taskTitle === "string" ? body.taskTitle.trim() : "";
+          const userLevel = Math.max(1, Math.floor(Number(body.userLevel) || 1));
+          if (!taskTitle) {
+            return errorResponse(400, "invalid_input", "taskTitle is required.");
+          }
+
+          const aiSettings = await loadResolvedAiSettings(repository, user.id, env);
+          const message = await generateCompanionMessage({
+            taskTitle,
+            userLevel,
+            aiConfig: aiSettings.resolved,
+            env
+          });
+
+          return json(200, { message });
         }
 
         const completeMatch = url.pathname.match(/^\/api\/tasks\/([^/]+)\/complete$/);

@@ -255,3 +255,76 @@ export function getDefaultAiDescriptor(env) {
       : env.OPENROUTER_MODEL || "google/gemini-2.5-flash"
   };
 }
+
+function getCompanionProfile(userLevel = 1) {
+  if (userLevel >= 20) {
+    return {
+      name: "Ancient Dragon",
+      tone: "majestic, warm, and deeply impressed",
+      fallback(taskTitle) {
+        return `${taskTitle}を成し遂げたか。次の高みも、もう見えているぞ。`;
+      }
+    };
+  }
+
+  if (userLevel >= 10) {
+    return {
+      name: "Archmage",
+      tone: "intelligent, proud, and encouraging",
+      fallback(taskTitle) {
+        return `${taskTitle}を片づけたね。その積み重ねは、ちゃんと力になっているよ。`;
+      }
+    };
+  }
+
+  return {
+    name: "Forest Fairy",
+    tone: "bright, playful, and cheering the player on",
+    fallback(taskTitle) {
+      return `${taskTitle}完了だよ。次のクエストもこの調子でいこう。`;
+    }
+  };
+}
+
+function sanitizeCompanionMessage(text, fallback) {
+  const normalized = String(text || "")
+    .replace(/["`]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!normalized) {
+    return fallback;
+  }
+
+  return normalized.slice(0, 120);
+}
+
+export async function generateCompanionMessage({ taskTitle, userLevel, aiConfig, env }) {
+  const profile = getCompanionProfile(userLevel);
+  const providerConfig = resolveProviderConfig(aiConfig.provider, aiConfig, env);
+
+  try {
+    const text = await chatCompletion(providerConfig, [
+      {
+        role: "system",
+        content: [
+          "You write a short celebration line for an RPG productivity app companion.",
+          "Reply in Japanese.",
+          "Write 1 or 2 sentences only.",
+          "Keep it under 70 Japanese characters when possible.",
+          "Do not use markdown, bullet points, or quotes.",
+          `Character name: ${profile.name}.`,
+          `Character tone: ${profile.tone}.`
+        ].join(" ")
+      },
+      {
+        role: "user",
+        content: `The player has just completed this quest: ${taskTitle}`
+      }
+    ]);
+
+    return sanitizeCompanionMessage(text, profile.fallback(taskTitle));
+  } catch {
+    return profile.fallback(taskTitle);
+  }
+}

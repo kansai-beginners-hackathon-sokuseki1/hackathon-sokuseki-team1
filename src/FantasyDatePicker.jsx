@@ -24,10 +24,6 @@ export function FantasyDatePicker({ value, onChange, disabled }) {
   const wrapRef = useRef(null);
 
   useEffect(() => {
-    setDraftValue(value ?? '');
-  }, [value]);
-
-  useEffect(() => {
     if (!isOpen) return undefined;
 
     function closePicker() {

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Mic, Plus, Square } from 'lucide-react';
 import { FantasyDatePicker } from './FantasyDatePicker';
 
-const JAPANESE_TASK_PATTERN = /^[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}々ー、。！？「」（）・\s　]+$/u;
+const JAPANESE_TASK_PATTERN = /^[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}々ー、。！？「」（）・\s]+$/u;
 
 function validateTaskTitle(rawTitle) {
   const normalizedTitle = rawTitle.trim();
@@ -251,38 +251,33 @@ export function TaskInput({ onAdd, scoreDifficulty }) {
         />
 
         <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center', flexWrap: 'wrap' }}>
-          <FantasyDatePicker
-            value={dueDate}
-            onChange={setDueDate}
-            disabled={isSubmitting || isListening}
-          />
+          <div className="task-meta-chip task-meta-chip--deadline">
+            <span className="task-meta-chip__label">期限</span>
+            <FantasyDatePicker
+              value={dueDate}
+              onChange={setDueDate}
+              disabled={isSubmitting || isListening}
+            />
+          </div>
 
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '2px',
-              border: '2px solid var(--border-window)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '4px 8px',
-              background: 'linear-gradient(180deg, rgba(22, 30, 54, 0.96) 0%, rgba(8, 15, 31, 0.96) 100%)',
-              boxShadow: 'inset 0 0 0 1px rgba(109, 139, 212, 0.22)'
-            }}
-          >
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginRight: '4px' }}>
-              難易度
-            </span>
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button
-                key={star}
-                type="button"
-                onClick={() => setDifficulty(star)}
-                disabled={isSubmitting || isListening}
-                style={{ padding: '0 2px', color: star <= difficulty ? 'var(--accent-secondary)' : 'var(--text-muted)', border: 'none', background: 'transparent' }}
-              >
-                ★
-              </button>
-            ))}
+          <div className="task-meta-chip task-meta-chip--difficulty">
+            <span className="task-meta-chip__label">難易度</span>
+            <div className="task-difficulty-stars">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setDifficulty(star)}
+                  disabled={isSubmitting || isListening}
+                  className="task-difficulty-stars__button"
+                  aria-label={`難易度 ${star}`}
+                >
+                  <span className={star <= difficulty ? 'task-difficulty-stars__icon is-active' : 'task-difficulty-stars__icon'}>
+                    ★
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
           <button

@@ -8,7 +8,7 @@ import { ProfilePrompt } from './ProfilePrompt';
 import { playLevelUp } from './soundEffects';
 import { useAppState } from './useAppState';
 import { sendNotification } from './notifications';
-import { getAdventureStage, getAdventureStageByKey, getAdventureStages } from './GameScene';
+import { getAdventureStage, getAdventureStageByKey, getAdventureStages } from './gameSceneStages';
 
 const SESSION_BONUS_TIERS = [
   { tier: 1, minutes: 15, xpAward: 8, label: '15分継続ボーナス' },
@@ -59,6 +59,7 @@ export function MainApp({
     saveAiSettings,
     testAiSettings,
     scoreDifficulty,
+    generateCompanionMessage,
     addTask,
     toggleTask,
     editTask,
@@ -82,7 +83,7 @@ export function MainApp({
   const [bonusToasts, setBonusToasts] = useState([]);
   const notifiedRef = useRef(new Set());
   const sessionActiveMsRef = useRef(0);
-  const lastVisibleAtRef = useRef(Date.now());
+  const lastVisibleAtRef = useRef(0);
   const activeDayKeyRef = useRef(getLocalDayKey());
   const pendingSessionClaimsRef = useRef(new Set());
   const claimedSessionTiersRef = useRef([]);
@@ -116,6 +117,10 @@ export function MainApp({
     if (isMasterAccount || userStats.level >= stage.minLevel) return stage;
     return autoStage;
   }, [autoStage, isMasterAccount, selectedStageKey, userStats.level]);
+
+  useEffect(() => {
+    lastVisibleAtRef.current = Date.now();
+  }, []);
 
   useEffect(() => {
     if (!alertEnabled || dueTasks.length === 0) return;
@@ -167,9 +172,6 @@ export function MainApp({
     sessionActiveMsRef.current = 0;
     lastVisibleAtRef.current = Date.now();
     pendingSessionClaimsRef.current.clear();
-    setActiveMinutes(0);
-    setClaimedSessionTiers([]);
-    setDailyBonusStatus('checking');
 
     let cancelled = false;
     claimProgressBonus({ bonusType: 'daily_login', dayKey })
@@ -591,8 +593,8 @@ export function MainApp({
         toggleTask={toggleTask}
         editTask={editTask}
         deleteTask={deleteTask}
-        apiSettings={aiSettings}
         userLevel={userStats.level}
+        generateCompanionMessage={generateCompanionMessage}
         levelUpActive={Boolean(levelUpData)}
         onCompletionSequenceStart={handleCompletionSequenceStart}
         onCompletionSequenceEnd={handleCompletionSequenceEnd}
@@ -613,13 +615,35 @@ export function MainApp({
             cursor: 'pointer'
           }}
         >
-          <div className="rpg-window" style={{ padding: 'var(--spacing-xl) var(--spacing-lg)', border: '2px solid var(--accent-secondary)' }}>
-            <p style={{ fontSize: '2rem', color: 'var(--accent-secondary)', textAlign: 'center' }}>
-              LEVEL UP
-            </p>
-            <p style={{ color: 'var(--accent-primary)', textAlign: 'center' }}>
-              Lv.{levelUpData.level}
-            </p>
+          <div className="levelup-modal">
+            <div className="levelup-burst levelup-burst--outer" />
+            <div className="levelup-burst levelup-burst--inner" />
+            <div className="levelup-runes">
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
+            <div className="levelup-particles">
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
+            <p className="levelup-eyebrow">ACHIEVEMENT UNLOCKED</p>
+            <p className="levelup-title">LEVEL UP</p>
+            <div className="levelup-level-row">
+              <span className="levelup-level-label">Lv.</span>
+              <span className="levelup-level-value">{levelUpData.level}</span>
+            </div>
+            <p className="levelup-caption">冒険の格がひとつ上がった</p>
+            <p className="levelup-close-hint">クリックで閉じる</p>
           </div>
         </div>
       )}

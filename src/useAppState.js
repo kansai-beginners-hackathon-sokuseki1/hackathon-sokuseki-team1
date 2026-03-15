@@ -201,6 +201,7 @@ export const useAppState = () => {
   const testAiSettings = async (payload) => api.testAiSettings(payload);
 
   const scoreDifficulty = async (payload) => api.scoreDifficulty(payload);
+  const generateCompanionMessage = async (payload) => api.generateCompanionMessage(payload);
 
   const clearLevelUpData = () => setLevelUpData(null);
 
@@ -226,6 +227,7 @@ export const useAppState = () => {
     saveAiSettings,
     testAiSettings,
     scoreDifficulty,
+    generateCompanionMessage,
     addTask,
     toggleTask,
     editTask,

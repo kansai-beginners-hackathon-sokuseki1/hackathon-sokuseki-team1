@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { AuthScreen } from './AuthScreen';
 import { ErrorBoundary } from './ErrorBoundary';
 import { FantasyBackground, FantasyOverlay } from './FantasyBackground';
@@ -11,30 +11,27 @@ import './index.css';
 
 registerAppServiceWorker();
 
+function loadCurrentUser() {
+  const saved = localStorage.getItem('currentUser');
+  return saved ? JSON.parse(saved) : null;
+}
+
+function loadSelectedStageKey(userId) {
+  if (!userId) return null;
+  return localStorage.getItem(`selectedStageKey:${userId}`);
+}
+
 function App() {
   const [authToken, setAuthToken] = useState(() => localStorage.getItem('authToken'));
   const [authNotice, setAuthNotice] = useState(null);
-  const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem('currentUser');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [currentUser, setCurrentUser] = useState(() => loadCurrentUser());
   const [bgTimeLock, setBgTimeLock] = useState(() => localStorage.getItem('bgTimeLock') ?? 'auto');
   const [alertEnabled, setAlertEnabled] = useState(() => localStorage.getItem('alertEnabled') === 'true');
   const [hideCompletedTasks, setHideCompletedTasks] = useState(() => localStorage.getItem('hideCompletedTasks') !== 'false');
   const [colorTheme, setColorTheme] = useState(() => localStorage.getItem('colorTheme') ?? 'dark-blue');
   const [seVolume, setSeVolume] = useState(() => Number(localStorage.getItem('seVolume') ?? '70'));
   const [bgmVolume, setBgmVolume] = useState(() => Number(localStorage.getItem('bgmVolume') ?? '35'));
-  const [selectedStageKey, setSelectedStageKey] = useState(null);
-
-  useEffect(() => {
-    if (!currentUser?.id) {
-      setSelectedStageKey(null);
-      return;
-    }
-
-    const storageKey = `selectedStageKey:${currentUser.id}`;
-    setSelectedStageKey(localStorage.getItem(storageKey));
-  }, [currentUser?.id]);
+  const [selectedStageKey, setSelectedStageKey] = useState(() => loadSelectedStageKey(loadCurrentUser()?.id));
 
   useEffect(() => {
     function updateTimePeriod() {
@@ -104,10 +101,11 @@ function App() {
     localStorage.setItem('currentUser', JSON.stringify(user));
     setAuthToken(token);
     setCurrentUser(user);
+    setSelectedStageKey(loadSelectedStageKey(user?.id));
     setAuthNotice(null);
   };
 
-  const handleLogout = (notice = null) => {
+  const handleLogout = useCallback((notice = null) => {
     const resolvedNotice = typeof notice === 'string' ? notice : null;
 
     if (currentUser?.authProvider === 'google') {
@@ -118,8 +116,9 @@ function App() {
     localStorage.removeItem('currentUser');
     setAuthToken(null);
     setCurrentUser(null);
+    setSelectedStageKey(null);
     setAuthNotice(resolvedNotice);
-  };
+  }, [currentUser?.authProvider]);
 
   useEffect(() => {
     const handleAuthInvalid = (event) => {
@@ -128,7 +127,7 @@ function App() {
 
     window.addEventListener(AUTH_EVENT_NAME, handleAuthInvalid);
     return () => window.removeEventListener(AUTH_EVENT_NAME, handleAuthInvalid);
-  }, [currentUser?.authProvider]);
+  }, [handleLogout]);
 
   const handleSelectedStageKeyChange = (value) => {
     if (!currentUser?.id) return;
@@ -152,6 +151,7 @@ function App() {
       ) : (
         <ErrorBoundary resetKey={authToken}>
           <MainApp
+            key={currentUser?.id ?? 'guest'}
             currentUser={currentUser}
             onLogout={handleLogout}
             colorTheme={colorTheme}

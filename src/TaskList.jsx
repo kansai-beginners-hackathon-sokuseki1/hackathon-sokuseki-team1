@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Edit2, Save, Trash2, X } from 'lucide-react';
 import { FantasyDatePicker, formatFantasyDate } from './FantasyDatePicker';
-import { generateCompanionMessage, getCompanionProfile } from './aiService';
+import { getCompanionProfile } from './aiService';
 import { playQuestComplete } from './soundEffects';
 
 export function TaskList({
@@ -9,8 +9,8 @@ export function TaskList({
   toggleTask,
   editTask,
   deleteTask,
-  apiSettings,
   userLevel,
+  generateCompanionMessage,
   levelUpActive,
   onCompletionSequenceStart,
   onCompletionSequenceEnd
@@ -151,13 +151,11 @@ export function TaskList({
     queueNpcMessage(task.id, profile, 'メッセージを準備中...', true);
 
     try {
-      const text = await generateCompanionMessage(
-        apiSettings.apiKey,
-        apiSettings.modelName,
-        updatedTask.title,
+      const response = await generateCompanionMessage({
+        taskTitle: updatedTask.title,
         userLevel
-      );
-      queueNpcMessage(task.id, profile, text, false);
+      });
+      queueNpcMessage(task.id, profile, response.message ?? '', false);
     } catch (error) {
       console.error(error);
       queueNpcMessage(task.id, profile, profile.fallback(updatedTask.title), false);
