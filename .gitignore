@@ -19,6 +19,7 @@ dist-ssr
 backend/.dev.vars
 *.png
 *.jpg
+*.pptx
 design/*
 !design/README.md
 
