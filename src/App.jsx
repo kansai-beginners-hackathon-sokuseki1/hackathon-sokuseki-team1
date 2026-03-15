@@ -22,6 +22,17 @@ function App() {
   const [colorTheme, setColorTheme] = useState(() => localStorage.getItem('colorTheme') ?? 'dark-blue');
   const [seVolume, setSeVolume] = useState(() => Number(localStorage.getItem('seVolume') ?? '70'));
   const [bgmVolume, setBgmVolume] = useState(() => Number(localStorage.getItem('bgmVolume') ?? '35'));
+  const [selectedStageKey, setSelectedStageKey] = useState(null);
+
+  useEffect(() => {
+    if (!currentUser?.id) {
+      setSelectedStageKey(null);
+      return;
+    }
+
+    const storageKey = `selectedStageKey:${currentUser.id}`;
+    setSelectedStageKey(localStorage.getItem(storageKey));
+  }, [currentUser?.id]);
 
   useEffect(() => {
     function updateTimePeriod() {
@@ -104,6 +115,19 @@ function App() {
     setCurrentUser(null);
   };
 
+  const handleSelectedStageKeyChange = (value) => {
+    if (!currentUser?.id) return;
+    const storageKey = `selectedStageKey:${currentUser.id}`;
+    if (!value) {
+      localStorage.removeItem(storageKey);
+      setSelectedStageKey(null);
+      return;
+    }
+
+    localStorage.setItem(storageKey, value);
+    setSelectedStageKey(value);
+  };
+
   return (
     <>
       <FantasyBackground />
@@ -130,6 +154,8 @@ function App() {
               localStorage.setItem('hideCompletedTasks', enabled);
               setHideCompletedTasks(enabled);
             }}
+            selectedStageKey={selectedStageKey}
+            onSelectedStageKeyChange={handleSelectedStageKeyChange}
           />
         </ErrorBoundary>
       )}

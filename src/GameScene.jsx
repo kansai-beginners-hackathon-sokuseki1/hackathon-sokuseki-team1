@@ -429,6 +429,14 @@ const SCENE_RULES = [
 
 const COMPACT_SCENE_MEDIA_QUERY = '(max-width: 640px)';
 
+export function getAdventureStages() {
+  return STAGE_DEFINITIONS;
+}
+
+export function getAdventureStageByKey(stageKey) {
+  return STAGE_DEFINITIONS.find((stage) => stage.key === stageKey) ?? null;
+}
+
 export function getAdventureStage(level = 1) {
   let currentStage = STAGE_DEFINITIONS[0];
   for (const stage of STAGE_DEFINITIONS) {

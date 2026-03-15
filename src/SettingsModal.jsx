@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Clock3,
   Info,
+  Map,
   Palette,
   Save,
   Volume2,
@@ -245,12 +246,19 @@ export function SettingsModal({
   bgmVolume,
   onBgmVolumeChange,
   hideCompletedTasks,
-  onHideCompletedTasksChange
+  onHideCompletedTasksChange,
+  selectedStageKey,
+  selectedStageMode,
+  autoStageLabel,
+  stageOptions,
+  canUseLockedStages,
+  onStageChange
 }) {
   const [draftSettings, setDraftSettings] = useState(aiSettings);
   const [draftPreferences, setDraftPreferences] = useState([]);
   const [openSections, setOpenSections] = useState({
     theme: false,
+    stage: false,
     time: false,
     alerts: false,
     audio: false,
@@ -592,6 +600,57 @@ export function SettingsModal({
           <Section icon={Info} title="クレジット" isOpen={openSections.credits} onToggle={() => toggleSection('credits')}>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.8 }}>
               <div>OtoLogic https://otologic.jp</div>
+            </div>
+          </Section>
+
+          <Section icon={Map} title="ステージ" isOpen={openSections.stage} onToggle={() => toggleSection('stage')}>
+            <div style={{ display: 'grid', gap: '12px' }}>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                {selectedStageMode === 'manual'
+                  ? `手動選択中: ${stageOptions.find((stage) => stage.key === selectedStageKey)?.label ?? selectedStageKey}`
+                  : `自動設定: ${autoStageLabel}`}
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => onStageChange(null)}
+                  style={{
+                    padding: '8px 12px',
+                    border: selectedStageMode === 'auto' ? '2px solid var(--accent-secondary)' : '1px solid var(--border-window-inner)',
+                    borderRadius: '999px',
+                    background: selectedStageMode === 'auto' ? 'rgba(255,255,255,0.06)' : 'transparent',
+                    color: selectedStageMode === 'auto' ? 'var(--accent-secondary)' : 'var(--text-primary)',
+                    fontSize: '0.82rem'
+                  }}
+                >
+                  自動
+                </button>
+                {stageOptions.map((stage) => {
+                  const isSelected = selectedStageMode === 'manual' && selectedStageKey === stage.key;
+                  return (
+                    <button
+                      key={stage.key}
+                      type="button"
+                      onClick={() => onStageChange(stage.key)}
+                      style={{
+                        padding: '8px 12px',
+                        border: isSelected ? '2px solid var(--accent-secondary)' : '1px solid var(--border-window-inner)',
+                        borderRadius: '999px',
+                        background: isSelected ? 'rgba(255,255,255,0.06)' : 'transparent',
+                        color: isSelected ? 'var(--accent-secondary)' : 'var(--text-primary)',
+                        fontSize: '0.82rem'
+                      }}
+                    >
+                      {stage.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
+                {canUseLockedStages
+                  ? 'master アカウントのため、未解放ステージも切り替えできます。'
+                  : '現在のレベルまでに解放したステージだけを選択できます。'}
+              </p>
             </div>
           </Section>
         </div>

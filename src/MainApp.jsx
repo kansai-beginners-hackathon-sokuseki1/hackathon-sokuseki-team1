@@ -8,6 +8,7 @@ import { ProfilePrompt } from './ProfilePrompt';
 import { playLevelUp } from './soundEffects';
 import { useAppState } from './useAppState';
 import { sendNotification } from './notifications';
+import { getAdventureStage, getAdventureStageByKey, getAdventureStages } from './GameScene';
 
 const SESSION_BONUS_TIERS = [
   { tier: 1, minutes: 15, xpAward: 8, label: '15分継続ボーナス' },
@@ -45,7 +46,9 @@ export function MainApp({
   bgmVolume,
   onBgmVolumeChange,
   hideCompletedTasks,
-  onHideCompletedTasksChange
+  onHideCompletedTasksChange,
+  selectedStageKey,
+  onSelectedStageKeyChange
 }) {
   const {
     tasks,
@@ -92,6 +95,22 @@ export function MainApp({
       return new Date(task.dueDate) <= today;
     });
   }, [tasks]);
+  const isMasterAccount = useMemo(() => {
+    const username = String(currentUser?.username || '').trim().toLowerCase();
+    const email = String(currentUser?.email || '').trim().toLowerCase();
+    return username === 'master' || email === 'master@example.com';
+  }, [currentUser?.email, currentUser?.username]);
+  const unlockedStages = useMemo(() => (
+    getAdventureStages().filter((stage) => isMasterAccount || userStats.level >= stage.minLevel)
+  ), [isMasterAccount, userStats.level]);
+  const autoStage = useMemo(() => getAdventureStage(userStats.level), [userStats.level]);
+  const selectedStage = useMemo(() => {
+    if (!selectedStageKey) return autoStage;
+    const stage = getAdventureStageByKey(selectedStageKey);
+    if (!stage) return autoStage;
+    if (isMasterAccount || userStats.level >= stage.minLevel) return stage;
+    return autoStage;
+  }, [autoStage, isMasterAccount, selectedStageKey, userStats.level]);
 
   useEffect(() => {
     if (!alertEnabled || dueTasks.length === 0) return;
@@ -161,6 +180,13 @@ export function MainApp({
       cancelled = true;
     };
   }, [claimProgressBonus, applyBonusResult, currentUser?.id]);
+
+  useEffect(() => {
+    if (!selectedStageKey) return;
+    const stage = getAdventureStageByKey(selectedStageKey);
+    if (stage && (isMasterAccount || userStats.level >= stage.minLevel)) return;
+    onSelectedStageKeyChange(null);
+  }, [isMasterAccount, onSelectedStageKeyChange, selectedStageKey, userStats.level]);
 
   useEffect(() => {
     let disposed = false;
@@ -459,7 +485,7 @@ export function MainApp({
         </div>
       )}
 
-      <StatusHeader stats={userStats} getRequiredExp={getRequiredExp} />
+      <StatusHeader stats={userStats} getRequiredExp={getRequiredExp} selectedStage={selectedStage} />
       <div
         className="rpg-window"
         style={{
@@ -603,6 +629,12 @@ export function MainApp({
         onBgmVolumeChange={onBgmVolumeChange}
         hideCompletedTasks={hideCompletedTasks}
         onHideCompletedTasksChange={onHideCompletedTasksChange}
+        selectedStageKey={selectedStage.key}
+        selectedStageMode={selectedStageKey ? 'manual' : 'auto'}
+        autoStageLabel={autoStage.label}
+        stageOptions={unlockedStages}
+        canUseLockedStages={isMasterAccount}
+        onStageChange={onSelectedStageKeyChange}
       />
       {bonusToasts.length > 0 && (
         <div

@@ -3,9 +3,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Target } from 'lucide-react';
 import { GameScene, getAdventureStage } from './GameScene';
 
-export function StatusHeader({ stats, getRequiredExp }) {
+export function StatusHeader({ stats, getRequiredExp, selectedStage = null }) {
   const { level, currentExp } = stats;
-  const stage = getAdventureStage(level);
+  const stage = selectedStage ?? getAdventureStage(level);
   const requiredExp = getRequiredExp(level);
   const percentage = Math.min(100, Math.round((currentExp / requiredExp) * 100));
   const prevLevel = useRef(level);
