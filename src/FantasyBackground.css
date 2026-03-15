@@ -429,17 +429,25 @@
 .gs-character {
   position: absolute;
   bottom: 0;
-  width: 28px;
-  height: 56px;
+  width: 36px;
+  height: 68px;
   transform: translateX(-50%);
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.34));
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.34));
   animation: gsCharacterIdle 3.2s ease-in-out infinite;
 }
 
 .gs-character-shadow,
 .gs-character-body,
+.gs-character-belt,
 .gs-character-head,
+.gs-character-hair,
+.gs-character-face,
 .gs-character-cloak,
+.gs-character-back-arm,
+.gs-character-front-arm,
+.gs-character-back-leg,
+.gs-character-front-leg,
+.gs-character-boots,
 .gs-character-pack,
 .gs-character-weapon,
 .gs-character-cargo,
@@ -449,89 +457,200 @@
 }
 
 .gs-character-shadow {
-  left: 4px;
-  right: 4px;
-  bottom: -1px;
-  height: 8px;
+  left: 5px;
+  right: 5px;
+  bottom: 0;
+  height: 10px;
   border-radius: 50%;
   background: rgba(8, 8, 16, 0.42);
-  filter: blur(2px);
+  filter: blur(2.5px);
+}
+
+.gs-character-aura {
+  left: -6px;
+  top: 9px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--scene-crystal) 34%, white 66%) 0%, transparent 72%);
+  opacity: 0;
+  filter: blur(4px);
+}
+
+.gs-character-back-arm,
+.gs-character-front-arm {
+  top: 26px;
+  width: 7px;
+  height: 20px;
+  border-radius: 999px;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--scene-house) 82%, white 12%), var(--scene-house-trim));
+  transform-origin: 50% 0;
+}
+
+.gs-character-back-arm {
+  left: 6px;
+  transform: rotate(24deg);
+  opacity: 0.72;
+}
+
+.gs-character-front-arm {
+  right: 6px;
+  transform: rotate(-18deg);
+  box-shadow: inset 0 -2px 0 rgba(27, 18, 15, 0.22);
+}
+
+.gs-character-back-leg,
+.gs-character-front-leg {
+  bottom: 12px;
+  width: 8px;
+  height: 22px;
+  border-radius: 999px;
+  background: linear-gradient(to bottom, #4a5067, #242939);
+}
+
+.gs-character-back-leg {
+  left: 10px;
+  transform: rotate(8deg);
+  opacity: 0.78;
+}
+
+.gs-character-front-leg {
+  right: 10px;
+  transform: rotate(-6deg);
+}
+
+.gs-character-boots {
+  left: 8px;
+  bottom: 8px;
+  width: 20px;
+  height: 8px;
+  border-radius: 8px 8px 6px 6px;
+  background: linear-gradient(to bottom, #463527, #211711);
 }
 
 .gs-character-head {
-  left: 8px;
-  top: 6px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+  left: 9px;
+  top: 4px;
+  width: 18px;
+  height: 19px;
+  border-radius: 48% 48% 46% 46%;
   background: color-mix(in srgb, var(--scene-window) 74%, #f0c39f 26%);
   border: 1px solid rgba(42, 24, 18, 0.28);
+  z-index: 3;
+}
+
+.gs-character-hair {
+  left: 8px;
+  top: 2px;
+  width: 20px;
+  height: 12px;
+  border-radius: 55% 55% 35% 35%;
+  background: linear-gradient(to bottom, #6e4e33, #352317);
+  clip-path: polygon(0 38%, 18% 8%, 52% 0, 86% 12%, 100% 42%, 92% 100%, 12% 92%);
+  z-index: 4;
+}
+
+.gs-character-face {
+  left: 13px;
+  top: 11px;
+  width: 10px;
+  height: 6px;
+  z-index: 5;
+}
+
+.gs-character-face::before,
+.gs-character-face::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(35, 21, 16, 0.8);
+}
+
+.gs-character-face::before {
+  left: 1px;
+}
+
+.gs-character-face::after {
+  right: 1px;
+}
+
+.gs-character-face {
+  border-bottom: 1px solid rgba(71, 35, 28, 0.5);
+  border-radius: 0 0 8px 8px;
 }
 
 .gs-character-body {
   left: 9px;
-  top: 18px;
-  width: 10px;
-  height: 18px;
-  border-radius: 4px 4px 3px 3px;
+  top: 22px;
+  width: 18px;
+  height: 24px;
+  border-radius: 7px 7px 6px 6px;
   background: linear-gradient(to bottom, color-mix(in srgb, var(--scene-house) 72%, white 8%), var(--scene-house-trim));
+  z-index: 2;
+}
+
+.gs-character-belt {
+  left: 10px;
+  top: 38px;
+  width: 16px;
+  height: 5px;
+  border-radius: 999px;
+  background: linear-gradient(to right, #573d25, #b18958, #573d25);
+  z-index: 4;
 }
 
 .gs-character-cloak {
   left: 4px;
   top: 18px;
-  width: 20px;
-  height: 30px;
+  width: 28px;
+  height: 34px;
   background: linear-gradient(to bottom, color-mix(in srgb, var(--scene-roof) 78%, white 6%), var(--scene-roof));
-  clip-path: polygon(50% 0, 100% 26%, 88% 100%, 12% 100%, 0 26%);
+  clip-path: polygon(50% 0, 100% 18%, 92% 100%, 8% 100%, 0 18%);
+  z-index: 1;
 }
 
 .gs-character-pack {
-  left: 2px;
-  top: 20px;
-  width: 7px;
-  height: 13px;
-  border-radius: 3px 2px 2px 3px;
+  left: 1px;
+  top: 24px;
+  width: 9px;
+  height: 16px;
+  border-radius: 4px 2px 2px 4px;
   background: linear-gradient(to bottom, #8f6a45, #5d3d24);
+  z-index: 2;
 }
 
 .gs-character-weapon {
   right: 2px;
-  top: 16px;
-  width: 3px;
-  height: 28px;
+  top: 18px;
+  width: 4px;
+  height: 32px;
   border-radius: 999px;
   background: linear-gradient(to bottom, #d3def2, #65738f);
+  z-index: 2;
 }
 
 .gs-character-cargo {
-  right: 1px;
-  top: 24px;
-  width: 9px;
-  height: 10px;
-  border-radius: 2px;
+  right: 0;
+  top: 28px;
+  width: 11px;
+  height: 12px;
+  border-radius: 3px;
   background: linear-gradient(to bottom, #d1a167, #8b5b28);
-}
-
-.gs-character-aura {
-  left: -4px;
-  top: 8px;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--scene-crystal) 34%, white 66%) 0%, transparent 72%);
-  opacity: 0.6;
-  filter: blur(3px);
+  z-index: 3;
 }
 
 .gs-character-horns::before,
 .gs-character-horns::after {
   content: '';
   position: absolute;
-  top: 2px;
-  width: 6px;
-  height: 8px;
+  top: 0;
+  width: 7px;
+  height: 10px;
   background: linear-gradient(to bottom, #d5b4ab, #7b4541);
+  z-index: 6;
 }
 
 .gs-character-horns::before {
@@ -581,12 +700,50 @@
   transform: translateX(-50%) scale(0.94);
 }
 
+.gs-character--hero .gs-character-hair,
+.gs-character--champion .gs-character-hair,
+.gs-character--guard .gs-character-hair {
+  background: linear-gradient(to bottom, #d7dbe8, #75809a);
+}
+
+.gs-character--merchant .gs-character-hair,
+.gs-character--dockhand .gs-character-hair,
+.gs-character--villager .gs-character-hair {
+  background: linear-gradient(to bottom, #8f6438, #49301b);
+}
+
+.gs-character--mage .gs-character-hair,
+.gs-character--sprite .gs-character-hair {
+  background: linear-gradient(to bottom, #d7d1ff, #7761cf);
+}
+
+.gs-character--boss .gs-character-hair {
+  background: linear-gradient(to bottom, #4b1419, #190507);
+}
+
+.gs-character--traveler .gs-character-body,
+.gs-character--adventurer .gs-character-body,
+.gs-character--explorer .gs-character-body {
+  background: linear-gradient(to bottom, #6f553f, #332317);
+}
+
+.gs-character--mage .gs-character-aura,
+.gs-character--sprite .gs-character-aura,
+.gs-character--boss .gs-character-aura {
+  opacity: 0.7;
+}
+
 .gs-character--spirit {
   opacity: 0.88;
 }
 
 .gs-character--spirit .gs-character-shadow {
   opacity: 0.35;
+}
+
+.gs-character--spirit .gs-character-hair,
+.gs-character--spirit .gs-character-face {
+  opacity: 0.65;
 }
 
 .gs-character--spirit .gs-character-head,
@@ -610,6 +767,11 @@
 .gs-character--boss .gs-character-aura {
   opacity: 0.82;
   background: radial-gradient(circle, rgba(255, 101, 84, 0.42) 0%, transparent 74%);
+}
+
+.gs-character--boss .gs-character-front-arm,
+.gs-character--boss .gs-character-back-arm {
+  background: linear-gradient(to bottom, #7e4248, #36151a);
 }
 
 .gs-character--mage .gs-character-head,

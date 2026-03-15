@@ -555,8 +555,17 @@ function StageCharacters({ scene, stageKey }) {
           style={{ left: `${character.x}%` }}
         >
           <span className="gs-character-shadow" />
+          <span className="gs-character-aura" />
+          <span className="gs-character-back-arm" />
+          <span className="gs-character-back-leg" />
           <span className="gs-character-body" />
+          <span className="gs-character-belt" />
+          <span className="gs-character-front-leg" />
+          <span className="gs-character-front-arm" />
+          <span className="gs-character-boots" />
           <span className="gs-character-head" />
+          <span className="gs-character-hair" />
+          <span className="gs-character-face" />
           <span className="gs-character-cloak" />
           {(character.variant === 'traveler' || character.variant === 'adventurer' || character.variant === 'explorer') && (
             <span className="gs-character-pack" />
@@ -566,9 +575,6 @@ function StageCharacters({ scene, stageKey }) {
           )}
           {(character.variant === 'merchant' || character.variant === 'dockhand') && (
             <span className="gs-character-cargo" />
-          )}
-          {(character.variant === 'mage' || character.variant === 'sprite' || character.variant === 'boss') && (
-            <span className="gs-character-aura" />
           )}
           {character.variant === 'boss' && <span className="gs-character-horns" />}
         </div>
