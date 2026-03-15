@@ -250,12 +250,12 @@ export function SettingsModal({
   const [draftSettings, setDraftSettings] = useState(aiSettings);
   const [draftPreferences, setDraftPreferences] = useState([]);
   const [openSections, setOpenSections] = useState({
-    theme: true,
+    theme: false,
     time: false,
     alerts: false,
     audio: false,
-    ai: true,
-    profile: true,
+    ai: false,
+    profile: false,
     credits: false
   });
   const [connectionResult, setConnectionResult] = useState(null);
