@@ -636,6 +636,12 @@ function StageCharacters({ scene, stageKey }) {
               <span className="gs-character-hair" />
               <span className="gs-character-face" />
               <span className="gs-character-cloak" />
+              {(character.variant === 'mage' || character.variant === 'sprite' || character.variant === 'wisp' || character.variant === 'merchant' || character.variant === 'dockhand' || character.variant === 'villager') && (
+                <span className="gs-character-hat" />
+              )}
+              {(character.variant === 'adventurer' || character.variant === 'champion' || character.variant === 'guard' || character.variant === 'warden') && (
+                <span className="gs-character-shoulder" />
+              )}
               {(character.variant === 'sprite' || character.variant === 'wisp') && (
                 <span className="gs-character-wings" />
               )}
@@ -647,6 +653,13 @@ function StageCharacters({ scene, stageKey }) {
               )}
               {(character.variant === 'ranger' || character.variant === 'guard' || character.variant === 'warden' || character.variant === 'champion' || character.variant === 'sailor') && (
                 <span className="gs-character-weapon" />
+              )}
+              {character.variant === 'ranger' && <span className="gs-character-bow" />}
+              {(character.variant === 'guard' || character.variant === 'warden' || character.variant === 'champion') && (
+                <span className="gs-character-shield" />
+              )}
+              {(character.variant === 'mage' || character.variant === 'sprite' || character.variant === 'wisp') && (
+                <span className="gs-character-staff" />
               )}
               {(character.variant === 'merchant' || character.variant === 'dockhand') && (
                 <span className="gs-character-cargo" />

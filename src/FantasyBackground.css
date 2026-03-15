@@ -467,6 +467,11 @@
 .gs-character-boots,
 .gs-character-pack,
 .gs-character-weapon,
+.gs-character-bow,
+.gs-character-shield,
+.gs-character-staff,
+.gs-character-hat,
+.gs-character-shoulder,
 .gs-character-cargo,
 .gs-character-aura,
 .gs-character-horns,
@@ -674,6 +679,117 @@
   z-index: 2;
 }
 
+.gs-character-bow {
+  right: -1px;
+  top: 18px;
+  width: 12px;
+  height: 26px;
+  border: 2px solid #c89d5f;
+  border-left: none;
+  border-radius: 0 14px 14px 0;
+  z-index: 3;
+}
+
+.gs-character-bow::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: -1px;
+  bottom: -1px;
+  width: 1px;
+  background: rgba(240, 233, 215, 0.82);
+}
+
+.gs-character-shield {
+  left: -1px;
+  top: 24px;
+  width: 11px;
+  height: 14px;
+  border-radius: 6px 6px 10px 10px;
+  background: linear-gradient(to bottom, #d9e2f2, #66748e);
+  clip-path: polygon(50% 0, 100% 18%, 90% 100%, 10% 100%, 0 18%);
+  z-index: 3;
+}
+
+.gs-character-staff {
+  right: 2px;
+  top: 12px;
+  width: 4px;
+  height: 36px;
+  border-radius: 999px;
+  background: linear-gradient(to bottom, #c7a06a, #6c4a27);
+  z-index: 3;
+}
+
+.gs-character-staff::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(187, 245, 255, 0.95) 0%, rgba(112, 169, 255, 0.35) 70%, transparent 72%);
+  box-shadow: 0 0 8px rgba(158, 236, 255, 0.5);
+}
+
+.gs-character-hat {
+  left: 5px;
+  top: -2px;
+  width: 26px;
+  height: 14px;
+  z-index: 6;
+}
+
+.gs-character-hat::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 0;
+  width: 18px;
+  height: 10px;
+  background: linear-gradient(to bottom, #a38af0, #563d92);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.gs-character-hat::after {
+  content: '';
+  position: absolute;
+  left: 1px;
+  top: 8px;
+  width: 24px;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right, #bca8ff, #6a4da6);
+}
+
+.gs-character-shoulder {
+  left: 6px;
+  top: 21px;
+  width: 24px;
+  height: 10px;
+  z-index: 3;
+}
+
+.gs-character-shoulder::before,
+.gs-character-shoulder::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 10px;
+  height: 8px;
+  border-radius: 6px 6px 4px 4px;
+  background: linear-gradient(to bottom, #d9dde9, #6c7488);
+}
+
+.gs-character-shoulder::before {
+  left: 0;
+}
+
+.gs-character-shoulder::after {
+  right: 0;
+}
+
 .gs-character-cargo {
   right: 0;
   top: 28px;
@@ -846,6 +962,80 @@
 
 .gs-character--sailor .gs-character-body {
   background: linear-gradient(to bottom, #d4e5f4, #567188);
+}
+
+.gs-character--ranger {
+  --gs-base-transform: translateX(-50%) scale(0.92) translateY(1px);
+}
+
+.gs-character--ranger .gs-character-body {
+  left: 10px;
+  width: 16px;
+  background: linear-gradient(to bottom, #587449, #253222);
+}
+
+.gs-character--ranger .gs-character-cloak {
+  left: 6px;
+  width: 24px;
+  clip-path: polygon(50% 0, 100% 14%, 86% 100%, 14% 100%, 0 14%);
+}
+
+.gs-character--mage {
+  --gs-base-transform: translateX(-50%) scale(0.96) translateY(-1px);
+}
+
+.gs-character--mage .gs-character-body,
+.gs-character--sprite .gs-character-body,
+.gs-character--wisp .gs-character-body {
+  left: 8px;
+  width: 20px;
+  height: 26px;
+  border-radius: 6px 6px 10px 10px;
+}
+
+.gs-character--mage .gs-character-cloak,
+.gs-character--sprite .gs-character-cloak,
+.gs-character--wisp .gs-character-cloak {
+  left: 3px;
+  width: 30px;
+  height: 38px;
+}
+
+.gs-character--merchant .gs-character-hat,
+.gs-character--dockhand .gs-character-hat,
+.gs-character--villager .gs-character-hat {
+  display: block;
+}
+
+.gs-character--merchant .gs-character-hat::before,
+.gs-character--dockhand .gs-character-hat::before,
+.gs-character--villager .gs-character-hat::before {
+  left: 3px;
+  width: 20px;
+  height: 8px;
+  background: linear-gradient(to bottom, #c19b5e, #7b5424);
+  clip-path: none;
+  border-radius: 10px 10px 2px 2px;
+}
+
+.gs-character--merchant .gs-character-hat::after,
+.gs-character--dockhand .gs-character-hat::after,
+.gs-character--villager .gs-character-hat::after {
+  left: 0;
+  width: 26px;
+  background: linear-gradient(to right, #ddb57a, #8a5f2d);
+}
+
+.gs-character--champion,
+.gs-character--guard,
+.gs-character--warden {
+  --gs-base-transform: translateX(-50%) scale(1.02);
+}
+
+.gs-character--champion .gs-character-weapon {
+  height: 38px;
+  width: 5px;
+  right: 1px;
 }
 
 .gs-character--wisp .gs-character-cloak {
@@ -1149,15 +1339,67 @@
   border-radius: 18%;
 }
 
+.gs-character--enemy.gs-character--golem {
+  width: 52px;
+  height: 60px;
+  bottom: -1px;
+}
+
+.gs-character--enemy.gs-character--golem .gs-monster-leg {
+  width: 10px;
+  height: 20px;
+  border-radius: 2px;
+}
+
+.gs-character--enemy.gs-character--golem .gs-monster-claw {
+  width: 12px;
+  height: 5px;
+  border-radius: 2px;
+}
+
+.gs-character--enemy.gs-character--golem .gs-monster-spikes,
+.gs-character--enemy.gs-character--golem .gs-character-tail,
+.gs-character--enemy.gs-character--golem .gs-character-wings {
+  display: none;
+}
+
 .gs-character--enemy.gs-character--drake .gs-monster-body {
   background: linear-gradient(to bottom, #a75148, #4c1c1f);
 }
 
+.gs-character--enemy.gs-character--drake {
+  width: 58px;
+  height: 62px;
+  --gs-base-transform: translateX(-50%) scale(1.1) translateY(-1px);
+}
+
+.gs-character--enemy.gs-character--drake .gs-monster-head {
+  left: 31px;
+  top: 5px;
+  width: 18px;
+  height: 15px;
+  transform: rotate(-18deg);
+}
+
+.gs-character--enemy.gs-character--drake .gs-monster-body {
+  left: 14px;
+  bottom: 14px;
+  width: 28px;
+  height: 19px;
+  border-radius: 42% 38% 34% 34%;
+}
+
+.gs-character--enemy.gs-character--drake .gs-monster-spikes {
+  left: 16px;
+  top: 10px;
+  width: 24px;
+}
+
 .gs-character--enemy.gs-character--drake .gs-character-wings {
-  left: 2px;
-  top: 8px;
-  width: 36px;
-  height: 24px;
+  left: 4px;
+  top: 4px;
+  width: 42px;
+  height: 28px;
 }
 
 .gs-character--enemy.gs-character--boss .gs-monster-body,
@@ -1165,8 +1407,89 @@
   background: linear-gradient(to bottom, #8f3740, #3c1117);
 }
 
+.gs-character--enemy.gs-character--boss {
+  width: 58px;
+  height: 66px;
+  --gs-base-transform: translateX(-50%) scale(1.16);
+}
+
+.gs-character--enemy.gs-character--boss .gs-monster-body {
+  left: 10px;
+  bottom: 12px;
+  width: 36px;
+  height: 27px;
+}
+
+.gs-character--enemy.gs-character--boss .gs-monster-head {
+  left: 27px;
+  top: 6px;
+  width: 20px;
+  height: 18px;
+}
+
 .gs-character--enemy.gs-character--boss .gs-character-aura {
   opacity: 0.72;
+}
+
+.gs-character--enemy.gs-character--boss .gs-character-horns::before {
+  left: 18px;
+  width: 8px;
+  height: 14px;
+}
+
+.gs-character--enemy.gs-character--boss .gs-character-horns::after {
+  right: 8px;
+  width: 8px;
+  height: 14px;
+}
+
+.gs-character--enemy.gs-character--beast {
+  width: 54px;
+  height: 48px;
+  bottom: -1px;
+  --gs-base-transform: translateX(-50%) scale(1.02) translateY(4px);
+}
+
+.gs-character--enemy.gs-character--beast .gs-monster-body {
+  left: 10px;
+  bottom: 11px;
+  width: 30px;
+  height: 18px;
+  border-radius: 44% 36% 30% 26%;
+}
+
+.gs-character--enemy.gs-character--beast .gs-monster-head {
+  left: 27px;
+  top: 11px;
+  width: 17px;
+  height: 13px;
+  transform: rotate(-6deg);
+}
+
+.gs-character--enemy.gs-character--beast .gs-monster-leg {
+  height: 13px;
+  bottom: 7px;
+}
+
+.gs-character--enemy.gs-character--beast .gs-monster-leg--front {
+  left: 29px;
+}
+
+.gs-character--enemy.gs-character--beast .gs-monster-leg--rear {
+  left: 13px;
+}
+
+.gs-character--enemy.gs-character--beast .gs-monster-claw--front {
+  left: 28px;
+}
+
+.gs-character--enemy.gs-character--beast .gs-monster-claw--rear {
+  left: 12px;
+}
+
+.gs-character--enemy.gs-character--beast .gs-monster-crest,
+.gs-character--enemy.gs-character--beast .gs-character-wings {
+  display: none;
 }
 
 .gs-character--wisp .gs-character-head,

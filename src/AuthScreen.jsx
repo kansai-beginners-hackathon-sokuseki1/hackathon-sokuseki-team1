@@ -180,7 +180,7 @@ export function AuthScreen({ onLogin, initialError = null }) {
               marginBottom: 'var(--spacing-md)',
             }}
           >
-            {mode === 'login' ? 'ログイン' : '新規登録'}
+            {mode === 'login' ? '冒険の始まり' : '冒険者登録'}
           </p>
 
           {GOOGLE_CLIENT_ID && (
@@ -195,12 +195,12 @@ export function AuthScreen({ onLogin, initialError = null }) {
               />
               {googleLoading && (
                 <p style={{ marginTop: 8, marginBottom: 0, fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-                  Google ログインを読み込み中...
+                  冒険の扉を準備中...
                 </p>
               )}
               {!googleReady && !googleLoading && (
                 <p style={{ marginTop: 8, marginBottom: 0, fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-                  Google ログインは現在利用できません。
+                  Google からの冒険開始は現在利用できません。
                 </p>
               )}
               <div
@@ -227,7 +227,7 @@ export function AuthScreen({ onLogin, initialError = null }) {
             onClick={handleGuestLogin}
             disabled={loading}
           >
-            {loading ? '処理中...' : 'ゲストで始める'}
+            {loading ? '準備中...' : '旅人として始める'}
           </button>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
@@ -301,7 +301,7 @@ export function AuthScreen({ onLogin, initialError = null }) {
               disabled={loading}
               style={{ marginTop: 'var(--spacing-sm)' }}
             >
-              {loading ? '処理中...' : mode === 'login' ? 'ログイン' : '登録して始める'}
+              {loading ? '準備中...' : mode === 'login' ? '冒険を始める' : '冒険者として旅立つ'}
             </button>
           </form>
 
@@ -315,24 +315,24 @@ export function AuthScreen({ onLogin, initialError = null }) {
           >
             {mode === 'login' ? (
               <>
-                アカウントがない場合は{' '}
+                冒険者登録がまだなら{' '}
                 <button
                   type="button"
                   onClick={() => switchMode('register')}
                   style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
                 >
-                  新規登録
+                  冒険者登録
                 </button>
               </>
             ) : (
               <>
-                すでに登録済みの場合は{' '}
+                すでに冒険者登録済みなら{' '}
                 <button
                   type="button"
                   onClick={() => switchMode('login')}
                   style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
                 >
-                  ログイン
+                  冒険を再開
                 </button>
               </>
             )}
