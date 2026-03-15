@@ -20,6 +20,7 @@ export function StatusHeader({
   const requiredExp = getRequiredExp(level);
   const percentage = Math.min(100, Math.round((currentExp / requiredExp) * 100));
   const prevLevel = useRef(level);
+  const stageMenuRef = useRef(null);
   const [levelAnim, setLevelAnim] = useState(false);
 
   useEffect(() => {
@@ -32,6 +33,18 @@ export function StatusHeader({
     return undefined;
   }, [level]);
 
+  useEffect(() => {
+    function closeStageMenuOnOutside(event) {
+      const menu = stageMenuRef.current;
+      if (!menu?.hasAttribute('open')) return;
+      if (menu.contains(event.target)) return;
+      menu.removeAttribute('open');
+    }
+
+    document.addEventListener('mousedown', closeStageMenuOnOutside);
+    return () => document.removeEventListener('mousedown', closeStageMenuOnOutside);
+  }, []);
+
   return (
     <div className="rpg-window user-status-header">
       <GameScene level={level} stage={stage} />
@@ -41,7 +54,7 @@ export function StatusHeader({
             <span className="lv-label">Lv</span>
             <span className="lv-num">{level}</span>
           </div>
-          <details className="stage-chip stage-chip--menu">
+          <details className="stage-chip stage-chip--menu" ref={stageMenuRef}>
             <summary className="stage-chip__summary" aria-label={`Current stage ${stage.label}`}>
               <span className="stage-chip__copy">
                 <span className="stage-chip__label">STAGE</span>
@@ -53,7 +66,10 @@ export function StatusHeader({
               <button
                 type="button"
                 className={`stage-chip__option${selectedStageMode === 'auto' ? ' stage-chip__option--active' : ''}`}
-                onClick={() => onStageChange?.(null)}
+                onClick={() => {
+                  onStageChange?.(null);
+                  stageMenuRef.current?.removeAttribute('open');
+                }}
               >
                 <span className="stage-chip__option-copy">
                   <span className="stage-chip__option-title">自動</span>
@@ -68,7 +84,11 @@ export function StatusHeader({
                     key={option.key}
                     type="button"
                     className={`stage-chip__option${isActive ? ' stage-chip__option--active' : ''}`}
-                    onClick={() => unlocked && onStageChange?.(option.key)}
+                    onClick={() => {
+                      if (!unlocked) return;
+                      onStageChange?.(option.key);
+                      stageMenuRef.current?.removeAttribute('open');
+                    }}
                     disabled={!unlocked}
                   >
                     <span className="stage-chip__option-copy">
