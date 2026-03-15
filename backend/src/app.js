@@ -10,10 +10,21 @@ import {
 } from "./ai.js";
 import { verifyGoogleIdToken } from "./google-auth.js";
 
+function buildCorsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Authorization, Content-Type"
+  };
+}
+
 function json(status, payload) {
   return new Response(JSON.stringify(payload), {
     status,
-    headers: { "content-type": "application/json; charset=utf-8" }
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      ...buildCorsHeaders()
+    }
   });
 }
 
@@ -226,11 +237,7 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
         if (request.method === "OPTIONS") {
           return new Response(null, {
             status: 204,
-            headers: {
-              "Access-Control-Allow-Origin": "*",
-              "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-              "Access-Control-Allow-Headers": "Authorization, Content-Type"
-            }
+            headers: buildCorsHeaders()
           });
         }
 
