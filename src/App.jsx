@@ -94,6 +94,10 @@ function App() {
   };
 
   const handleLogout = () => {
+    if (currentUser?.authProvider === 'google') {
+      window.google?.accounts?.id?.disableAutoSelect?.();
+      window.google?.accounts?.id?.cancel?.();
+    }
     localStorage.removeItem('authToken');
     localStorage.removeItem('currentUser');
     setAuthToken(null);

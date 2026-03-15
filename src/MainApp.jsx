@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { LogOut, Settings, Sword } from 'lucide-react';
 import { SettingsModal } from './SettingsModal';
 import { StatusHeader } from './StatusHeader';
 import { TaskInput } from './TaskInput';
@@ -391,22 +392,34 @@ export function MainApp({
               >
                 <span
                   style={{
-                    fontSize: '0.9rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     filter: 'drop-shadow(0 0 4px var(--accent-secondary))',
                     animation: 'swordGlow 2.5s ease-in-out infinite'
                   }}
                 >
-                  ⚔
+                  <Sword size={14} strokeWidth={2.1} />
                 </span>
                 {currentUser.username}
               </span>
             </span>
           )}
-          <button onClick={() => setIsSettingsOpen(true)} className="btn-icon" title="設定" style={{ fontSize: '1.2rem' }}>
-            ⚙
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="btn-icon btn-icon--header"
+            title="Settings"
+            aria-label="Settings"
+          >
+            <Settings size={18} strokeWidth={2.2} />
           </button>
-          <button onClick={onLogout} className="btn-icon" title="ログアウト" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            ↩
+          <button
+            onClick={onLogout}
+            className="btn-icon btn-icon--header btn-icon--danger"
+            title="Logout"
+            aria-label="Logout"
+          >
+            <LogOut size={18} strokeWidth={2.2} />
           </button>
         </div>
       </header>
