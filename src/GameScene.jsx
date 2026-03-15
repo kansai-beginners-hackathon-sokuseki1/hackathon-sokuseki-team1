@@ -1,6 +1,7 @@
 import React from 'react';
 import './FantasyBackground.css';
 import './FantasyBackgroundStages.css';
+import { HarborStructures, RuinsStructures, VillageStructures } from './StageStructures';
 
 const GAME_SCENE_CONFIG = {
   clouds: [
@@ -49,6 +50,7 @@ const STAGE_DEFINITIONS = [
     scene: {
       focus: 'settlement',
       props: {
+        structureSet: 'village',
         showWatchtower: true,
         houseCount: 3,
         showLanterns: true,
@@ -86,6 +88,7 @@ const STAGE_DEFINITIONS = [
     scene: {
       focus: 'road',
       props: {
+        structureSet: 'none',
         showWatchtower: false,
         houseCount: 0,
         showLanterns: false,
@@ -124,6 +127,7 @@ const STAGE_DEFINITIONS = [
     scene: {
       focus: 'forest',
       props: {
+        structureSet: 'none',
         showWatchtower: false,
         houseCount: 0,
         showLanterns: false,
@@ -165,6 +169,7 @@ const STAGE_DEFINITIONS = [
     scene: {
       focus: 'trade-town',
       props: {
+        structureSet: 'village',
         showWatchtower: false,
         houseCount: 2,
         showLanterns: true,
@@ -204,6 +209,7 @@ const STAGE_DEFINITIONS = [
     scene: {
       focus: 'harbor',
       props: {
+        structureSet: 'harbor',
         showWatchtower: true,
         houseCount: 2,
         showLanterns: true,
@@ -248,6 +254,7 @@ const STAGE_DEFINITIONS = [
     scene: {
       focus: 'fortress',
       props: {
+        structureSet: 'village',
         showWatchtower: true,
         houseCount: 1,
         showLanterns: true,
@@ -289,6 +296,7 @@ const STAGE_DEFINITIONS = [
     scene: {
       focus: 'ruins',
       props: {
+        structureSet: 'ruins',
         showWatchtower: false,
         houseCount: 0,
         showLanterns: false,
@@ -329,6 +337,7 @@ const STAGE_DEFINITIONS = [
     scene: {
       focus: 'arcane-city',
       props: {
+        structureSet: 'village',
         showWatchtower: false,
         houseCount: 1,
         showLanterns: true,
@@ -376,6 +385,7 @@ const STAGE_DEFINITIONS = [
     scene: {
       focus: 'boss-castle',
       props: {
+        structureSet: 'none',
         showWatchtower: false,
         houseCount: 0,
         showLanterns: true,
@@ -456,47 +466,20 @@ function StageBackdrop({ stage }) {
 function StageProps({ scene, stageKey }) {
   const { props } = scene;
   const houses = GAME_SCENE_CONFIG.houses.slice(0, props.houseCount);
+  const structureComponents = {
+    village: <VillageStructures props={props} houses={houses} stageKey={stageKey} />,
+    harbor: <HarborStructures props={props} houses={houses} stageKey={stageKey} />,
+    ruins: <RuinsStructures props={props} />
+  };
 
   return (
     <div className="gs-props-layer" data-focus={scene.focus}>
       <div className="gs-scene-props">
-        {props.showWater && <div className="gs-water" />}
         {props.showSnowcaps && <div className="gs-snowcaps" />}
-        {props.showRuins && <div className="gs-ruins" />}
         {props.showMagicSpires && <div className="gs-magic-spires" />}
         {props.showCastle && <div className="gs-castle" />}
         {props.showDuneField && <div className="gs-dune-field" />}
-
-        {props.showWatchtower && (
-          <div className="gs-watchtower">
-            <span className="gs-window gs-window--tower" />
-            <span className="gs-flag" />
-          </div>
-        )}
-
-        {houses.map((house, index) => (
-          <div
-            key={`${stageKey}-house-${index}`}
-            className={house.className}
-            style={{
-              left: house.left,
-              width: `${house.width}px`,
-              '--house-height': `${house.height}px`,
-              '--roof-height': `${house.roofHeight}px`
-            }}
-          >
-            {house.chimney && <span className="gs-chimney" />}
-            <span className="gs-roof" />
-            <span className="gs-house-body" />
-            <span className="gs-door" />
-            {Array.from({ length: house.windows }, (_, windowIndex) => (
-              <span
-                key={windowIndex}
-                className={`gs-window gs-window--house gs-window--${windowIndex + 1}`}
-              />
-            ))}
-          </div>
-        ))}
+        {structureComponents[props.structureSet] ?? null}
 
         {props.showLanterns && GAME_SCENE_CONFIG.lanterns.map((lantern, index) => (
           <div

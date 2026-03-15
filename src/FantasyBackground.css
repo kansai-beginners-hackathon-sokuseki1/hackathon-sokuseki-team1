@@ -654,6 +654,12 @@
   border-radius: 50% 50% 0 0;
 }
 
+.gs-watchtower--harbor {
+  left: 70%;
+  bottom: 24px;
+  height: 48px;
+}
+
 .gs-flag {
   position: absolute;
   top: -24px;
@@ -957,6 +963,68 @@
   box-shadow: 0 0 14px rgba(115, 202, 255, 0.22);
 }
 
+.gs-pier {
+  position: absolute;
+  left: 52%;
+  bottom: 18px;
+  width: 30%;
+  height: 10px;
+  background: linear-gradient(to bottom, #896445, #5b3c25);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 236, 202, 0.12),
+    0 4px 0 rgba(49, 36, 28, 0.24);
+}
+
+.gs-pier::before,
+.gs-pier::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  width: 6px;
+  height: 10px;
+  background: #5b3c25;
+}
+
+.gs-pier::before {
+  left: 18%;
+}
+
+.gs-pier::after {
+  right: 18%;
+}
+
+.gs-warehouse {
+  position: absolute;
+  left: 18%;
+  bottom: 20px;
+  width: 58px;
+  height: 28px;
+  background: linear-gradient(to bottom, #c5a788, #8b6247);
+  border: 2px solid rgba(72, 46, 30, 0.72);
+  border-radius: 4px 4px 2px 2px;
+}
+
+.gs-warehouse-roof {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  width: calc(100% + 8px);
+  height: 14px;
+  transform: translateX(-50%);
+  background: linear-gradient(to bottom, #9d664e, #6d4031);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.gs-warehouse-door {
+  position: absolute;
+  left: 22px;
+  bottom: 0;
+  width: 12px;
+  height: 14px;
+  background: linear-gradient(to bottom, #5a3724, #382115);
+  border-radius: 4px 4px 0 0;
+}
+
 .gs-snowcaps {
   left: 8%;
   right: 8%;
@@ -987,6 +1055,43 @@
     linear-gradient(to bottom, rgba(202, 189, 154, 0.42), rgba(111, 96, 75, 0.9));
   clip-path: polygon(0 100%, 0 34%, 14% 34%, 18% 0, 28% 0, 32% 34%, 46% 34%, 50% 8%, 60% 8%, 64% 34%, 80% 34%, 84% 18%, 96% 18%, 100% 100%);
   opacity: 0.88;
+}
+
+.gs-ruin-pillars {
+  position: absolute;
+  right: 16%;
+  bottom: 20px;
+  width: 56px;
+  height: 42px;
+}
+
+.gs-ruin-pillar {
+  position: absolute;
+  bottom: 0;
+  width: 12px;
+  height: 42px;
+  background: linear-gradient(to bottom, rgba(206, 189, 156, 0.82), rgba(113, 94, 73, 0.92));
+  border-radius: 3px 3px 0 0;
+  opacity: 0.88;
+}
+
+.gs-ruin-pillar::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: -2px;
+  width: 16px;
+  height: 3px;
+  background: rgba(222, 204, 170, 0.7);
+}
+
+.gs-ruin-pillar--left {
+  left: 6px;
+}
+
+.gs-ruin-pillar--right {
+  right: 6px;
+  height: 34px;
 }
 
 .gs-magic-spires {
