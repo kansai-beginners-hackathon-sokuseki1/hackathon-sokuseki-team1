@@ -46,6 +46,24 @@ cd backend
 npm run db:migrate:remote
 ```
 
+### 4.2 migration を有効化する手順
+
+ローカル開発だけなら次を実行します。
+
+```bash
+cd backend
+npm run db:migrate:local
+```
+
+外部公開中の API や `workers.dev` を使う場合は、続けて次も実行します。
+
+```bash
+cd backend
+npm run db:migrate:remote
+```
+
+`D1_Error` や `no such table` が出る場合は、対象環境の migration が未反映の可能性があります。ローカルは `npm run db:migrate:local`、リモートは `npm run db:migrate:remote` を再実行してください。
+
 ### 5. サーバー起動
 
 バックエンド:
