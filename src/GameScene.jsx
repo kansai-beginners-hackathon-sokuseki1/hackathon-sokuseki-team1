@@ -149,6 +149,7 @@ const STAGE_DEFINITIONS = [
         showSmoke: false
       },
       characters: [
+        { role: 'monster', variant: 'beast', x: 34 },
         { role: 'hero', variant: 'ranger', x: 50 },
         { role: 'spirit', variant: 'sprite', x: 65 }
       ]
@@ -232,7 +233,8 @@ const STAGE_DEFINITIONS = [
       },
       characters: [
         { role: 'hero', variant: 'sailor', x: 42 },
-        { role: 'worker', variant: 'dockhand', x: 60 }
+        { role: 'worker', variant: 'dockhand', x: 60 },
+        { role: 'spirit', variant: 'wisp', x: 74 }
       ]
     }
   },
@@ -318,7 +320,8 @@ const STAGE_DEFINITIONS = [
         showRuins: true
       },
       characters: [
-        { role: 'hero', variant: 'explorer', x: 54 }
+        { role: 'hero', variant: 'explorer', x: 54 },
+        { role: 'monster', variant: 'golem', x: 72 }
       ]
     }
   },
@@ -360,7 +363,8 @@ const STAGE_DEFINITIONS = [
       },
       characters: [
         { role: 'hero', variant: 'mage', x: 44 },
-        { role: 'guide', variant: 'mage', x: 60 }
+        { role: 'guide', variant: 'mage', x: 60 },
+        { role: 'spirit', variant: 'wisp', x: 74 }
       ]
     }
   },
@@ -408,7 +412,8 @@ const STAGE_DEFINITIONS = [
       },
       characters: [
         { role: 'hero', variant: 'champion', x: 44 },
-        { role: 'boss', variant: 'boss', x: 62 }
+        { role: 'boss', variant: 'boss', x: 62 },
+        { role: 'monster', variant: 'drake', x: 78 }
       ]
     }
   }
@@ -567,10 +572,19 @@ function StageCharacters({ scene, stageKey }) {
           <span className="gs-character-hair" />
           <span className="gs-character-face" />
           <span className="gs-character-cloak" />
+          {(character.variant === 'sprite' || character.variant === 'wisp' || character.variant === 'drake') && (
+            <span className="gs-character-wings" />
+          )}
+          {(character.variant === 'beast' || character.variant === 'boss' || character.variant === 'drake') && (
+            <span className="gs-character-tail" />
+          )}
+          {(character.variant === 'mage' || character.variant === 'wisp' || character.variant === 'champion' || character.variant === 'drake') && (
+            <span className="gs-character-crest" />
+          )}
           {(character.variant === 'traveler' || character.variant === 'adventurer' || character.variant === 'explorer') && (
             <span className="gs-character-pack" />
           )}
-          {(character.variant === 'ranger' || character.variant === 'guard' || character.variant === 'warden' || character.variant === 'champion') && (
+          {(character.variant === 'ranger' || character.variant === 'guard' || character.variant === 'warden' || character.variant === 'champion' || character.variant === 'sailor') && (
             <span className="gs-character-weapon" />
           )}
           {(character.variant === 'merchant' || character.variant === 'dockhand') && (

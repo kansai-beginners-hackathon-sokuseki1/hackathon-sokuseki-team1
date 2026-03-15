@@ -427,13 +427,18 @@
 }
 
 .gs-character {
+  --gs-base-transform: translateX(-50%);
+  --gs-body-animation: gsCharacterIdle 3.2s ease-in-out infinite;
+  --gs-shadow-animation: gsShadowPulse 3.2s ease-in-out infinite;
+  --gs-arm-duration: 1.25s;
+  --gs-leg-duration: 1.25s;
   position: absolute;
   bottom: 0;
   width: 36px;
   height: 68px;
-  transform: translateX(-50%);
+  transform: var(--gs-base-transform);
   filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.34));
-  animation: gsCharacterIdle 3.2s ease-in-out infinite;
+  animation: var(--gs-body-animation);
 }
 
 .gs-character-shadow,
@@ -452,7 +457,10 @@
 .gs-character-weapon,
 .gs-character-cargo,
 .gs-character-aura,
-.gs-character-horns {
+.gs-character-horns,
+.gs-character-wings,
+.gs-character-tail,
+.gs-character-crest {
   position: absolute;
 }
 
@@ -464,6 +472,7 @@
   border-radius: 50%;
   background: rgba(8, 8, 16, 0.42);
   filter: blur(2.5px);
+  animation: var(--gs-shadow-animation);
 }
 
 .gs-character-aura {
@@ -491,12 +500,14 @@
   left: 6px;
   transform: rotate(24deg);
   opacity: 0.72;
+  animation: gsCharacterArmBack var(--gs-arm-duration) ease-in-out infinite;
 }
 
 .gs-character-front-arm {
   right: 6px;
   transform: rotate(-18deg);
   box-shadow: inset 0 -2px 0 rgba(27, 18, 15, 0.22);
+  animation: gsCharacterArmFront var(--gs-arm-duration) ease-in-out infinite;
 }
 
 .gs-character-back-leg,
@@ -512,11 +523,13 @@
   left: 10px;
   transform: rotate(8deg);
   opacity: 0.78;
+  animation: gsCharacterLegBack var(--gs-leg-duration) ease-in-out infinite;
 }
 
 .gs-character-front-leg {
   right: 10px;
   transform: rotate(-6deg);
+  animation: gsCharacterLegFront var(--gs-leg-duration) ease-in-out infinite;
 }
 
 .gs-character-boots {
@@ -651,6 +664,83 @@
   z-index: 3;
 }
 
+.gs-character-wings {
+  left: 4px;
+  top: 16px;
+  width: 28px;
+  height: 24px;
+  z-index: 0;
+}
+
+.gs-character-wings::before,
+.gs-character-wings::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  width: 14px;
+  height: 22px;
+  border-radius: 70% 30% 60% 40%;
+  background: linear-gradient(to bottom, rgba(228, 244, 255, 0.9), rgba(121, 210, 255, 0.18));
+  border: 1px solid rgba(206, 241, 255, 0.5);
+  box-shadow: 0 0 10px rgba(130, 220, 255, 0.18);
+  transform-origin: top center;
+}
+
+.gs-character-wings::before {
+  left: -2px;
+  transform: rotate(-28deg);
+  animation: gsWingLeft 1.8s ease-in-out infinite;
+}
+
+.gs-character-wings::after {
+  right: -2px;
+  transform: rotate(28deg) scaleX(-1);
+  animation: gsWingRight 1.8s ease-in-out infinite;
+}
+
+.gs-character-tail {
+  left: 2px;
+  top: 32px;
+  width: 20px;
+  height: 18px;
+  border-radius: 0 0 14px 14px;
+  border-left: 3px solid rgba(82, 52, 36, 0.92);
+  border-bottom: 3px solid rgba(82, 52, 36, 0.92);
+  transform: rotate(18deg);
+  transform-origin: top left;
+  z-index: 0;
+  animation: gsTailSweep 1.7s ease-in-out infinite;
+}
+
+.gs-character-crest {
+  left: 8px;
+  top: 0;
+  width: 20px;
+  height: 10px;
+  z-index: 6;
+}
+
+.gs-character-crest::before,
+.gs-character-crest::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 10px;
+  background: linear-gradient(to bottom, rgba(226, 238, 255, 0.9), rgba(120, 96, 214, 0.38));
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.gs-character-crest::before {
+  left: 1px;
+  transform: rotate(-12deg);
+}
+
+.gs-character-crest::after {
+  right: 1px;
+  transform: rotate(12deg);
+}
+
 .gs-character-horns::before,
 .gs-character-horns::after {
   content: '';
@@ -706,7 +796,7 @@
 .gs-character--guard,
 .gs-character--spirit,
 .gs-character--boss {
-  transform: translateX(-50%) scale(0.94);
+  --gs-base-transform: translateX(-50%) scale(0.94);
 }
 
 .gs-character--hero .gs-character-hair,
@@ -730,6 +820,30 @@
   background: linear-gradient(to bottom, #4b1419, #190507);
 }
 
+.gs-character--sailor .gs-character-cloak {
+  background: linear-gradient(to bottom, #3d85a6, #1f4860);
+}
+
+.gs-character--sailor .gs-character-body {
+  background: linear-gradient(to bottom, #d4e5f4, #567188);
+}
+
+.gs-character--wisp .gs-character-cloak {
+  background: linear-gradient(to bottom, rgba(154, 255, 244, 0.86), rgba(77, 125, 201, 0.36));
+}
+
+.gs-character--beast .gs-character-cloak {
+  background: linear-gradient(to bottom, #5b4632, #231913);
+}
+
+.gs-character--drake .gs-character-cloak {
+  background: linear-gradient(to bottom, #a34d42, #49191b);
+}
+
+.gs-character--golem .gs-character-cloak {
+  background: linear-gradient(to bottom, #756b60, #403830);
+}
+
 .gs-character--traveler .gs-character-body,
 .gs-character--adventurer .gs-character-body,
 .gs-character--explorer .gs-character-body {
@@ -738,6 +852,8 @@
 
 .gs-character--mage .gs-character-aura,
 .gs-character--sprite .gs-character-aura,
+.gs-character--wisp .gs-character-aura,
+.gs-character--drake .gs-character-aura,
 .gs-character--boss .gs-character-aura {
   opacity: 0.7;
 }
@@ -761,7 +877,9 @@
 }
 
 .gs-character--boss {
-  transform: translateX(-50%) scale(1.08);
+  --gs-base-transform: translateX(-50%) scale(1.08);
+  --gs-body-animation: gsCharacterStomp 2.5s ease-in-out infinite;
+  --gs-shadow-animation: gsShadowStomp 2.5s ease-in-out infinite;
   filter: drop-shadow(0 6px 8px rgba(60, 0, 0, 0.42));
 }
 
@@ -799,9 +917,192 @@
     drop-shadow(0 1px 3px rgba(0, 0, 0, 0.56));
 }
 
+.gs-character--hero,
+.gs-character--ranger,
+.gs-character--warden,
+.gs-character--champion,
+.gs-character--sailor {
+  --gs-body-animation: gsCharacterStride 1.8s ease-in-out infinite;
+  --gs-shadow-animation: gsShadowPulse 1.8s ease-in-out infinite;
+}
+
+.gs-character--spirit,
+.gs-character--sprite,
+.gs-character--wisp {
+  --gs-base-transform: translateX(-50%) scale(0.9);
+  --gs-body-animation: gsCharacterFloat 2.6s ease-in-out infinite;
+  --gs-shadow-animation: gsShadowFade 2.6s ease-in-out infinite;
+}
+
+.gs-character--monster,
+.gs-character--beast,
+.gs-character--drake,
+.gs-character--golem {
+  --gs-body-animation: gsCharacterProwl 2.2s ease-in-out infinite;
+  --gs-shadow-animation: gsShadowPulse 2.2s ease-in-out infinite;
+}
+
+.gs-character--golem {
+  --gs-base-transform: translateX(-50%) scale(1.02);
+  --gs-body-animation: gsCharacterStomp 3s ease-in-out infinite;
+  --gs-shadow-animation: gsShadowStomp 3s ease-in-out infinite;
+}
+
+.gs-character--beast {
+  --gs-base-transform: translateX(-50%) scale(0.92) translateY(2px);
+}
+
+.gs-character--wisp .gs-character-head,
+.gs-character--wisp .gs-character-body,
+.gs-character--sprite .gs-character-head,
+.gs-character--sprite .gs-character-body {
+  background: color-mix(in srgb, var(--scene-crystal) 74%, white 26%);
+}
+
+.gs-character--wisp .gs-character-hair,
+.gs-character--wisp .gs-character-face,
+.gs-character--wisp .gs-character-belt,
+.gs-character--wisp .gs-character-boots {
+  opacity: 0.4;
+}
+
+.gs-character--wisp .gs-character-aura {
+  opacity: 0.88;
+  background: radial-gradient(circle, rgba(156, 255, 244, 0.5) 0%, transparent 74%);
+}
+
+.gs-character--golem .gs-character-head,
+.gs-character--golem .gs-character-body,
+.gs-character--golem .gs-character-back-arm,
+.gs-character--golem .gs-character-front-arm,
+.gs-character--golem .gs-character-back-leg,
+.gs-character--golem .gs-character-front-leg {
+  background: linear-gradient(to bottom, #b8aa92, #6d6254);
+}
+
+.gs-character--golem .gs-character-body {
+  left: 7px;
+  width: 22px;
+  border-radius: 5px;
+}
+
+.gs-character--golem .gs-character-head {
+  left: 8px;
+  width: 20px;
+  border-radius: 35%;
+}
+
+.gs-character--beast .gs-character-head,
+.gs-character--drake .gs-character-head {
+  border-radius: 56% 56% 40% 40%;
+}
+
+.gs-character--beast .gs-character-hair,
+.gs-character--drake .gs-character-hair {
+  clip-path: polygon(0 50%, 18% 16%, 36% 0, 50% 18%, 64% 0, 82% 16%, 100% 50%, 92% 100%, 8% 100%);
+}
+
+.gs-character--beast .gs-character-tail {
+  border-color: rgba(106, 72, 42, 0.95);
+}
+
+.gs-character--drake {
+  --gs-base-transform: translateX(-50%) scale(0.98);
+}
+
+.gs-character--drake .gs-character-wings::before,
+.gs-character--drake .gs-character-wings::after {
+  background: linear-gradient(to bottom, rgba(255, 182, 154, 0.82), rgba(134, 52, 65, 0.28));
+  border-color: rgba(255, 197, 164, 0.44);
+}
+
+.gs-character--drake .gs-character-tail {
+  border-color: rgba(156, 70, 62, 0.95);
+}
+
+.gs-character--drake .gs-character-aura {
+  opacity: 0.82;
+  background: radial-gradient(circle, rgba(255, 102, 86, 0.38) 0%, transparent 74%);
+}
+
 @keyframes gsCharacterIdle {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(-2px); }
+  0%, 100% { transform: var(--gs-base-transform) translateY(0); }
+  50% { transform: var(--gs-base-transform) translateY(-2px); }
+}
+
+@keyframes gsCharacterStride {
+  0%, 100% { transform: var(--gs-base-transform) translateY(0) rotate(-1.2deg); }
+  25% { transform: var(--gs-base-transform) translateY(-1px) rotate(0.8deg); }
+  50% { transform: var(--gs-base-transform) translateY(-3px) rotate(1.2deg); }
+  75% { transform: var(--gs-base-transform) translateY(-1px) rotate(-0.6deg); }
+}
+
+@keyframes gsCharacterFloat {
+  0%, 100% { transform: var(--gs-base-transform) translateY(0); }
+  50% { transform: var(--gs-base-transform) translateY(-5px); }
+}
+
+@keyframes gsCharacterProwl {
+  0%, 100% { transform: var(--gs-base-transform) translateY(0) rotate(-1deg); }
+  50% { transform: var(--gs-base-transform) translateY(-2px) rotate(1deg); }
+}
+
+@keyframes gsCharacterStomp {
+  0%, 100% { transform: var(--gs-base-transform) translateY(0); }
+  20% { transform: var(--gs-base-transform) translateY(0); }
+  45% { transform: var(--gs-base-transform) translateY(-4px); }
+  60% { transform: var(--gs-base-transform) translateY(0); }
+}
+
+@keyframes gsShadowPulse {
+  0%, 100% { transform: scaleX(1); opacity: 0.42; }
+  50% { transform: scaleX(0.85); opacity: 0.28; }
+}
+
+@keyframes gsShadowFade {
+  0%, 100% { transform: scaleX(0.72); opacity: 0.18; }
+  50% { transform: scaleX(0.5); opacity: 0.08; }
+}
+
+@keyframes gsShadowStomp {
+  0%, 100% { transform: scaleX(1); opacity: 0.44; }
+  45% { transform: scaleX(0.8); opacity: 0.22; }
+  60% { transform: scaleX(1.08); opacity: 0.5; }
+}
+
+@keyframes gsCharacterArmBack {
+  0%, 100% { transform: rotate(24deg); }
+  50% { transform: rotate(9deg); }
+}
+
+@keyframes gsCharacterArmFront {
+  0%, 100% { transform: rotate(-18deg); }
+  50% { transform: rotate(-34deg); }
+}
+
+@keyframes gsCharacterLegBack {
+  0%, 100% { transform: rotate(8deg); }
+  50% { transform: rotate(-4deg); }
+}
+
+@keyframes gsCharacterLegFront {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(8deg); }
+}
+
+@keyframes gsWingLeft {
+  0%, 100% { transform: rotate(-28deg); }
+  50% { transform: rotate(-46deg) translateY(-2px); }
+}
+
+@keyframes gsWingRight {
+  0%, 100% { transform: rotate(28deg) scaleX(-1); }
+  50% { transform: rotate(46deg) scaleX(-1) translateY(-2px); }
+}
+
+@keyframes gsTailSweep {
+  0%, 100% { transform: rotate(18deg); }
+  50% { transform: rotate(34deg); }
 }
 
 .gs-watchtower {
@@ -2037,7 +2338,16 @@
   .gs-smoke,
   .gs-fog-bank,
   .gs-flag,
-  .gs-crystal {
+  .gs-crystal,
+  .gs-character,
+  .gs-character-shadow,
+  .gs-character-back-arm,
+  .gs-character-front-arm,
+  .gs-character-back-leg,
+  .gs-character-front-leg,
+  .gs-character-wings::before,
+  .gs-character-wings::after,
+  .gs-character-tail {
     animation: none !important;
     transition: none !important;
   }
