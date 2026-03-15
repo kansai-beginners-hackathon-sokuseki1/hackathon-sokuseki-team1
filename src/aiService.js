@@ -49,47 +49,127 @@ async function callOpenRouterApi(apiKey, modelName, systemPrompt, userPrompt) {
   return data.choices[0].message.content.trim();
 }
 
-export async function generateSubtasks(apiKey, modelName, taskTitle) {
-  const systemPrompt = `
-You are a helpful assistant for a task management application.
-The user will give you a task. Break it down into a main task and 3 to 5 actionable sub-tasks.
-Reply ONLY with valid JSON in exactly this format (no explanation, no markdown):
-{"mainTask": "refined main task title", "subtasks": ["step 1", "step 2", "step 3"]}
-- mainTask: a concise, clarified version of the input task
-- subtasks: 3 to 5 concrete, actionable steps
-  `;
-
-  const userPrompt = `Task: "${taskTitle}"`;
-
+function parseJsonResponse(text) {
   try {
-    const resultText = await callOpenRouterApi(apiKey, modelName, systemPrompt, userPrompt);
-
+    return JSON.parse(text);
+  } catch {
+    const match = String(text).match(/\{[\s\S]*\}/);
+    if (!match) return null;
     try {
-      const parsed = JSON.parse(resultText);
-      if (parsed && typeof parsed.mainTask === 'string' && Array.isArray(parsed.subtasks)) {
-        return {
-          mainTask: parsed.mainTask,
-          subtasks: parsed.subtasks.filter((subtask) => subtask && subtask.trim())
-        };
-      }
-
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return { mainTask: taskTitle, subtasks: parsed };
-      }
-
-      throw new Error('Invalid format returned.');
+      return JSON.parse(match[0]);
     } catch {
-      console.error('AI returned invalid JSON:', resultText);
-      const subtasks = resultText
-        .split('\n')
-        .map((line) => line.replace(/^[-* 0-9.]+/, '').trim())
-        .filter((line) => line.length > 0)
-        .slice(0, 5);
-      return { mainTask: taskTitle, subtasks };
+      return null;
     }
+  }
+}
+
+function normalizeMainQuest(value, fallbackTaskTitle) {
+  const normalized = String(value || '').trim();
+  if (normalized.length >= 6) return normalized.slice(0, 80);
+
+  const task = String(fallbackTaskTitle || '').trim();
+  if (!task) return '達成したい目的を整理する';
+  if (task.endsWith('する')) return `${task.replace(/する$/, '')}できる状態にする`;
+  return `${task}を達成できる状態にする`;
+}
+
+function normalizeSubQuests(items, fallbackTaskTitle) {
+  const normalized = (Array.isArray(items) ? items : [])
+    .map((item) => String(item || '').trim())
+    .filter(Boolean)
+    .map((item) => item.replace(/[。．]+$/u, ''))
+    .filter((item, index, array) => array.indexOf(item) === index)
+    .slice(0, 5);
+
+  if (normalized.length >= 3) return normalized;
+
+  const task = String(fallbackTaskTitle || '').trim() || 'タスク';
+  return [
+    `${task}の目的を確認する`,
+    `${task}に必要な要素を書き出す`,
+    `${task}の最初の一歩に着手する`
+  ];
+}
+
+function formatQuestBreakdown(mainQuest, subQuests, taskTitle) {
+  const normalizedMainQuest = normalizeMainQuest(mainQuest, taskTitle);
+  const normalizedSubQuests = normalizeSubQuests(subQuests, taskTitle);
+
+  return {
+    mainQuest: normalizedMainQuest,
+    subQuests: normalizedSubQuests,
+    // Keep the old keys for compatibility with any existing callers.
+    mainTask: normalizedMainQuest,
+    subtasks: normalizedSubQuests
+  };
+}
+
+function buildMainQuestPrompt(taskTitle) {
+  return {
+    systemPrompt: `
+You are designing quests for an RPG-themed task manager.
+Extract the higher-level objective behind the user's task.
+Return JSON only.
+Do not output steps or explanations.
+mainQuest must be one Japanese sentence.
+mainQuest must be one level more abstract than the input task.
+mainQuest must describe the goal, not the actions.
+Output format:
+{"mainQuest":"..."}
+    `,
+    userPrompt: `Task: "${taskTitle}"`
+  };
+}
+
+function buildSubQuestPrompt(taskTitle, mainQuest) {
+  return {
+    systemPrompt: `
+You are breaking a quest into actionable sub-quests for an RPG-themed task manager.
+Return JSON only.
+Output 3 to 5 subQuests.
+Each subQuest must be a concrete action the user can do now.
+Each subQuest must start with a Japanese verb phrase when possible.
+One subQuest should represent one action only.
+Avoid vague items like "考える", "頑張る", "検討する" unless made specific.
+Do not repeat the mainQuest wording.
+Output format:
+{"subQuests":["...", "...", "..."]}
+    `,
+    userPrompt: `Original task: "${taskTitle}"\nMain quest: "${mainQuest}"`
+  };
+}
+
+async function generateMainQuest(apiKey, modelName, taskTitle) {
+  const { systemPrompt, userPrompt } = buildMainQuestPrompt(taskTitle);
+  const resultText = await callOpenRouterApi(apiKey, modelName, systemPrompt, userPrompt);
+  const parsed = parseJsonResponse(resultText);
+  return normalizeMainQuest(parsed?.mainQuest, taskTitle);
+}
+
+async function generateSubQuests(apiKey, modelName, taskTitle, mainQuest) {
+  const { systemPrompt, userPrompt } = buildSubQuestPrompt(taskTitle, mainQuest);
+  const resultText = await callOpenRouterApi(apiKey, modelName, systemPrompt, userPrompt);
+  const parsed = parseJsonResponse(resultText);
+
+  if (Array.isArray(parsed?.subQuests)) {
+    return normalizeSubQuests(parsed.subQuests, taskTitle);
+  }
+
+  const fallbackLines = resultText
+    .split('\n')
+    .map((line) => line.replace(/^[-* 0-9.]+/, '').trim())
+    .filter((line) => line.length > 0);
+  return normalizeSubQuests(fallbackLines, taskTitle);
+}
+
+export async function generateSubtasks(apiKey, modelName, taskTitle) {
+  try {
+    const mainQuest = await generateMainQuest(apiKey, modelName, taskTitle);
+    const subQuests = await generateSubQuests(apiKey, modelName, taskTitle, mainQuest);
+    return formatQuestBreakdown(mainQuest, subQuests, taskTitle);
   } catch (error) {
     console.error('generateSubtasks Error:', error);
-    throw error;
+    return formatQuestBreakdown(taskTitle, [], taskTitle);
   }
 }
 
