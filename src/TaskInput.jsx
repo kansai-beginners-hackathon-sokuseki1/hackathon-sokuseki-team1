@@ -230,7 +230,7 @@ export function TaskInput({ onAdd, scoreDifficulty }) {
   const validationError = validateTaskTitle(title);
 
   return (
-    <div className="rpg-window" style={{ marginBottom: 'var(--spacing-lg)' }}>
+    <div className="rpg-window task-input-window" style={{ marginBottom: 'var(--spacing-lg)' }}>
       <p style={{ color: 'var(--accent-secondary)', marginBottom: 'var(--spacing-sm)', fontSize: '0.85rem', borderBottom: '1px solid var(--border-window-inner)', paddingBottom: '6px' }}>
         タスクを追加
       </p>
