@@ -14,6 +14,7 @@ export function formatFantasyDate(dateStr) {
 export function FantasyDatePicker({ value, onChange, disabled }) {
   const today = new Date();
   const [isOpen, setIsOpen] = useState(false);
+  const [draftValue, setDraftValue] = useState(value ?? '');
   const [viewYear, setViewYear] = useState(
     () => (value ? new Date(`${value}T00:00:00`).getFullYear() : today.getFullYear())
   );
@@ -23,37 +24,47 @@ export function FantasyDatePicker({ value, onChange, disabled }) {
   const wrapRef = useRef(null);
 
   useEffect(() => {
-    if (!isOpen) return undefined;
-
-    function onOutside(event) {
-      if (wrapRef.current && !wrapRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener('mousedown', onOutside);
-    return () => document.removeEventListener('mousedown', onOutside);
-  }, [isOpen]);
+    setDraftValue(value ?? '');
+  }, [value]);
 
   useEffect(() => {
     if (!isOpen) return undefined;
 
-    const close = () => setIsOpen(false);
-    window.addEventListener('scroll', close, true);
-    window.addEventListener('resize', close);
+    function closePicker() {
+      setDraftValue(value ?? '');
+      setIsOpen(false);
+    }
+
+    function onOutside(event) {
+      if (wrapRef.current && !wrapRef.current.contains(event.target)) {
+        closePicker();
+      }
+    }
+
+    document.addEventListener('mousedown', onOutside);
+    window.addEventListener('resize', closePicker);
 
     return () => {
-      window.removeEventListener('scroll', close, true);
-      window.removeEventListener('resize', close);
+      document.removeEventListener('mousedown', onOutside);
+      window.removeEventListener('resize', closePicker);
     };
-  }, [isOpen]);
+  }, [isOpen, value]);
 
-  function openPicker() {
+  function togglePicker() {
     if (disabled) return;
-    setIsOpen((prev) => !prev);
+    setIsOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setDraftValue(value ?? '');
+        const baseDate = value ? new Date(`${value}T00:00:00`) : today;
+        setViewYear(baseDate.getFullYear());
+        setViewMonth(baseDate.getMonth());
+      }
+      return next;
+    });
   }
 
-  const selectedDate = value ? new Date(`${value}T00:00:00`) : null;
+  const selectedDate = draftValue ? new Date(`${draftValue}T00:00:00`) : null;
 
   function prevMonth() {
     if (viewMonth === 0) {
@@ -77,7 +88,16 @@ export function FantasyDatePicker({ value, onChange, disabled }) {
     const date = new Date(viewYear, viewMonth, day);
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const dateNum = String(date.getDate()).padStart(2, '0');
-    onChange(`${date.getFullYear()}-${month}-${dateNum}`);
+    setDraftValue(`${date.getFullYear()}-${month}-${dateNum}`);
+  }
+
+  function confirmSelection() {
+    onChange(draftValue);
+    setIsOpen(false);
+  }
+
+  function cancelSelection() {
+    setDraftValue(value ?? '');
     setIsOpen(false);
   }
 
@@ -88,8 +108,8 @@ export function FantasyDatePicker({ value, onChange, disabled }) {
   for (let index = 0; index < firstDay; index += 1) cells.push(null);
   for (let day = 1; day <= daysInMonth; day += 1) cells.push(day);
 
-  const displayText = selectedDate
-    ? `${MONTHS[selectedDate.getMonth()]} ${selectedDate.getDate()}日`
+  const displayText = value
+    ? formatFantasyDate(value)
     : '期限を設定';
 
   return (
@@ -97,10 +117,10 @@ export function FantasyDatePicker({ value, onChange, disabled }) {
       <button
         type="button"
         className="fdp-trigger"
-        onClick={openPicker}
+        onClick={togglePicker}
         disabled={disabled}
       >
-        <span className="fdp-icon">📅</span>
+        <span className="fdp-icon">📜</span>
         <span className="fdp-text">{displayText}</span>
       </button>
 
@@ -150,7 +170,7 @@ export function FantasyDatePicker({ value, onChange, disabled }) {
                     isSelected ? 'fdp-day--selected' : '',
                     isToday ? 'fdp-day--today' : '',
                     isSun ? 'fdp-day--sun' : '',
-                    isSat ? 'fdp-day--sat' : ''
+                    isSat ? 'fdp-day--sat' : '',
                   ].filter(Boolean).join(' ')}
                   onClick={() => selectDay(day)}
                 >
@@ -160,20 +180,37 @@ export function FantasyDatePicker({ value, onChange, disabled }) {
             })}
           </div>
 
-          {value && (
-            <div className="fdp-footer">
+          <div className="fdp-footer">
+            <div className="fdp-footer-actions">
+              <button
+                type="button"
+                className="fdp-footer-btn"
+                onClick={cancelSelection}
+              >
+                戻る
+              </button>
+              <button
+                type="button"
+                className="fdp-footer-btn fdp-footer-btn--primary"
+                onClick={confirmSelection}
+              >
+                決定
+              </button>
+            </div>
+            {value && (
               <button
                 type="button"
                 className="fdp-clear-btn"
                 onClick={() => {
                   onChange('');
+                  setDraftValue('');
                   setIsOpen(false);
                 }}
               >
                 期限を解除
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -257,7 +257,18 @@ export function TaskInput({ onAdd, scoreDifficulty }) {
             disabled={isSubmitting || isListening}
           />
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '2px', border: '2px solid var(--border-window)', borderRadius: 'var(--radius-sm)', padding: '4px 8px' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '2px',
+              border: '2px solid var(--border-window)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '4px 8px',
+              background: 'linear-gradient(180deg, rgba(22, 30, 54, 0.96) 0%, rgba(8, 15, 31, 0.96) 100%)',
+              boxShadow: 'inset 0 0 0 1px rgba(109, 139, 212, 0.22)'
+            }}
+          >
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginRight: '4px' }}>
               難易度
             </span>

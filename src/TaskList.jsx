@@ -358,7 +358,17 @@ export function TaskList({
                       />
                       <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center', flexWrap: 'wrap' }}>
                         <FantasyDatePicker value={editDueDate} onChange={setEditDueDate} />
-                        <div style={{ display: 'flex', gap: '2px' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            gap: '2px',
+                            padding: '4px 8px',
+                            border: '2px solid var(--border-window)',
+                            borderRadius: 'var(--radius-sm)',
+                            background: 'linear-gradient(180deg, rgba(22, 30, 54, 0.96) 0%, rgba(8, 15, 31, 0.96) 100%)',
+                            boxShadow: 'inset 0 0 0 1px rgba(109, 139, 212, 0.22)'
+                          }}
+                        >
                           {[1, 2, 3, 4, 5].map((star) => (
                             <button
                               key={star}
