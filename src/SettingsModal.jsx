@@ -6,7 +6,7 @@ import {
   ChevronRight,
   Clock3,
   Info,
-  Map,
+  Map as MapIcon,
   Palette,
   Save,
   Volume2,
@@ -603,7 +603,7 @@ export function SettingsModal({
             </div>
           </Section>
 
-          <Section icon={Map} title="ステージ" isOpen={openSections.stage} onToggle={() => toggleSection('stage')}>
+          <Section icon={MapIcon} title="ステージ" isOpen={openSections.stage} onToggle={() => toggleSection('stage')}>
             <div style={{ display: 'grid', gap: '12px' }}>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                 {selectedStageMode === 'manual'

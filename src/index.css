@@ -402,6 +402,9 @@ button:disabled {
    ============================================= */
 .user-status-header {
   margin-bottom: var(--spacing-xl);
+  position: relative;
+  z-index: 60;
+  overflow: visible;
 }
 
 .user-status-header .status-row,
@@ -488,6 +491,10 @@ button:disabled {
   min-width: 0;
 }
 
+.stage-chip--menu[open] {
+  z-index: 80;
+}
+
 .stage-chip__summary {
   list-style: none;
   display: flex;
@@ -516,7 +523,7 @@ button:disabled {
   position: absolute;
   top: calc(100% + 10px);
   left: 0;
-  z-index: 20;
+  z-index: 90;
   width: min(280px, calc(100vw - 48px));
   padding: 8px;
   display: grid;

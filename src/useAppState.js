@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from './api';
 
 function computeLevelFromXp(totalXp) {
+  const safeTotalXp = Number.isFinite(Number(totalXp)) ? Number(totalXp) : 0;
   let level = 1;
-  let remaining = totalXp;
+  let remaining = safeTotalXp;
 
   while (true) {
     const required = Math.floor(100 * Math.pow(1.2, level - 1));
@@ -13,6 +14,15 @@ function computeLevelFromXp(totalXp) {
   }
 
   return { level, currentExp: remaining };
+}
+
+function normalizeProgressPayload(progress) {
+  return {
+    xp: Number(progress?.xp ?? 0),
+    level: Number(progress?.level ?? 1),
+    currentExp: Number(progress?.currentExp ?? 0),
+    completedTaskCount: Number(progress?.completedTaskCount ?? progress?.completed_task_count ?? 0)
+  };
 }
 
 function normalizeTask(dbTask) {
@@ -74,8 +84,9 @@ export const useAppState = () => {
         api.getAiSettings()
       ]);
 
-      setTasks(tasksData.tasks.map(normalizeTask));
-      setUserStats(computeLevelFromXp(Number(progressData.progress.xp)));
+      const safeProgress = normalizeProgressPayload(progressData?.progress);
+      setTasks((tasksData.tasks ?? []).map(normalizeTask));
+      setUserStats(computeLevelFromXp(safeProgress.xp));
       setProfile({
         onboardingCompleted: profileData.onboardingCompleted,
         hasProfile: profileData.hasProfile,
@@ -107,7 +118,8 @@ export const useAppState = () => {
   const applyProgress = useCallback((progress) => {
     if (!progress) return null;
 
-    const nextXp = Number(progress.xp);
+    const safeProgress = normalizeProgressPayload(progress);
+    const nextXp = safeProgress.xp;
     const nextStats = computeLevelFromXp(nextXp);
     setUserStats(nextStats);
     return nextStats;

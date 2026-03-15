@@ -54,6 +54,26 @@ function normalizeAiSettings(row) {
   };
 }
 
+function normalizeProgress(row, userId, fallbackUpdatedAt = null) {
+  if (!row) {
+    return {
+      user_id: userId,
+      xp: 0,
+      level: 1,
+      completed_task_count: 0,
+      updated_at: fallbackUpdatedAt
+    };
+  }
+
+  return {
+    user_id: row.user_id ?? row.userId ?? userId,
+    xp: Number(row.xp ?? 0),
+    level: Number(row.level ?? 1),
+    completed_task_count: Number(row.completed_task_count ?? row.completedTaskCount ?? 0),
+    updated_at: row.updated_at ?? row.updatedAt ?? fallbackUpdatedAt
+  };
+}
+
 export function createD1Repository(db) {
   return {
     async findUserByEmail(email) {
@@ -310,9 +330,26 @@ export function createD1Repository(db) {
     },
 
     async getUserProgress(userId) {
-      return db.prepare(
+      const row = await db.prepare(
         "SELECT user_id, xp, level, completed_task_count, updated_at FROM user_progress WHERE user_id = ?"
       ).bind(userId).first();
+
+      if (row) {
+        return normalizeProgress(row, userId);
+      }
+
+      const createdAt = new Date().toISOString();
+      await db.prepare(`
+        INSERT INTO user_progress (user_id, xp, level, completed_task_count, updated_at)
+        VALUES (?, 0, 1, 0, ?)
+        ON CONFLICT(user_id) DO NOTHING
+      `).bind(userId, createdAt).run();
+
+      const repaired = await db.prepare(
+        "SELECT user_id, xp, level, completed_task_count, updated_at FROM user_progress WHERE user_id = ?"
+      ).bind(userId).first();
+
+      return normalizeProgress(repaired, userId, createdAt);
     },
 
     async getTaskSummary(userId, nowIso) {
