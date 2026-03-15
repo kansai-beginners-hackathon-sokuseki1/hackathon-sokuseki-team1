@@ -47,14 +47,14 @@ function mapAuthError(err) {
   return err.message || 'エラーが発生しました。もう一度お試しください。';
 }
 
-export function AuthScreen({ onLogin }) {
+export function AuthScreen({ onLogin, initialError = null }) {
   const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(initialError);
   const [googleReady, setGoogleReady] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const googleButtonRef = useRef(null);
@@ -65,6 +65,10 @@ export function AuthScreen({ onLogin }) {
     setError(null);
     setShowPassword(false);
   };
+
+  useEffect(() => {
+    setError(initialError);
+  }, [initialError]);
 
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID || !googleButtonRef.current) return undefined;

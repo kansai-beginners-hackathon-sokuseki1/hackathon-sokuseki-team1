@@ -3,6 +3,7 @@ import { AuthScreen } from './AuthScreen';
 import { ErrorBoundary } from './ErrorBoundary';
 import { FantasyBackground, FantasyOverlay } from './FantasyBackground';
 import { MainApp } from './MainApp';
+import { AUTH_EVENT_NAME } from './api';
 import { registerAppServiceWorker } from './notifications';
 import { applyAudioSettings, initializeAudio } from './soundEffects';
 import { applyTheme } from './themes';
@@ -12,6 +13,7 @@ registerAppServiceWorker();
 
 function App() {
   const [authToken, setAuthToken] = useState(() => localStorage.getItem('authToken'));
+  const [authNotice, setAuthNotice] = useState(null);
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem('currentUser');
     return saved ? JSON.parse(saved) : null;
@@ -102,9 +104,10 @@ function App() {
     localStorage.setItem('currentUser', JSON.stringify(user));
     setAuthToken(token);
     setCurrentUser(user);
+    setAuthNotice(null);
   };
 
-  const handleLogout = () => {
+  const handleLogout = (notice = null) => {
     if (currentUser?.authProvider === 'google') {
       window.google?.accounts?.id?.disableAutoSelect?.();
       window.google?.accounts?.id?.cancel?.();
@@ -113,7 +116,17 @@ function App() {
     localStorage.removeItem('currentUser');
     setAuthToken(null);
     setCurrentUser(null);
+    setAuthNotice(notice);
   };
+
+  useEffect(() => {
+    const handleAuthInvalid = (event) => {
+      handleLogout(event.detail?.message || 'ログイン情報が無効です。もう一度ログインしてください。');
+    };
+
+    window.addEventListener(AUTH_EVENT_NAME, handleAuthInvalid);
+    return () => window.removeEventListener(AUTH_EVENT_NAME, handleAuthInvalid);
+  }, [currentUser?.authProvider]);
 
   const handleSelectedStageKeyChange = (value) => {
     if (!currentUser?.id) return;
@@ -133,7 +146,7 @@ function App() {
       <FantasyBackground />
       <FantasyOverlay />
       {!authToken ? (
-        <AuthScreen onLogin={handleLogin} />
+        <AuthScreen onLogin={handleLogin} initialError={authNotice} />
       ) : (
         <ErrorBoundary resetKey={authToken}>
           <MainApp

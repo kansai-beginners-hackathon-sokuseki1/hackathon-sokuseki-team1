@@ -8,6 +8,7 @@
     "dev:frontend": "vite",
     "dev:backend": "npm --prefix backend run dev",
     "build": "vite build",
+    "generate:presentation": "node scripts/generate-presentation.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -26,7 +27,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "pptxgenjs": "^4.0.1",
     "vite": "^7.3.1"
   }
 }
-

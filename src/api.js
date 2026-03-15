@@ -1,7 +1,17 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+const AUTH_EVENT_NAME = "app:auth-invalid";
 
 function getToken() {
   return localStorage.getItem("authToken");
+}
+
+function notifyAuthInvalid(message) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(AUTH_EVENT_NAME, {
+    detail: {
+      message: message || "セッションが無効になりました。もう一度ログインしてください。"
+    }
+  }));
 }
 
 async function request(method, path, body) {
@@ -43,6 +53,13 @@ async function request(method, path, body) {
     const err = new Error(data.error?.message || `API Error: ${res.status}`);
     err.code = data.error?.code;
     err.status = res.status;
+    if (res.status === 401 && (err.code === "unauthorized" || err.code === "session_expired")) {
+      notifyAuthInvalid(
+        err.code === "session_expired"
+          ? "セッションの有効期限が切れました。もう一度ログインしてください。"
+          : "ログイン情報が無効です。もう一度ログインしてください。"
+      );
+    }
     throw err;
   }
   return data;
@@ -78,3 +95,5 @@ export const api = {
 
   scoreDifficulty: (data) => request("POST", "/ai/difficulty", data)
 };
+
+export { AUTH_EVENT_NAME };
