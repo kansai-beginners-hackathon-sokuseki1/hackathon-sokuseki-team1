@@ -100,9 +100,14 @@ export function MainApp({
     const email = String(currentUser?.email || '').trim().toLowerCase();
     return username === 'master' || email === 'master@example.com';
   }, [currentUser?.email, currentUser?.username]);
+  const allStages = useMemo(() => getAdventureStages(), []);
   const unlockedStages = useMemo(() => (
-    getAdventureStages().filter((stage) => isMasterAccount || userStats.level >= stage.minLevel)
-  ), [isMasterAccount, userStats.level]);
+    allStages.filter((stage) => isMasterAccount || userStats.level >= stage.minLevel)
+  ), [allStages, isMasterAccount, userStats.level]);
+  const unlockedStageKeys = useMemo(
+    () => new Set(unlockedStages.map((stage) => stage.key)),
+    [unlockedStages]
+  );
   const autoStage = useMemo(() => getAdventureStage(userStats.level), [userStats.level]);
   const selectedStage = useMemo(() => {
     if (!selectedStageKey) return autoStage;
@@ -485,7 +490,17 @@ export function MainApp({
         </div>
       )}
 
-      <StatusHeader stats={userStats} getRequiredExp={getRequiredExp} selectedStage={selectedStage} />
+      <StatusHeader
+        stats={userStats}
+        getRequiredExp={getRequiredExp}
+        selectedStage={selectedStage}
+        selectedStageMode={selectedStageKey ? 'manual' : 'auto'}
+        autoStage={autoStage}
+        stageOptions={allStages}
+        unlockedStageKeys={unlockedStageKeys}
+        canUseLockedStages={isMasterAccount}
+        onStageChange={onSelectedStageKeyChange}
+      />
       <div
         className="rpg-window"
         style={{

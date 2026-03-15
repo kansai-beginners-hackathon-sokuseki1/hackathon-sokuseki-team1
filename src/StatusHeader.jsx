@@ -1,11 +1,22 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useEffect, useRef, useState } from 'react';
-import { Target } from 'lucide-react';
+import { ChevronDown, Lock, Target } from 'lucide-react';
 import { GameScene, getAdventureStage } from './GameScene';
 
-export function StatusHeader({ stats, getRequiredExp, selectedStage = null }) {
+export function StatusHeader({
+  stats,
+  getRequiredExp,
+  selectedStage = null,
+  selectedStageMode = 'auto',
+  autoStage = null,
+  stageOptions = [],
+  unlockedStageKeys = new Set(),
+  canUseLockedStages = false,
+  onStageChange
+}) {
   const { level, currentExp } = stats;
   const stage = selectedStage ?? getAdventureStage(level);
+  const autoResolvedStage = autoStage ?? getAdventureStage(level);
   const requiredExp = getRequiredExp(level);
   const percentage = Math.min(100, Math.round((currentExp / requiredExp) * 100));
   const prevLevel = useRef(level);
@@ -30,10 +41,50 @@ export function StatusHeader({ stats, getRequiredExp, selectedStage = null }) {
             <span className="lv-label">Lv</span>
             <span className="lv-num">{level}</span>
           </div>
-          <div className="stage-chip" aria-label={`Current stage ${stage.label}`}>
-            <span className="stage-chip__label">STAGE</span>
-            <span className="stage-chip__value">{stage.label}</span>
-          </div>
+          <details className="stage-chip stage-chip--menu">
+            <summary className="stage-chip__summary" aria-label={`Current stage ${stage.label}`}>
+              <span className="stage-chip__copy">
+                <span className="stage-chip__label">STAGE</span>
+                <span className="stage-chip__value">{stage.label}</span>
+              </span>
+              <ChevronDown size={16} className="stage-chip__chevron" />
+            </summary>
+            <div className="stage-chip__menu rpg-window">
+              <button
+                type="button"
+                className={`stage-chip__option${selectedStageMode === 'auto' ? ' stage-chip__option--active' : ''}`}
+                onClick={() => onStageChange?.(null)}
+              >
+                <span className="stage-chip__option-copy">
+                  <span className="stage-chip__option-title">自動</span>
+                  <span className="stage-chip__option-meta">{autoResolvedStage.label}</span>
+                </span>
+              </button>
+              {stageOptions.map((option) => {
+                const unlocked = canUseLockedStages || unlockedStageKeys.has(option.key);
+                const isActive = selectedStageMode === 'manual' && stage.key === option.key;
+                return (
+                  <button
+                    key={option.key}
+                    type="button"
+                    className={`stage-chip__option${isActive ? ' stage-chip__option--active' : ''}`}
+                    onClick={() => unlocked && onStageChange?.(option.key)}
+                    disabled={!unlocked}
+                  >
+                    <span className="stage-chip__option-copy">
+                      <span className="stage-chip__option-title">
+                        {!unlocked && <Lock size={12} className="stage-chip__lock" />}
+                        {option.label}
+                      </span>
+                      <span className="stage-chip__option-meta">
+                        {unlocked ? `Lv ${option.minLevel}+` : `Lv ${option.minLevel} で解放`}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </details>
         </div>
         <div className="exp-info">
           {currentExp} / {requiredExp} EXP

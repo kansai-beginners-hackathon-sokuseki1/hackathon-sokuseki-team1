@@ -483,6 +483,87 @@ button:disabled {
     0 6px 14px rgba(0, 0, 0, 0.24);
 }
 
+.stage-chip--menu {
+  position: relative;
+  min-width: 0;
+}
+
+.stage-chip__summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.stage-chip__summary::-webkit-details-marker {
+  display: none;
+}
+
+.stage-chip__copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.stage-chip__chevron {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.stage-chip__menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 20;
+  width: min(280px, calc(100vw - 48px));
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.stage-chip__option {
+  display: flex;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-window-inner);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.stage-chip__option--active {
+  border-color: rgba(110, 186, 255, 0.58);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.stage-chip__option:disabled {
+  opacity: 0.58;
+}
+
+.stage-chip__option-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.stage-chip__option-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.84rem;
+}
+
+.stage-chip__option-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.stage-chip__lock {
+  color: var(--accent-primary);
+}
+
 .stage-chip__label {
   font-size: 0.62rem;
   line-height: 1.1;
@@ -591,6 +672,12 @@ button:disabled {
   .stage-chip {
     flex: 1;
     min-height: auto;
+  }
+
+  .stage-chip__menu {
+    left: auto;
+    right: 0;
+    width: min(260px, calc(100vw - 40px));
   }
 
   .exp-info {
