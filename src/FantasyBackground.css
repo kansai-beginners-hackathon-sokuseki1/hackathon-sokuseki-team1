@@ -21,7 +21,7 @@
 .fantasy-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 0;
   pointer-events: none;
   overflow: hidden;
 }
@@ -1037,6 +1037,7 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 3s ease;
+  z-index: 0;
 }
 
 [data-time="night"] .fantasy-sun {
@@ -1078,7 +1079,6 @@
     0 0 80px 30px rgba(255, 150, 0, 0.3);
   animation: sunPulse 4s ease-in-out infinite;
   position: relative;
-  z-index: 1;
 }
 
 [data-time="dawn"] .fantasy-sun-core,

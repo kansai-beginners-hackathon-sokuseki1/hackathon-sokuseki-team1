@@ -326,9 +326,9 @@ export function MainApp({
             </div>
           </details>
 
-          <div style={{ display: 'flex', alignItems: 'center', border: '2px solid var(--border-window)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
+          <div className="sort-control">
             <span style={{ padding: '4px 8px', color: 'var(--text-muted)', fontSize: '0.8rem', borderRight: '1px solid var(--border-window-inner)' }}>並び順</span>
-            <select value={sortMode} onChange={(event) => setSortMode(event.target.value)} style={{ border: 'none', borderRadius: 0, width: 'auto', padding: '4px 8px' }}>
+            <select className="sort-control__select" value={sortMode} onChange={(event) => setSortMode(event.target.value)}>
               <option value="created">新しい順</option>
               <option value="dueDate">期限順</option>
               <option value="difficulty">難易度順</option>
