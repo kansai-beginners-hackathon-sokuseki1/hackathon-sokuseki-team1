@@ -3,6 +3,7 @@ import { AuthScreen } from './AuthScreen';
 import { FantasyBackground, FantasyOverlay } from './FantasyBackground';
 import { MainApp } from './MainApp';
 import { registerAppServiceWorker } from './notifications';
+import { applyAudioSettings, initializeAudio } from './soundEffects';
 import { applyTheme } from './themes';
 import './index.css';
 
@@ -18,6 +19,8 @@ function App() {
   const [alertEnabled, setAlertEnabled] = useState(() => localStorage.getItem('alertEnabled') === 'true');
   const [hideCompletedTasks, setHideCompletedTasks] = useState(() => localStorage.getItem('hideCompletedTasks') !== 'false');
   const [colorTheme, setColorTheme] = useState(() => localStorage.getItem('colorTheme') ?? 'dark-blue');
+  const [seVolume, setSeVolume] = useState(() => Number(localStorage.getItem('seVolume') ?? '70'));
+  const [bgmVolume, setBgmVolume] = useState(() => Number(localStorage.getItem('bgmVolume') ?? '35'));
 
   useEffect(() => {
     function updateTimePeriod() {
@@ -45,6 +48,14 @@ function App() {
     applyTheme(colorTheme);
   }, [colorTheme]);
 
+  useEffect(() => {
+    initializeAudio();
+  }, []);
+
+  useEffect(() => {
+    applyAudioSettings({ seVolume, bgmVolume });
+  }, [seVolume, bgmVolume]);
+
   const handleThemeChange = (themeKey) => {
     localStorage.setItem('colorTheme', themeKey);
     setColorTheme(themeKey);
@@ -62,6 +73,16 @@ function App() {
     }
     localStorage.setItem('alertEnabled', enabled);
     setAlertEnabled(enabled);
+  };
+
+  const handleSeVolumeChange = (value) => {
+    localStorage.setItem('seVolume', value);
+    setSeVolume(value);
+  };
+
+  const handleBgmVolumeChange = (value) => {
+    localStorage.setItem('bgmVolume', value);
+    setBgmVolume(value);
   };
 
   const handleLogin = (token, user) => {
@@ -94,6 +115,10 @@ function App() {
           onBgTimeLockChange={handleBgTimeLockChange}
           alertEnabled={alertEnabled}
           onAlertEnabledChange={handleAlertEnabledChange}
+          seVolume={seVolume}
+          onSeVolumeChange={handleSeVolumeChange}
+          bgmVolume={bgmVolume}
+          onBgmVolumeChange={handleBgmVolumeChange}
           hideCompletedTasks={hideCompletedTasks}
           onHideCompletedTasksChange={(enabled) => {
             localStorage.setItem('hideCompletedTasks', enabled);

@@ -23,6 +23,10 @@ export function MainApp({
   onBgTimeLockChange,
   alertEnabled,
   onAlertEnabledChange,
+  seVolume,
+  onSeVolumeChange,
+  bgmVolume,
+  onBgmVolumeChange,
   hideCompletedTasks,
   onHideCompletedTasksChange
 }) {
@@ -229,6 +233,15 @@ export function MainApp({
                   textShadow: '0 0 6px var(--accent-secondary)'
                 }}
               >
+                <span
+                  style={{
+                    fontSize: '0.9rem',
+                    filter: 'drop-shadow(0 0 4px var(--accent-secondary))',
+                    animation: 'swordGlow 2.5s ease-in-out infinite'
+                  }}
+                >
+                  ⚔
+                </span>
                 {currentUser.username}
               </span>
             </span>
@@ -377,6 +390,10 @@ export function MainApp({
         onBgTimeLockChange={onBgTimeLockChange}
         alertEnabled={alertEnabled}
         onAlertEnabledChange={onAlertEnabledChange}
+        seVolume={seVolume}
+        onSeVolumeChange={onSeVolumeChange}
+        bgmVolume={bgmVolume}
+        onBgmVolumeChange={onBgmVolumeChange}
         hideCompletedTasks={hideCompletedTasks}
         onHideCompletedTasksChange={onHideCompletedTasksChange}
       />

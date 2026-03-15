@@ -8,6 +8,7 @@ import {
   Info,
   Palette,
   Save,
+  Volume2,
   X
 } from 'lucide-react';
 import { PreferenceSwipeCard } from './PreferenceSwipeCard';
@@ -92,6 +93,10 @@ export function SettingsModal({
   onBgTimeLockChange,
   alertEnabled,
   onAlertEnabledChange,
+  seVolume,
+  onSeVolumeChange,
+  bgmVolume,
+  onBgmVolumeChange,
   hideCompletedTasks,
   onHideCompletedTasksChange
 }) {
@@ -101,6 +106,7 @@ export function SettingsModal({
     theme: true,
     time: false,
     alerts: false,
+    audio: false,
     ai: true,
     profile: true,
     credits: false
@@ -300,6 +306,38 @@ export function SettingsModal({
                 ブラウザ通知がブロックされています。ブラウザ設定で許可してください。
               </p>
             )}
+          </Section>
+
+          <Section icon={Volume2} title="サウンド" isOpen={openSections.audio} onToggle={() => toggleSection('audio')}>
+            <div style={{ display: 'grid', gap: '14px' }}>
+              <label style={{ display: 'grid', gap: '6px' }}>
+                <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>SE 音量: {seVolume}%</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value={seVolume}
+                  onChange={(event) => onSeVolumeChange(Number(event.target.value))}
+                />
+              </label>
+
+              <label style={{ display: 'grid', gap: '6px' }}>
+                <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>BGM 音量: {bgmVolume}%</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value={bgmVolume}
+                  onChange={(event) => onBgmVolumeChange(Number(event.target.value))}
+                />
+              </label>
+
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                初回はブラウザ操作後に音声が有効になります。BGM は軽いループ音源です。
+              </p>
+            </div>
           </Section>
 
           <Section icon={Bot} title="AI 接続" isOpen={openSections.ai} onToggle={() => toggleSection('ai')}>
