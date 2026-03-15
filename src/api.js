@@ -17,14 +17,28 @@ async function request(method, path, body) {
     body: body !== undefined ? JSON.stringify(body) : undefined
   });
 
+  const responseText = await res.text();
+  const contentType = res.headers.get("content-type") || "";
+
   let data = {};
-  try {
-    data = await res.json();
-  } catch {
-    const err = new Error("Backend response was not valid JSON.");
-    err.code = "network_error";
-    err.status = res.status;
-    throw err;
+  if (responseText) {
+    try {
+      data = JSON.parse(responseText);
+    } catch {
+      const snippet = responseText.replace(/\s+/g, " ").trim().slice(0, 160);
+      const details = [
+        `status ${res.status}`,
+        contentType ? `content-type: ${contentType}` : null,
+        snippet ? `body: ${snippet}` : null
+      ].filter(Boolean).join(" / ");
+
+      const err = new Error(`Backend returned a non-JSON response (${details}).`);
+      err.code = "invalid_json_response";
+      err.status = res.status;
+      err.contentType = contentType;
+      err.responseText = responseText;
+      throw err;
+    }
   }
 
   if (!res.ok) {
@@ -61,3 +75,4 @@ export const api = {
 
   scoreDifficulty: (data) => request("POST", "/ai/difficulty", data)
 };
+
