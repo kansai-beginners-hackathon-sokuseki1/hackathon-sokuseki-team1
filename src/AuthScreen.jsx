@@ -168,7 +168,7 @@ export function AuthScreen({ onLogin, initialError = null }) {
   return (
     <div className="auth-screen">
       <div className="auth-screen__inner">
-        <h1 className="auth-screen__title">クエストマネージャー</h1>
+        <h1 className="auth-screen__title">TasQuest</h1>
 
         <div className="rpg-window">
           <p

@@ -380,7 +380,7 @@ export function MainApp({
             letterSpacing: '2px'
           }}
         >
-          クエストマネージャー
+          TasQuest
           <span
             style={{
               fontSize: '0.75rem',

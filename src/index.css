@@ -408,6 +408,11 @@ button:disabled {
 }
 
 .user-status-header .status-row,
+.user-status-header .status-row__primary {
+  position: relative;
+  z-index: 3;
+}
+
 .user-status-header .exp-bar-container,
 .user-status-header .status-next-level {
   position: relative;
