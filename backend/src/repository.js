@@ -58,16 +58,22 @@ export function createD1Repository(db) {
   return {
     async findUserByEmail(email) {
       return db.prepare(
-        "SELECT id, email, username, password_hash, password_salt, created_at FROM users WHERE lower(email) = lower(?)"
+        "SELECT id, email, username, password_hash, password_salt, auth_provider, provider_user_id, created_at FROM users WHERE lower(email) = lower(?)"
       ).bind(email).first();
     },
 
-    async createUser({ email, username, passwordHash, passwordSalt, createdAt }) {
+    async findUserByProvider(authProvider, providerUserId) {
+      return db.prepare(
+        "SELECT id, email, username, password_hash, password_salt, auth_provider, provider_user_id, created_at FROM users WHERE auth_provider = ? AND provider_user_id = ?"
+      ).bind(authProvider, providerUserId).first();
+    },
+
+    async createUser({ email, username, passwordHash, passwordSalt, authProvider = "local", providerUserId = null, createdAt }) {
       const userId = createId("user");
       await db.batch([
         db.prepare(
-          "INSERT INTO users (id, email, username, password_hash, password_salt, created_at) VALUES (?, ?, ?, ?, ?, ?)"
-        ).bind(userId, email, username, passwordHash, passwordSalt, createdAt),
+          "INSERT INTO users (id, email, username, password_hash, password_salt, auth_provider, provider_user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        ).bind(userId, email, username, passwordHash, passwordSalt, authProvider, providerUserId, createdAt),
         db.prepare(
           "INSERT INTO user_progress (user_id, xp, level, completed_task_count, updated_at) VALUES (?, 0, 1, 0, ?)"
         ).bind(userId, createdAt)
@@ -85,7 +91,7 @@ export function createD1Repository(db) {
       return db.prepare(`
         SELECT
           s.token, s.user_id, s.created_at AS session_created_at, s.last_used_at,
-          u.id, u.email, u.username, u.password_hash, u.password_salt, u.created_at
+          u.id, u.email, u.username, u.password_hash, u.password_salt, u.auth_provider, u.provider_user_id, u.created_at
         FROM sessions s
         JOIN users u ON u.id = s.user_id
         WHERE s.token = ?

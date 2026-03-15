@@ -81,6 +81,7 @@ export function MainApp({
   const lastVisibleAtRef = useRef(Date.now());
   const activeDayKeyRef = useRef(getLocalDayKey());
   const pendingSessionClaimsRef = useRef(new Set());
+  const claimedSessionTiersRef = useRef([]);
 
   const dueTasks = useMemo(() => {
     const today = new Date();
@@ -130,6 +131,10 @@ export function MainApp({
       pushBonusToast(result.bonus);
     }
   }, [pushBonusToast]);
+
+  useEffect(() => {
+    claimedSessionTiersRef.current = claimedSessionTiers;
+  }, [claimedSessionTiers]);
 
   useEffect(() => {
     const dayKey = getLocalDayKey();
@@ -192,7 +197,7 @@ export function MainApp({
 
       SESSION_BONUS_TIERS.forEach((tierConfig) => {
         const reached = sessionActiveMsRef.current >= tierConfig.minutes * 60_000;
-        if (!reached || pendingSessionClaimsRef.current.has(tierConfig.tier) || claimedSessionTiers.includes(tierConfig.tier)) return;
+        if (!reached || pendingSessionClaimsRef.current.has(tierConfig.tier) || claimedSessionTiersRef.current.includes(tierConfig.tier)) return;
 
         pendingSessionClaimsRef.current.add(tierConfig.tier);
         claimProgressBonus({
@@ -224,7 +229,7 @@ export function MainApp({
       window.clearInterval(intervalId);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [claimProgressBonus, applyBonusResult, claimedSessionTiers]);
+  }, [claimProgressBonus, applyBonusResult]);
 
   const nextSessionBonus = useMemo(
     () => SESSION_BONUS_TIERS.find(({ tier }) => !claimedSessionTiers.includes(tier)) ?? null,

@@ -53,6 +53,8 @@ export const api = {
     request("POST", "/auth/register", { email, username, password }),
   login: (email, password) =>
     request("POST", "/auth/login", { email, password }),
+  loginWithGoogle: (credential) =>
+    request("POST", "/auth/google", { credential }),
 
   getTasks: (params = {}) => {
     const qs = new URLSearchParams(params).toString();

@@ -1,5 +1,51 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { api } from './api';
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+
+function loadGoogleScript() {
+  if (window.google?.accounts?.id) {
+    return Promise.resolve();
+  }
+
+  const existing = document.querySelector('script[data-google-identity="true"]');
+  if (existing) {
+    return new Promise((resolve, reject) => {
+      existing.addEventListener('load', resolve, { once: true });
+      existing.addEventListener('error', reject, { once: true });
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.dataset.googleIdentity = 'true';
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Google sign-in.'));
+    document.head.appendChild(script);
+  });
+}
+
+function mapAuthError(err) {
+  if (err.code === 'email_exists') {
+    return 'このメールアドレスはすでに登録されています。';
+  }
+  if (err.code === 'invalid_credentials') {
+    return 'メールアドレスまたはパスワードが正しくありません。';
+  }
+  if (err.code === 'google_sign_in_required') {
+    return 'このアカウントは Google ログイン専用です。Google で続行してください。';
+  }
+  if (err.code === 'account_exists_different_sign_in') {
+    return '同じメールアドレスの既存アカウントがあります。現在のログイン方法で続けてください。';
+  }
+  if (err.code === 'google_auth_unavailable') {
+    return 'Google ログインはまだ設定されていません。';
+  }
+  return err.message || 'エラーが発生しました。もう一度試してください。';
+}
 
 export function AuthScreen({ onLogin }) {
   const [mode, setMode] = useState('login');
@@ -9,12 +55,75 @@ export function AuthScreen({ onLogin }) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [googleReady, setGoogleReady] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const googleButtonRef = useRef(null);
+  const googleInitializedRef = useRef(false);
 
   const switchMode = (nextMode) => {
     setMode(nextMode);
     setError(null);
     setShowPassword(false);
   };
+
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID || !googleButtonRef.current) return undefined;
+
+    let cancelled = false;
+    setGoogleLoading(true);
+
+    loadGoogleScript()
+      .then(() => {
+        if (cancelled || !window.google?.accounts?.id) return;
+
+        if (!googleInitializedRef.current) {
+          window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: async (response) => {
+              if (!response?.credential) return;
+              setError(null);
+              setLoading(true);
+              try {
+                const result = await api.loginWithGoogle(response.credential);
+                onLogin(result.token, result.user);
+              } catch (err) {
+                setError(mapAuthError(err));
+              } finally {
+                setLoading(false);
+              }
+            }
+          });
+          googleInitializedRef.current = true;
+        }
+
+        if (googleButtonRef.current) {
+          googleButtonRef.current.innerHTML = '';
+          window.google.accounts.id.renderButton(googleButtonRef.current, {
+            type: 'standard',
+            theme: 'outline',
+            size: 'large',
+            shape: 'pill',
+            text: mode === 'login' ? 'signin_with' : 'signup_with',
+            width: Math.min(360, Math.max(280, googleButtonRef.current.offsetWidth || 320))
+          });
+        }
+
+        setGoogleReady(true);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setGoogleReady(false);
+          setError(mapAuthError(err));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setGoogleLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, onLogin]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -31,13 +140,7 @@ export function AuthScreen({ onLogin }) {
         onLogin(result.token, result.user);
       }
     } catch (err) {
-      if (err.code === 'email_exists') {
-        setError('このメールアドレスはすでに登録されています。');
-      } else if (err.code === 'invalid_credentials') {
-        setError('メールアドレスまたはパスワードが正しくありません。');
-      } else {
-        setError(err.message || 'エラーが発生しました。もう一度試してください。');
-      }
+      setError(mapAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -54,7 +157,7 @@ export function AuthScreen({ onLogin }) {
         padding: 'var(--spacing-md)'
       }}
     >
-      <div style={{ width: '100%', maxWidth: '400px' }}>
+      <div style={{ width: '100%', maxWidth: '420px' }}>
         <h1
           style={{
             textAlign: 'center',
@@ -77,8 +180,46 @@ export function AuthScreen({ onLogin }) {
               marginBottom: 'var(--spacing-md)'
             }}
           >
-            ▶ {mode === 'login' ? 'ログイン' : '新規登録'}
+            {mode === 'login' ? 'ログイン' : '新規登録'}
           </p>
+
+          {GOOGLE_CLIENT_ID && (
+            <div style={{ marginBottom: 'var(--spacing-md)' }}>
+              <div
+                ref={googleButtonRef}
+                style={{
+                  minHeight: 44,
+                  display: 'flex',
+                  justifyContent: 'center'
+                }}
+              />
+              {googleLoading && (
+                <p style={{ marginTop: 8, marginBottom: 0, fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                  Google ログインを準備中...
+                </p>
+              )}
+              {!googleReady && !googleLoading && (
+                <p style={{ marginTop: 8, marginBottom: 0, fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                  Google ログインは現在利用できません。
+                </p>
+              )}
+              <div
+                style={{
+                  marginTop: 'var(--spacing-md)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  color: 'var(--text-muted)',
+                  fontSize: '0.72rem',
+                  letterSpacing: '0.08em'
+                }}
+              >
+                <span style={{ flex: 1, height: 1, background: 'var(--border-window-inner)' }} />
+                <span>OR EMAIL</span>
+                <span style={{ flex: 1, height: 1, background: 'var(--border-window-inner)' }} />
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
             <div>
@@ -114,14 +255,14 @@ export function AuthScreen({ onLogin }) {
 
             <div>
               <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                パスワード（8文字以上）
+                パスワード
               </label>
               <div className="password-field">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  placeholder="••••••••"
+                  placeholder="********"
                   disabled={loading}
                   minLength={8}
                   required
@@ -134,14 +275,14 @@ export function AuthScreen({ onLogin }) {
                   aria-label={showPassword ? 'パスワードを隠す' : 'パスワードを表示する'}
                   aria-pressed={showPassword}
                 >
-                  {showPassword ? '隠す' : '表示'}
+                  {showPassword ? '非表示' : '表示'}
                 </button>
               </div>
             </div>
 
             {error && (
               <p style={{ color: 'var(--danger)', fontSize: '0.85rem', margin: 0 }}>
-                注意: {error}
+                {error}
               </p>
             )}
 
@@ -151,9 +292,7 @@ export function AuthScreen({ onLogin }) {
               disabled={loading}
               style={{ marginTop: 'var(--spacing-sm)' }}
             >
-              {loading
-                ? '送信中...'
-                : mode === 'login' ? '▶ ログイン' : '▶ 登録してはじめる'}
+              {loading ? '処理中...' : mode === 'login' ? 'ログイン' : '登録して始める'}
             </button>
           </form>
 

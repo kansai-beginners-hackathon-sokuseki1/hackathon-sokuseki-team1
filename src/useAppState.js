@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from './api';
 
 function computeLevelFromXp(totalXp) {
@@ -56,6 +56,11 @@ export const useAppState = () => {
   const [levelUpData, setLevelUpData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const userStatsRef = useRef(userStats);
+
+  useEffect(() => {
+    userStatsRef.current = userStats;
+  }, [userStats]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -99,14 +104,14 @@ export const useAppState = () => {
     return task;
   };
 
-  const applyProgress = (progress) => {
+  const applyProgress = useCallback((progress) => {
     if (!progress) return null;
 
     const nextXp = Number(progress.xp);
     const nextStats = computeLevelFromXp(nextXp);
     setUserStats(nextStats);
     return nextStats;
-  };
+  }, []);
 
   const toggleTask = async (id) => {
     const task = tasks.find((item) => item.id === id);
@@ -187,8 +192,8 @@ export const useAppState = () => {
 
   const clearLevelUpData = () => setLevelUpData(null);
 
-  const claimProgressBonus = async (payload) => {
-    const prevLevel = userStats.level;
+  const claimProgressBonus = useCallback(async (payload) => {
+    const prevLevel = userStatsRef.current.level;
     const result = await api.claimProgressBonus(payload);
     const nextStats = applyProgress(result.progress);
 
@@ -197,7 +202,7 @@ export const useAppState = () => {
     }
 
     return result;
-  };
+  }, [applyProgress]);
 
   return {
     tasks,

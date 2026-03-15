@@ -1,6 +1,7 @@
 import { calculateExpByDifficulty, computeLevelFromXp } from "./rpg.js";
 import { decryptSecret, encryptSecret, createToken, hashPassword, verifyPassword } from "./crypto.js";
 import { PROFILE_CATEGORIES, getDefaultAiDescriptor, resolveActiveAiConfig, scoreTaskDifficulty, testAiConnection } from "./ai.js";
+import { verifyGoogleIdToken } from "./google-auth.js";
 
 function json(status, payload) {
   return new Response(JSON.stringify(payload), {
@@ -61,12 +62,28 @@ function normalizeUser(sessionUser) {
     id: sessionUser.id,
     email: sessionUser.email,
     username: sessionUser.username,
+    authProvider: sessionUser.auth_provider ?? sessionUser.authProvider ?? "local",
     createdAt: sessionUser.created_at ?? sessionUser.createdAt
   };
 }
 
 function todayIsoDate() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function normalizeUsernameCandidate(value, fallbackEmail) {
+  const base = typeof value === "string" ? value.trim() : "";
+  const fallback = typeof fallbackEmail === "string" ? fallbackEmail.split("@")[0] : "adventurer";
+  const selected = (base || fallback).replace(/\s+/g, " ").trim();
+  return selected.length >= 2 ? selected.slice(0, 40) : "adventurer";
+}
+
+async function createAuthenticatedSession(repository, userId, userPayload, auditAction, clientIp) {
+  const token = createToken();
+  const createdAt = new Date().toISOString();
+  await repository.createSession({ userId, token, createdAt });
+  await repository.createAuditLog({ userId, action: auditAction, ipAddress: clientIp, createdAt });
+  return json(200, { token, user: userPayload });
 }
 
 const KEEPALIVE_BONUS_TIERS = {
@@ -232,6 +249,8 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
             username: username.trim(),
             passwordHash: hash,
             passwordSalt: salt,
+            authProvider: "local",
+            providerUserId: null,
             createdAt
           });
           await repository.createAuditLog({ userId: user.id, action: "auth.register", ipAddress: clientIp, createdAt });
@@ -248,6 +267,9 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
           if (!user) {
             return errorResponse(401, "invalid_credentials", "The email or password is incorrect.");
           }
+          if ((user.auth_provider ?? user.authProvider ?? "local") !== "local") {
+            return errorResponse(409, "google_sign_in_required", "This account uses Google sign-in.");
+          }
           const valid = await verifyPassword(
             password,
             user.password_hash ?? user.passwordHash,
@@ -256,11 +278,69 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
           if (!valid) {
             return errorResponse(401, "invalid_credentials", "The email or password is incorrect.");
           }
-          const token = createToken();
-          const createdAt = new Date().toISOString();
-          await repository.createSession({ userId: user.id, token, createdAt });
-          await repository.createAuditLog({ userId: user.id, action: "auth.login", ipAddress: clientIp, createdAt });
-          return json(200, { token, user: { id: user.id, email: user.email, username: user.username } });
+          return createAuthenticatedSession(
+            repository,
+            user.id,
+            {
+              id: user.id,
+              email: user.email,
+              username: user.username,
+              authProvider: user.auth_provider ?? user.authProvider ?? "local"
+            },
+            "auth.login",
+            clientIp
+          );
+        }
+
+        if (request.method === "POST" && url.pathname === "/api/auth/google") {
+          if (!env.GOOGLE_CLIENT_ID) {
+            return errorResponse(503, "google_auth_unavailable", "Google sign-in is not configured.");
+          }
+
+          const body = await readBody(request);
+          const credential = typeof body.credential === "string" ? body.credential : "";
+          if (!credential) {
+            return errorResponse(400, "invalid_input", "Google credential is required.");
+          }
+
+          const googleUser = await verifyGoogleIdToken(credential, env.GOOGLE_CLIENT_ID);
+          let user = await repository.findUserByProvider("google", googleUser.subject);
+
+          if (!user) {
+            const existingByEmail = await repository.findUserByEmail(googleUser.email);
+            if (existingByEmail) {
+              return errorResponse(
+                409,
+                "account_exists_different_sign_in",
+                "An account with this email already exists with a different sign-in method."
+              );
+            }
+
+            const createdAt = new Date().toISOString();
+            user = await repository.createUser({
+              email: googleUser.email,
+              username: normalizeUsernameCandidate(googleUser.name, googleUser.email),
+              passwordHash: "",
+              passwordSalt: "",
+              authProvider: "google",
+              providerUserId: googleUser.subject,
+              createdAt
+            });
+            await repository.createAuditLog({ userId: user.id, action: "auth.google.register", ipAddress: clientIp, createdAt });
+          }
+
+          return createAuthenticatedSession(
+            repository,
+            user.id,
+            {
+              id: user.id,
+              email: user.email,
+              username: user.username,
+              authProvider: user.auth_provider ?? user.authProvider ?? "google"
+            },
+            "auth.google.login",
+            clientIp
+          );
         }
 
         const authHeader = request.headers.get("authorization") || "";
