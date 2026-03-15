@@ -2,6 +2,26 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Mic, Plus, Square } from 'lucide-react';
 import { FantasyDatePicker } from './FantasyDatePicker';
 
+const JAPANESE_TASK_PATTERN = /^[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}々ー、。！？「」（）・\s　]+$/u;
+
+function validateTaskTitle(rawTitle) {
+  const normalizedTitle = rawTitle.trim();
+
+  if (!normalizedTitle) {
+    return null;
+  }
+
+  if (normalizedTitle.length > 50) {
+    return 'タスク名は50文字以内で入力してください。';
+  }
+
+  if (!JAPANESE_TASK_PATTERN.test(normalizedTitle)) {
+    return 'タスク名は日本語のみで入力してください。';
+  }
+
+  return null;
+}
+
 export function TaskInput({ onAdd, scoreDifficulty }) {
   const [title, setTitle] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -45,6 +65,12 @@ export function TaskInput({ onAdd, scoreDifficulty }) {
     const normalizedTitle = rawTitle.trim();
     if (!normalizedTitle) return;
 
+    const validationError = validateTaskTitle(normalizedTitle);
+    if (validationError) {
+      setErrorMsg(validationError);
+      return;
+    }
+
     setErrorMsg(null);
     setIsSubmitting(true);
     try {
@@ -82,6 +108,17 @@ export function TaskInput({ onAdd, scoreDifficulty }) {
       return;
     }
 
+    const validationError = validateTaskTitle(normalizedTitle);
+    if (validationError) {
+      clearScoreTimer();
+      setDifficultyMeta({
+        reason: validationError,
+        matchedCategories: []
+      });
+      setIsScoring(false);
+      return;
+    }
+
     clearScoreTimer();
     scoreTimerRef.current = setTimeout(async () => {
       setIsScoring(true);
@@ -95,7 +132,7 @@ export function TaskInput({ onAdd, scoreDifficulty }) {
       } catch (error) {
         console.error(error);
         setDifficultyMeta({
-          reason: 'AI による難易度判定を利用できなかったため、代替の難易度を使用しました。',
+          reason: 'AI 判定を利用できなかったため、現在の難易度をそのまま使います。',
           matchedCategories: []
         });
       } finally {
@@ -190,6 +227,8 @@ export function TaskInput({ onAdd, scoreDifficulty }) {
     }
   };
 
+  const validationError = validateTaskTitle(title);
+
   return (
     <div className="rpg-window" style={{ marginBottom: 'var(--spacing-lg)' }}>
       <p style={{ color: 'var(--accent-secondary)', marginBottom: 'var(--spacing-sm)', fontSize: '0.85rem', borderBottom: '1px solid var(--border-window-inner)', paddingBottom: '6px' }}>
@@ -200,8 +239,14 @@ export function TaskInput({ onAdd, scoreDifficulty }) {
         <input
           type="text"
           value={title}
-          onChange={(event) => setTitle(event.target.value)}
+          onChange={(event) => {
+            setTitle(event.target.value);
+            if (errorMsg) {
+              setErrorMsg(null);
+            }
+          }}
           placeholder="やることを入力"
+          maxLength={50}
           disabled={isSubmitting || isListening}
         />
 
@@ -245,7 +290,7 @@ export function TaskInput({ onAdd, scoreDifficulty }) {
           <button
             type="submit"
             className="btn-primary"
-            disabled={!title.trim() || isSubmitting || isListening}
+            disabled={!title.trim() || Boolean(validationError) || isSubmitting || isListening}
           >
             {isSubmitting ? '追加中...' : <><Plus size={16} />追加</>}
           </button>
@@ -253,18 +298,19 @@ export function TaskInput({ onAdd, scoreDifficulty }) {
       </form>
 
       <div style={{ marginTop: 'var(--spacing-sm)', minHeight: '1.2rem', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-        {isScoring && 'AI が難易度を判定中です...'}
+        <span>日本語のみ、50文字以内で入力できます。</span>
+        {isScoring && <div>AI が難易度を判定中です...</div>}
         {!isScoring && difficultyMeta?.reason && (
-          <span>
+          <div>
             {difficultyMeta.reason}
             {difficultyMeta.matchedCategories?.length > 0 && ` 判定カテゴリ: ${difficultyMeta.matchedCategories.join(', ')}`}
-          </span>
+          </div>
         )}
       </div>
 
-      {errorMsg && (
+      {(errorMsg || validationError) && (
         <div style={{ marginTop: 'var(--spacing-sm)', fontSize: '0.8rem', color: 'var(--danger)' }}>
-          {errorMsg}
+          {errorMsg || validationError}
         </div>
       )}
     </div>

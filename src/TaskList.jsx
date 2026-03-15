@@ -265,8 +265,7 @@ export function TaskList({
                 {npcMessage.icon}
               </div>
               <div>
-                <div style={{ color: 'var(--accent-secondary)', fontSize: '0.82rem' }}>NPCメッセージ</div>
-                <div style={{ color: 'var(--text-secondary)', fontSize: '0.76rem' }}>{npcMessage.name}</div>
+                <div style={{ color: 'var(--accent-secondary)', fontSize: '0.82rem' }}>{npcMessage.name}からの一言</div>
               </div>
             </div>
             <div style={{ fontSize: '0.92rem', lineHeight: 1.8 }}>
