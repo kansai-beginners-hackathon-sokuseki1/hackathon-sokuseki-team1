@@ -108,6 +108,8 @@ function App() {
   };
 
   const handleLogout = (notice = null) => {
+    const resolvedNotice = typeof notice === 'string' ? notice : null;
+
     if (currentUser?.authProvider === 'google') {
       window.google?.accounts?.id?.disableAutoSelect?.();
       window.google?.accounts?.id?.cancel?.();
@@ -116,7 +118,7 @@ function App() {
     localStorage.removeItem('currentUser');
     setAuthToken(null);
     setCurrentUser(null);
-    setAuthNotice(notice);
+    setAuthNotice(resolvedNotice);
   };
 
   useEffect(() => {
