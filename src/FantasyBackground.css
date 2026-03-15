@@ -290,14 +290,19 @@
   left: 12px;
   z-index: 3;
   padding: 4px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.32);
   border-radius: 999px;
-  background: rgba(8, 12, 22, 0.42);
-  color: rgba(255, 244, 214, 0.95);
+  background: rgba(5, 8, 14, 0.68);
+  color: rgba(255, 248, 226, 0.98);
   font-size: 0.7rem;
   letter-spacing: 0.08em;
-  text-shadow: 0 0 8px rgba(255, 221, 160, 0.28);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.95),
+    0 0 8px rgba(255, 221, 160, 0.2);
   backdrop-filter: blur(4px);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 4px 10px rgba(0, 0, 0, 0.28);
 }
 
 .gs-sky-glow {
@@ -477,6 +482,7 @@
   background: linear-gradient(to bottom, color-mix(in srgb, var(--scene-house) 84%, white 16%), var(--scene-house));
   border: 2px solid var(--scene-house-trim);
   border-radius: 4px 4px 2px 2px;
+  overflow: hidden;
 }
 
 .gs-roof {
@@ -487,6 +493,7 @@
   transform: translateX(-50%);
   background: linear-gradient(to bottom, color-mix(in srgb, var(--scene-roof) 75%, white 12%), var(--scene-roof));
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  overflow: hidden;
 }
 
 .gs-chimney {
@@ -535,6 +542,27 @@
 .gs-window--1 { left: 12px; }
 .gs-window--2 { left: 50%; transform: translateX(-50%); }
 .gs-window--3 { right: 12px; }
+
+.gs-house-body::before,
+.gs-house-body::after,
+.gs-roof::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.gs-house-body::before {
+  opacity: 0.32;
+}
+
+.gs-house-body::after {
+  opacity: 0.18;
+}
+
+.gs-roof::before {
+  opacity: 0.22;
+}
 
 @keyframes gsWindowFlicker {
   0%, 100% { opacity: 0.72; box-shadow: 0 0 7px var(--scene-window-glow); }
@@ -777,6 +805,134 @@
   clip-path: polygon(0 100%, 0 32%, 12% 32%, 12% 0, 24% 0, 24% 32%, 38% 32%, 38% 16%, 62% 16%, 62% 32%, 76% 32%, 76% 0, 88% 0, 88% 32%, 100% 32%, 100% 100%);
   border: 1px solid rgba(188, 110, 96, 0.3);
   box-shadow: 0 0 18px rgba(120, 32, 32, 0.18);
+}
+
+.game-scene[data-stage="beginning-village"] .gs-house-body,
+.game-scene[data-stage="beginning-village"] .gs-watchtower {
+  background:
+    linear-gradient(to bottom, rgba(235, 216, 181, 0.24), transparent 42%),
+    repeating-linear-gradient(90deg, rgba(111, 81, 61, 0.14) 0 6px, transparent 6px 16px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--scene-house) 84%, white 16%), var(--scene-house));
+}
+
+.game-scene[data-stage="beginning-village"] .gs-roof::before {
+  background: repeating-linear-gradient(90deg, rgba(57, 33, 23, 0.16) 0 4px, transparent 4px 10px);
+}
+
+.game-scene[data-stage="grassland-road"] .gs-house-body,
+.game-scene[data-stage="grassland-road"] .gs-watchtower {
+  background:
+    linear-gradient(to bottom, rgba(255, 248, 227, 0.36), rgba(228, 204, 168, 0.12) 38%, transparent 42%),
+    linear-gradient(to bottom, color-mix(in srgb, var(--scene-house) 88%, white 20%), var(--scene-house));
+}
+
+.game-scene[data-stage="grassland-road"] .gs-house-body::before {
+  background:
+    repeating-linear-gradient(0deg, rgba(132, 102, 68, 0.12) 0 2px, transparent 2px 12px),
+    repeating-linear-gradient(90deg, rgba(132, 102, 68, 0.08) 0 18px, transparent 18px 28px);
+}
+
+.game-scene[data-stage="forest-maze"] .gs-house-body,
+.game-scene[data-stage="forest-maze"] .gs-watchtower {
+  background:
+    linear-gradient(to bottom, rgba(197, 229, 177, 0.14), transparent 40%),
+    repeating-linear-gradient(90deg, rgba(46, 79, 43, 0.22) 0 8px, rgba(71, 105, 59, 0.1) 8px 16px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--scene-house) 80%, #b7d28f 20%), var(--scene-house));
+}
+
+.game-scene[data-stage="forest-maze"] .gs-house-body::after {
+  background:
+    radial-gradient(circle at 18% 78%, rgba(120, 189, 92, 0.34) 0 4px, transparent 5px),
+    radial-gradient(circle at 78% 58%, rgba(120, 189, 92, 0.3) 0 5px, transparent 6px),
+    radial-gradient(circle at 58% 28%, rgba(147, 214, 110, 0.22) 0 3px, transparent 4px);
+}
+
+.game-scene[data-stage="desert-town"] .gs-house-body,
+.game-scene[data-stage="desert-town"] .gs-watchtower {
+  background:
+    linear-gradient(to bottom, rgba(255, 235, 191, 0.28), transparent 36%),
+    repeating-linear-gradient(0deg, rgba(161, 104, 52, 0.18) 0 3px, rgba(0, 0, 0, 0) 3px 13px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--scene-house) 90%, #f1d29a 10%), var(--scene-house));
+}
+
+.game-scene[data-stage="desert-town"] .gs-roof {
+  clip-path: polygon(50% 0, 96% 100%, 4% 100%);
+}
+
+.game-scene[data-stage="seaside-port"] .gs-house-body,
+.game-scene[data-stage="seaside-port"] .gs-watchtower {
+  background:
+    linear-gradient(to bottom, rgba(223, 248, 255, 0.22), transparent 40%),
+    repeating-linear-gradient(0deg, rgba(78, 112, 120, 0.18) 0 3px, transparent 3px 12px),
+    repeating-linear-gradient(90deg, rgba(117, 84, 57, 0.18) 0 10px, rgba(196, 167, 129, 0.06) 10px 20px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--scene-house) 84%, white 12%), var(--scene-house));
+}
+
+.game-scene[data-stage="seaside-port"] .gs-roof::before {
+  background: repeating-linear-gradient(90deg, rgba(42, 74, 92, 0.22) 0 3px, transparent 3px 8px);
+}
+
+.game-scene[data-stage="snow-fortress"] .gs-house-body,
+.game-scene[data-stage="snow-fortress"] .gs-watchtower {
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.5), rgba(220, 235, 248, 0.18) 34%, transparent 36%),
+    repeating-linear-gradient(90deg, rgba(111, 129, 151, 0.18) 0 14px, rgba(255, 255, 255, 0.1) 14px 16px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--scene-house) 88%, white 18%), var(--scene-house));
+}
+
+.game-scene[data-stage="snow-fortress"] .gs-house-body::after,
+.game-scene[data-stage="snow-fortress"] .gs-roof::before {
+  background: linear-gradient(to bottom, rgba(250, 252, 255, 0.62), transparent 34%);
+}
+
+.game-scene[data-stage="ancient-ruins"] .gs-house-body,
+.game-scene[data-stage="ancient-ruins"] .gs-watchtower {
+  background:
+    linear-gradient(to bottom, rgba(235, 214, 178, 0.16), transparent 34%),
+    repeating-linear-gradient(90deg, rgba(89, 72, 54, 0.24) 0 14px, rgba(160, 137, 101, 0.12) 14px 16px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--scene-house) 88%, #d9c5a2 12%), var(--scene-house));
+}
+
+.game-scene[data-stage="ancient-ruins"] .gs-house-body::after {
+  background:
+    linear-gradient(120deg, transparent 0 28%, rgba(66, 54, 42, 0.32) 28% 30%, transparent 30% 56%, rgba(66, 54, 42, 0.28) 56% 58%, transparent 58%),
+    linear-gradient(70deg, transparent 0 48%, rgba(66, 54, 42, 0.24) 48% 50%, transparent 50%);
+}
+
+.game-scene[data-stage="magic-city"] .gs-house-body,
+.game-scene[data-stage="magic-city"] .gs-watchtower {
+  background:
+    linear-gradient(to bottom, rgba(228, 236, 255, 0.22), transparent 34%),
+    linear-gradient(90deg, rgba(122, 233, 255, 0.16), rgba(192, 136, 255, 0.14)),
+    linear-gradient(to bottom, color-mix(in srgb, var(--scene-house) 82%, white 12%), var(--scene-house));
+}
+
+.game-scene[data-stage="magic-city"] .gs-house-body::before {
+  background:
+    repeating-linear-gradient(90deg, rgba(215, 245, 255, 0.18) 0 2px, transparent 2px 18px),
+    repeating-linear-gradient(0deg, rgba(178, 142, 255, 0.12) 0 2px, transparent 2px 12px);
+}
+
+.game-scene[data-stage="magic-city"] .gs-roof {
+  clip-path: polygon(50% 0, 98% 100%, 72% 82%, 50% 100%, 28% 82%, 2% 100%);
+}
+
+.game-scene[data-stage="demon-lord-castle"] .gs-house-body,
+.game-scene[data-stage="demon-lord-castle"] .gs-watchtower {
+  background:
+    linear-gradient(to bottom, rgba(123, 66, 66, 0.16), transparent 34%),
+    repeating-linear-gradient(90deg, rgba(32, 14, 20, 0.34) 0 12px, rgba(114, 62, 70, 0.1) 12px 14px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--scene-house) 76%, black 24%), var(--scene-house));
+}
+
+.game-scene[data-stage="demon-lord-castle"] .gs-house-body::after {
+  background:
+    linear-gradient(115deg, transparent 0 36%, rgba(255, 121, 86, 0.18) 36% 38%, transparent 38% 100%),
+    linear-gradient(70deg, transparent 0 58%, rgba(255, 121, 86, 0.14) 58% 60%, transparent 60% 100%);
+}
+
+.game-scene[data-stage="demon-lord-castle"] .gs-roof {
+  clip-path: polygon(50% 0, 100% 100%, 76% 88%, 50% 100%, 24% 88%, 0 100%);
 }
 
 @keyframes gsCrystalPulse {

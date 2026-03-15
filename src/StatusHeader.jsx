@@ -41,6 +41,7 @@ export function StatusHeader({ stats, getRequiredExp }) {
       </div>
 
       <div
+        className="status-next-level"
         style={{
           display: 'flex',
           alignItems: 'center',

@@ -336,11 +336,24 @@ button:disabled {
   margin-bottom: var(--spacing-xl);
 }
 
+.user-status-header .status-row,
+.user-status-header .exp-bar-container,
+.user-status-header .status-next-level {
+  position: relative;
+  z-index: 1;
+}
+
 .status-row {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: var(--spacing-sm);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, rgba(7, 12, 20, 0.7) 0%, rgba(7, 12, 20, 0.42) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.28);
 }
 
 .level-ring {
@@ -368,17 +381,26 @@ button:disabled {
   line-height: 1;
   font-weight: bold;
   letter-spacing: 0.05em;
+  text-shadow:
+    0 1px 2px rgba(255, 255, 255, 0.18),
+    0 0 6px rgba(255, 255, 255, 0.12);
 }
 
 .lv-num {
   font-size: 20px;
   line-height: 1;
   font-weight: bold;
+  text-shadow:
+    0 1px 2px rgba(255, 255, 255, 0.22),
+    0 0 8px rgba(255, 255, 255, 0.16);
 }
 
 .exp-info {
   font-size: 0.9rem;
-  color: var(--text-secondary);
+  color: rgba(244, 247, 255, 0.96);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.9),
+    0 0 10px rgba(0, 0, 0, 0.45);
 }
 
 /* RPGゲージ外枠付き */
@@ -389,6 +411,7 @@ button:disabled {
   box-shadow: inset 1px 1px 0 rgba(255,255,255,0.05);
   position: relative;
   overflow: hidden;
+  border-radius: 999px;
 }
 
 .exp-bar-fill {
@@ -404,6 +427,15 @@ button:disabled {
   top: 0; left: 0; right: 0;
   height: 35%;
   background: rgba(255, 255, 255, 0.12);
+}
+
+.status-next-level {
+  padding: 6px 10px 0;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, rgba(7, 12, 20, 0.5) 0%, rgba(7, 12, 20, 0.2) 100%);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.95),
+    0 0 8px rgba(0, 0, 0, 0.4);
 }
 
 /* =============================================
