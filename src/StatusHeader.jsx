@@ -22,7 +22,7 @@ export function StatusHeader({ stats, getRequiredExp }) {
 
   return (
     <div className="rpg-window user-status-header">
-      <GameScene />
+      <GameScene level={level} />
       <div className="status-row">
         <div className={`level-ring${levelAnim ? ' level-ring--up' : ''}`}>
           <span className="lv-label">Lv</span>
