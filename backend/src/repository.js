@@ -21,12 +21,37 @@ function normalizeTask(row) {
 
 function sortToSql(sort) {
   switch (sort) {
-    case "dueDate":    return "due_date";
-    case "priority":   return "priority";
-    case "status":     return "status";
+    case "dueDate": return "due_date";
+    case "priority": return "priority";
+    case "status": return "status";
     case "difficulty": return "difficulty";
-    default:           return "created_at";
+    default: return "created_at";
   }
+}
+
+function normalizeProfileMeta(row) {
+  if (!row) return null;
+  return {
+    userId: row.user_id ?? row.userId,
+    onboardingCompleted: Boolean(row.onboarding_completed ?? row.onboardingCompleted),
+    createdAt: row.created_at ?? row.createdAt,
+    updatedAt: row.updated_at ?? row.updatedAt
+  };
+}
+
+function normalizeAiSettings(row) {
+  if (!row) return null;
+  return {
+    userId: row.user_id ?? row.userId,
+    useServerDefault: Boolean(row.use_server_default ?? row.useServerDefault),
+    provider: row.provider ?? null,
+    model: row.model ?? null,
+    encryptedApiKey: row.encrypted_api_key ?? row.encryptedApiKey ?? null,
+    baseUrl: row.base_url ?? row.baseUrl ?? "",
+    lastTestedAt: row.last_tested_at ?? row.lastTestedAt ?? null,
+    createdAt: row.created_at ?? row.createdAt,
+    updatedAt: row.updated_at ?? row.updatedAt
+  };
 }
 
 export function createD1Repository(db) {
@@ -88,6 +113,17 @@ export function createD1Repository(db) {
       ).run();
     },
 
+    async resetExpiredTasks(userId, updatedAt, todayIso) {
+      await db.prepare(`
+        UPDATE tasks
+        SET status = 'todo', updated_at = ?
+        WHERE user_id = ?
+          AND status = 'in_progress'
+          AND due_date IS NOT NULL
+          AND substr(due_date, 1, 10) < ?
+      `).bind(updatedAt, userId, todayIso).run();
+    },
+
     async createTask({ userId, title, description, priority, difficulty, expReward, dueDate, createdAt }) {
       const taskId = createId("task");
       await db.prepare(`
@@ -108,8 +144,14 @@ export function createD1Repository(db) {
     async listTasks(userId, filters) {
       const clauses = ["user_id = ?"];
       const values = [userId];
-      if (filters.status)   { clauses.push("status = ?");   values.push(filters.status); }
-      if (filters.priority) { clauses.push("priority = ?"); values.push(filters.priority); }
+      if (filters.status) {
+        clauses.push("status = ?");
+        values.push(filters.status);
+      }
+      if (filters.priority) {
+        clauses.push("priority = ?");
+        values.push(filters.priority);
+      }
 
       const where = clauses.join(" AND ");
       const totalRow = await db.prepare(`SELECT COUNT(*) AS count FROM tasks WHERE ${where}`).bind(...values).first();
@@ -132,20 +174,20 @@ export function createD1Repository(db) {
       if (!current) return null;
 
       const next = {
-        title:       patch.title       ?? current.title,
+        title: patch.title ?? current.title,
         description: patch.description ?? current.description,
-        status:      patch.status      ?? current.status,
-        priority:    patch.priority    ?? current.priority,
-        difficulty:  patch.difficulty  ?? current.difficulty,
-        expReward:   patch.expReward   ?? current.expReward,
-        dueDate:     patch.dueDate === undefined ? current.dueDate : patch.dueDate,
+        status: patch.status ?? current.status,
+        priority: patch.priority ?? current.priority,
+        difficulty: patch.difficulty ?? current.difficulty,
+        expReward: patch.expReward ?? current.expReward,
+        dueDate: patch.dueDate === undefined ? current.dueDate : patch.dueDate,
         completedAt:
           patch.status === "completed" && current.status !== "completed"
             ? patch.updatedAt
             : patch.status && patch.status !== "completed"
               ? null
               : current.completedAt,
-        updatedAt:   patch.updatedAt
+        updatedAt: patch.updatedAt
       };
 
       await db.prepare(`
@@ -154,9 +196,17 @@ export function createD1Repository(db) {
             due_date = ?, completed_at = ?, updated_at = ?
         WHERE id = ? AND user_id = ?
       `).bind(
-        next.title, next.description, next.status, next.priority,
-        next.difficulty, next.expReward, next.dueDate, next.completedAt, next.updatedAt,
-        taskId, userId
+        next.title,
+        next.description,
+        next.status,
+        next.priority,
+        next.difficulty,
+        next.expReward,
+        next.dueDate,
+        next.completedAt,
+        next.updatedAt,
+        taskId,
+        userId
       ).run();
 
       return this.findTaskById(userId, taskId);
@@ -203,9 +253,9 @@ export function createD1Repository(db) {
         FROM tasks WHERE user_id = ?
       `).bind(nowIso, userId).first();
       return {
-        totalTaskCount:    Number(row.totalTaskCount ?? 0),
+        totalTaskCount: Number(row.totalTaskCount ?? 0),
         completedTaskCount: Number(row.completedTaskCount ?? 0),
-        overdueTaskCount:  Number(row.overdueTaskCount ?? 0)
+        overdueTaskCount: Number(row.overdueTaskCount ?? 0)
       };
     },
 
@@ -239,11 +289,7 @@ export function createD1Repository(db) {
         db.prepare(`
           INSERT INTO milestone_events (id, user_id, type, metadata_json, created_at)
           VALUES (?, ?, 'task_completed', ?, ?)
-        `).bind(
-          createId("event"), userId,
-          JSON.stringify({ taskId, xpAwarded: xpGain }),
-          completedAt
-        )
+        `).bind(createId("event"), userId, JSON.stringify({ taskId, xpAwarded: xpGain }), completedAt)
       ]);
 
       if (nextLevel > Number(progress.level)) {
@@ -258,6 +304,88 @@ export function createD1Repository(db) {
         task: await this.findTaskById(userId, taskId),
         progress: { xp: nextXp, level: nextLevel, completed_task_count: nextCompleted }
       };
+    },
+
+    async getProfile(userId) {
+      const [meta, preferences] = await Promise.all([
+        db.prepare("SELECT user_id, onboarding_completed, created_at, updated_at FROM user_profiles WHERE user_id = ?")
+          .bind(userId)
+          .first(),
+        db.prepare(`
+          SELECT id, user_id, category_id, preference_type, created_at, updated_at
+          FROM user_profile_preferences
+          WHERE user_id = ?
+          ORDER BY category_id ASC
+        `).bind(userId).all()
+      ]);
+
+      return {
+        meta: normalizeProfileMeta(meta),
+        preferences: preferences.results.map((row) => ({
+          id: row.id,
+          userId: row.user_id,
+          categoryId: row.category_id,
+          preferenceType: row.preference_type,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
+        }))
+      };
+    },
+
+    async saveProfile(userId, { onboardingCompleted, preferences, now }) {
+      await db.prepare(`
+        INSERT INTO user_profiles (user_id, onboarding_completed, created_at, updated_at)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(user_id) DO UPDATE SET onboarding_completed = excluded.onboarding_completed, updated_at = excluded.updated_at
+      `).bind(userId, onboardingCompleted ? 1 : 0, now, now).run();
+
+      await db.prepare("DELETE FROM user_profile_preferences WHERE user_id = ?").bind(userId).run();
+
+      if (preferences.length > 0) {
+        const statements = preferences.map((item) => db.prepare(`
+          INSERT INTO user_profile_preferences (id, user_id, category_id, preference_type, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `).bind(createId("pref"), userId, item.categoryId, item.preferenceType, now, now));
+        await db.batch(statements);
+      }
+
+      return this.getProfile(userId);
+    },
+
+    async getAiSettings(userId) {
+      const row = await db.prepare(`
+        SELECT user_id, use_server_default, provider, model, encrypted_api_key, base_url, last_tested_at, created_at, updated_at
+        FROM user_ai_settings
+        WHERE user_id = ?
+      `).bind(userId).first();
+      return normalizeAiSettings(row);
+    },
+
+    async saveAiSettings(userId, { useServerDefault, provider, model, encryptedApiKey, baseUrl, lastTestedAt, now }) {
+      await db.prepare(`
+        INSERT INTO user_ai_settings (user_id, use_server_default, provider, model, encrypted_api_key, base_url, last_tested_at, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(user_id) DO UPDATE SET
+          use_server_default = excluded.use_server_default,
+          provider = excluded.provider,
+          model = excluded.model,
+          encrypted_api_key = excluded.encrypted_api_key,
+          base_url = excluded.base_url,
+          last_tested_at = excluded.last_tested_at,
+          updated_at = excluded.updated_at
+      `).bind(
+        userId,
+        useServerDefault ? 1 : 0,
+        provider ?? null,
+        model ?? null,
+        encryptedApiKey ?? null,
+        baseUrl ?? null,
+        lastTestedAt ?? null,
+        now,
+        now
+      ).run();
+
+      return this.getAiSettings(userId);
     }
   };
 }

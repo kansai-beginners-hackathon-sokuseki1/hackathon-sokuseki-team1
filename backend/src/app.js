@@ -1,5 +1,6 @@
-import { computeLevelFromXp, calculateExpByDifficulty } from "./rpg.js";
-import { createToken, hashPassword, verifyPassword } from "./crypto.js";
+import { calculateExpByDifficulty, computeLevelFromXp } from "./rpg.js";
+import { decryptSecret, encryptSecret, createToken, hashPassword, verifyPassword } from "./crypto.js";
+import { PROFILE_CATEGORIES, getDefaultAiDescriptor, resolveActiveAiConfig, scoreTaskDifficulty, testAiConnection } from "./ai.js";
 
 function json(status, payload) {
   return new Response(JSON.stringify(payload), {
@@ -28,16 +29,16 @@ function validateEmail(email) {
 
 function pickTask(task) {
   return {
-    id:          task.id,
-    title:       task.title,
+    id: task.id,
+    title: task.title,
     description: task.description,
-    status:      task.status,
-    priority:    task.priority,
-    difficulty:  task.difficulty,
-    expReward:   task.expReward,
-    dueDate:     task.dueDate,
-    createdAt:   task.createdAt,
-    updatedAt:   task.updatedAt,
+    status: task.status,
+    priority: task.priority,
+    difficulty: task.difficulty,
+    expReward: task.expReward,
+    dueDate: task.dueDate,
+    createdAt: task.createdAt,
+    updatedAt: task.updatedAt,
     completedAt: task.completedAt
   };
 }
@@ -45,12 +46,11 @@ function pickTask(task) {
 function buildTaskFilters(url) {
   const requestedSort = url.searchParams.get("sort");
   return {
-    status:   url.searchParams.get("status"),
+    status: url.searchParams.get("status"),
     priority: url.searchParams.get("priority"),
-    sort: ["createdAt", "dueDate", "priority", "status", "difficulty"].includes(requestedSort)
-      ? requestedSort : "createdAt",
-    order:    url.searchParams.get("order") === "asc" ? "asc" : "desc",
-    page:     Math.max(Number.parseInt(url.searchParams.get("page") || "1", 10), 1),
+    sort: ["createdAt", "dueDate", "priority", "status", "difficulty"].includes(requestedSort) ? requestedSort : "createdAt",
+    order: url.searchParams.get("order") === "asc" ? "asc" : "desc",
+    page: Math.max(Number.parseInt(url.searchParams.get("page") || "1", 10), 1),
     pageSize: Math.min(Math.max(Number.parseInt(url.searchParams.get("pageSize") || "20", 10), 1), 100)
   };
 }
@@ -58,43 +58,102 @@ function buildTaskFilters(url) {
 function normalizeUser(sessionUser) {
   if (!sessionUser) return null;
   return {
-    id:        sessionUser.id,
-    email:     sessionUser.email,
-    username:  sessionUser.username,
+    id: sessionUser.id,
+    email: sessionUser.email,
+    username: sessionUser.username,
     createdAt: sessionUser.created_at ?? sessionUser.createdAt
   };
 }
 
-export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, rateLimiter }) {
+function todayIsoDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function normalizeProfilePayload(body) {
+  const preferences = Array.isArray(body.preferences) ? body.preferences : [];
+  return preferences
+    .map((item) => ({
+      categoryId: item?.categoryId,
+      preferenceType: item?.preferenceType
+    }))
+    .filter((item) => PROFILE_CATEGORIES.some((category) => category.id === item.categoryId))
+    .map((item) => ({
+      categoryId: item.categoryId,
+      preferenceType: ["strength", "neutral", "weakness"].includes(item.preferenceType) ? item.preferenceType : "neutral"
+    }));
+}
+
+function serializeProfile(profile) {
+  return {
+    onboardingCompleted: Boolean(profile.meta?.onboardingCompleted),
+    hasProfile: Boolean(profile.meta),
+    categories: PROFILE_CATEGORIES,
+    preferences: profile.preferences
+  };
+}
+
+function serializeAiSettings(settings, env) {
+  const defaults = getDefaultAiDescriptor(env);
+  return {
+    useServerDefault: settings?.useServerDefault ?? true,
+    provider: settings?.provider ?? defaults.provider,
+    model: settings?.model ?? defaults.model,
+    baseUrl: settings?.baseUrl ?? "",
+    hasUserApiKey: Boolean(settings?.encryptedApiKey),
+    defaultProvider: defaults.provider,
+    defaultModel: defaults.model,
+    providers: ["openrouter", "openai"]
+  };
+}
+
+async function loadResolvedAiSettings(repository, userId, env) {
+  const stored = await repository.getAiSettings(userId);
+  if (!stored) {
+    return {
+      stored: null,
+      resolved: resolveActiveAiConfig({ useServerDefault: true }, env)
+    };
+  }
+
+  const apiKey = stored.encryptedApiKey ? await decryptSecret(stored.encryptedApiKey, env.APP_SECRET) : "";
+  return {
+    stored,
+    resolved: resolveActiveAiConfig({
+      useServerDefault: stored.useServerDefault,
+      provider: stored.provider,
+      model: stored.model,
+      baseUrl: stored.baseUrl,
+      apiKey
+    }, env)
+  };
+}
+
+export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, rateLimiter, env }) {
   return {
     async fetch(request) {
       try {
-        // CORS preflight
         if (request.method === "OPTIONS") {
           return new Response(null, {
             status: 204,
             headers: {
               "Access-Control-Allow-Origin": "*",
-              "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
+              "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
               "Access-Control-Allow-Headers": "Authorization, Content-Type"
             }
           });
         }
 
-        const clientIp = request.headers.get("CF-Connecting-IP") ||
-                         request.headers.get("x-forwarded-for") || "unknown";
+        const clientIp = request.headers.get("CF-Connecting-IP") || request.headers.get("x-forwarded-for") || "unknown";
         if (rateLimiter && !rateLimiter.consume(clientIp)) {
           return errorResponse(429, "rate_limited", "Too many requests. Please retry later.");
         }
 
         const url = new URL(request.url);
 
-        // ヘルスチェック
         if (request.method === "GET" && url.pathname === "/api/health") {
           return json(200, { ok: true });
         }
 
-        // ユーザー登録
         if (request.method === "POST" && url.pathname === "/api/auth/register") {
           const body = await readBody(request);
           const { email, username, password } = body;
@@ -111,14 +170,16 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
           const createdAt = new Date().toISOString();
           const { salt, hash } = await hashPassword(password);
           const user = await repository.createUser({
-            email, username: username.trim(),
-            passwordHash: hash, passwordSalt: salt, createdAt
+            email,
+            username: username.trim(),
+            passwordHash: hash,
+            passwordSalt: salt,
+            createdAt
           });
           await repository.createAuditLog({ userId: user.id, action: "auth.register", ipAddress: clientIp, createdAt });
           return json(201, { user: { id: user.id, email: user.email, username: user.username, createdAt: user.created_at } });
         }
 
-        // ログイン
         if (request.method === "POST" && url.pathname === "/api/auth/login") {
           const body = await readBody(request);
           const { email, password } = body;
@@ -144,7 +205,6 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
           return json(200, { token, user: { id: user.id, email: user.email, username: user.username } });
         }
 
-        // 認証チェック
         const authHeader = request.headers.get("authorization") || "";
         if (!authHeader.startsWith("Bearer ")) {
           return errorResponse(401, "unauthorized", "A valid bearer token is required.");
@@ -161,8 +221,8 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
         }
         await repository.touchSession(token, new Date().toISOString());
         const user = normalizeUser(sessionUser);
+        await repository.resetExpiredTasks(user.id, new Date().toISOString(), todayIsoDate());
 
-        // タスク一覧
         if (request.method === "GET" && url.pathname === "/api/tasks") {
           const filters = buildTaskFilters(url);
           const page = await repository.listTasks(user.id, filters);
@@ -172,7 +232,6 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
           });
         }
 
-        // タスク作成
         if (request.method === "POST" && url.pathname === "/api/tasks") {
           const body = await readBody(request);
           const title = typeof body.title === "string" ? body.title.trim() : "";
@@ -189,19 +248,25 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
 
           const now = new Date().toISOString();
           const task = await repository.createTask({
-            userId: user.id, title, description, priority, difficulty, expReward, dueDate, createdAt: now
+            userId: user.id,
+            title,
+            description,
+            priority,
+            difficulty,
+            expReward,
+            dueDate,
+            createdAt: now
           });
           await repository.createAuditLog({ userId: user.id, action: "task.create", targetId: task.id, ipAddress: clientIp, createdAt: now });
           return json(201, { task: pickTask(task) });
         }
 
-        // 進捗取得
         if (request.method === "GET" && url.pathname === "/api/progress") {
           const progress = await repository.getUserProgress(user.id);
           const { level, currentExp } = computeLevelFromXp(Number(progress.xp));
           return json(200, {
             progress: {
-              xp:                 Number(progress.xp),
+              xp: Number(progress.xp),
               level,
               currentExp,
               completedTaskCount: Number(progress.completed_task_count ?? 0)
@@ -209,7 +274,90 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
           });
         }
 
-        // タスク完了
+        if (request.method === "GET" && url.pathname === "/api/me/profile") {
+          const profile = await repository.getProfile(user.id);
+          return json(200, serializeProfile(profile));
+        }
+
+        if (request.method === "PUT" && url.pathname === "/api/me/profile") {
+          const body = await readBody(request);
+          const preferences = normalizeProfilePayload(body);
+          const saved = await repository.saveProfile(user.id, {
+            onboardingCompleted: Boolean(body.onboardingCompleted),
+            preferences,
+            now: new Date().toISOString()
+          });
+          return json(200, serializeProfile(saved));
+        }
+
+        if (request.method === "GET" && url.pathname === "/api/me/ai-settings") {
+          const settings = await repository.getAiSettings(user.id);
+          return json(200, serializeAiSettings(settings, env));
+        }
+
+        if (request.method === "PUT" && url.pathname === "/api/me/ai-settings") {
+          const body = await readBody(request);
+          const now = new Date().toISOString();
+          const existing = await repository.getAiSettings(user.id);
+          const encryptedApiKey = body.apiKey === undefined
+            ? existing?.encryptedApiKey ?? null
+            : body.apiKey
+              ? await encryptSecret(body.apiKey, env.APP_SECRET)
+              : null;
+          const settings = await repository.saveAiSettings(user.id, {
+            useServerDefault: body.useServerDefault !== false,
+            provider: body.provider ?? null,
+            model: body.model ?? null,
+            encryptedApiKey,
+            baseUrl: body.baseUrl ?? null,
+            lastTestedAt: body.lastTestedAt ?? null,
+            now
+          });
+          return json(200, serializeAiSettings(settings, env));
+        }
+
+        if (request.method === "POST" && url.pathname === "/api/me/ai-settings/test") {
+          const body = await readBody(request);
+          const stored = await repository.getAiSettings(user.id);
+          const candidate = {
+            useServerDefault: body.useServerDefault !== false,
+            provider: body.provider ?? stored?.provider ?? null,
+            model: body.model ?? stored?.model ?? null,
+            apiKey: body.apiKey ?? (stored?.encryptedApiKey ? await decryptSecret(stored.encryptedApiKey, env.APP_SECRET) : ""),
+            baseUrl: body.baseUrl ?? stored?.baseUrl ?? ""
+          };
+          const result = await testAiConnection(candidate, env);
+          await repository.saveAiSettings(user.id, {
+            useServerDefault: candidate.useServerDefault,
+            provider: candidate.provider,
+            model: candidate.model,
+            encryptedApiKey: candidate.apiKey ? await encryptSecret(candidate.apiKey, env.APP_SECRET) : stored?.encryptedApiKey ?? null,
+            baseUrl: candidate.baseUrl,
+            lastTestedAt: new Date().toISOString(),
+            now: new Date().toISOString()
+          });
+          return json(200, result);
+        }
+
+        if (request.method === "POST" && url.pathname === "/api/ai/difficulty") {
+          const body = await readBody(request);
+          const title = typeof body.title === "string" ? body.title.trim() : "";
+          if (!title) {
+            return errorResponse(400, "invalid_input", "Task title is required.");
+          }
+          const description = typeof body.description === "string" ? body.description.trim() : "";
+          const dueDate = body.dueDate ?? null;
+          const profile = await repository.getProfile(user.id);
+          const aiSettings = await loadResolvedAiSettings(repository, user.id, env);
+          const result = await scoreTaskDifficulty({
+            taskInput: { title, description, dueDate },
+            aiConfig: aiSettings.resolved,
+            profile,
+            env
+          });
+          return json(200, result);
+        }
+
         const completeMatch = url.pathname.match(/^\/api\/tasks\/([^/]+)\/complete$/);
         if (completeMatch && request.method === "POST") {
           const now = new Date().toISOString();
@@ -219,7 +367,11 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
           }
           await repository.createAuditLog({ userId: user.id, action: "task.complete", targetId: completeMatch[1], ipAddress: clientIp, createdAt: now });
           const progressObj = result.progress
-            ? { xp: Number(result.progress.xp), level: Number(result.progress.level), completedTaskCount: Number(result.progress.completed_task_count ?? result.progress.completedTaskCount) }
+            ? {
+                xp: Number(result.progress.xp),
+                level: Number(result.progress.level),
+                completedTaskCount: Number(result.progress.completed_task_count ?? result.progress.completedTaskCount)
+              }
             : null;
           return json(200, {
             task: pickTask(result.task),
@@ -228,7 +380,6 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
           });
         }
 
-        // タスク個別操作
         const taskMatch = url.pathname.match(/^\/api\/tasks\/([^/]+)$/);
         if (taskMatch) {
           const taskId = taskMatch[1];
@@ -267,7 +418,6 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
             }
             if (body.difficulty !== undefined) {
               patch.difficulty = Math.max(1, Math.min(5, Math.floor(Number(body.difficulty) || 1)));
-              // 難易度が変わった場合は未完了タスクのEXPを再計算
               patch.expReward = calculateExpByDifficulty(patch.difficulty);
             }
             if (body.dueDate !== undefined) {
@@ -328,7 +478,7 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
           return errorResponse(error.statusCode, error.code ?? "request_error", error.message);
         }
         console.error("Unhandled error:", error);
-        return errorResponse(500, "internal_error", "An unexpected error occurred.");
+        return errorResponse(500, "internal_error", error.message || "An unexpected error occurred.");
       }
     }
   };

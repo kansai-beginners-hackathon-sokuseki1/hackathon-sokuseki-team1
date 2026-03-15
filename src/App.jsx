@@ -5,6 +5,7 @@ import { SettingsModal } from './SettingsModal';
 import { StatusHeader } from './StatusHeader';
 import { TaskInput } from './TaskInput';
 import { TaskList } from './TaskList';
+import { PreferenceSwipeCard } from './PreferenceSwipeCard';
 import { applyTheme } from './themes';
 import { playLevelUp } from './soundEffects';
 import { useAppState } from './useAppState';
@@ -41,6 +42,65 @@ async function sendNotification(title, body) {
   }
 
   new Notification(title, { body });
+}
+
+function ProfilePrompt({ profile, onSaveProfile, onDismiss }) {
+  const [preferences, setPreferences] = useState(profile.preferences);
+  const preferenceMap = new Map(preferences.map((item) => [item.categoryId, item.preferenceType]));
+
+  const handleChange = (categoryId, direction) => {
+    const current = preferenceMap.get(categoryId) || 'neutral';
+    let next = current;
+    if (direction === 'left') {
+      next = current === 'neutral' ? 'strength' : current === 'weakness' ? 'neutral' : 'strength';
+    } else {
+      next = current === 'neutral' ? 'weakness' : current === 'strength' ? 'neutral' : 'weakness';
+    }
+    setPreferences((items) => {
+      const others = items.filter((item) => item.categoryId !== categoryId);
+      return [...others, { categoryId, preferenceType: next }];
+    });
+  };
+
+  return (
+    <div className="rpg-window" style={{ marginBottom: 'var(--spacing-md)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ color: 'var(--accent-secondary)', fontSize: '0.9rem' }}>開始前に設定してください</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '4px' }}>
+            得意・苦手を登録すると、AI の難易度判定がより使いやすくなります。あとで設定することもできます。
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="btn-icon" onClick={onDismiss} style={{ padding: '8px 12px' }}>あとで</button>
+          <button className="btn-primary" onClick={() => onSaveProfile({ preferences, onboardingCompleted: true })}>保存</button>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gap: '8px', marginTop: '12px' }}>
+        {profile.categories.map((category) => {
+          const value = preferenceMap.get(category.id) || 'neutral';
+          return (
+            <PreferenceSwipeCard
+              key={category.id}
+              category={category}
+              value={value}
+              onChange={(nextValue) => {
+                const direction = nextValue === 'strength'
+                  ? 'left'
+                  : nextValue === 'weakness'
+                    ? 'right'
+                    : value === 'strength'
+                      ? 'right'
+                      : 'left';
+                handleChange(category.id, direction);
+              }}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 function App() {
@@ -155,8 +215,12 @@ function MainApp({
   const {
     tasks,
     userStats,
-    apiSettings,
-    setApiSettings,
+    aiSettings,
+    profile,
+    saveProfile,
+    saveAiSettings,
+    testAiSettings,
+    scoreDifficulty,
     addTask,
     toggleTask,
     editTask,
@@ -169,6 +233,7 @@ function MainApp({
   } = useAppState();
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [profilePromptDismissed, setProfilePromptDismissed] = useState(false);
   const [statusFilters, setStatusFilters] = useState(['todo', 'in_progress']);
   const [sortMode, setSortMode] = useState('created');
   const [stagedCompletedTaskIds, setStagedCompletedTaskIds] = useState([]);
@@ -189,7 +254,7 @@ function MainApp({
     dueTasks.forEach((task) => {
       if (notifiedRef.current.has(task.id)) return;
       notifiedRef.current.add(task.id);
-      sendNotification('クエスト期限アラート', `「${task.title}」の期限が近づいています。`);
+      sendNotification('期限のタスクがあります', `「${task.title}」の期限です。`);
     });
   }, [alertEnabled, dueTasks]);
 
@@ -204,7 +269,20 @@ function MainApp({
       result = result.filter((task) => task.status !== 'completed' || stagedCompletedTaskIds.includes(task.id));
     }
 
+    const getUrgencyRank = (task) => {
+      if (!task.dueDate || task.status === 'completed') return 2;
+      const taskDate = new Date(task.dueDate);
+      const today = new Date();
+      taskDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+      if (taskDate < today) return 0;
+      if (taskDate.getTime() === today.getTime()) return 1;
+      return 2;
+    };
+
     result.sort((a, b) => {
+      const urgencyDelta = getUrgencyRank(a) - getUrgencyRank(b);
+      if (urgencyDelta !== 0) return urgencyDelta;
       if (a.completed && !b.completed) return 1;
       if (!a.completed && b.completed) return -1;
       if (sortMode === 'dueDate') {
@@ -251,7 +329,7 @@ function MainApp({
       <div className="app-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
         <div className="rpg-window" style={{ textAlign: 'center', padding: 'var(--spacing-xl)' }}>
           <p style={{ color: 'var(--accent-secondary)', fontSize: '1.2rem', animation: 'blink 1s infinite' }}>
-            クエストデータを読み込み中...
+            読み込み中...
           </p>
         </div>
       </div>
@@ -263,10 +341,10 @@ function MainApp({
       <div className="app-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
         <div className="rpg-window" style={{ textAlign: 'center', padding: 'var(--spacing-xl)', maxWidth: '400px' }}>
           <p style={{ color: 'var(--danger)', fontSize: '1rem', marginBottom: 'var(--spacing-md)' }}>
-            ⚠ API エラー: {error}
+            API error: {error}
           </p>
           <button className="btn-primary" onClick={onLogout}>
-            ログイン画面に戻る
+            ログイン画面へ戻る
           </button>
         </div>
       </div>
@@ -295,7 +373,7 @@ function MainApp({
             letterSpacing: '2px'
           }}
         >
-          クエストマネージャー
+          タスク管理
           <span
             style={{
               fontSize: '0.75rem',
@@ -324,7 +402,7 @@ function MainApp({
                 lineHeight: 1.2
               }}
             >
-              <span style={{ fontSize: '0.6rem', color: 'var(--accent-primary)', letterSpacing: '2px', opacity: 0.8 }}>冒険者</span>
+              <span style={{ fontSize: '0.6rem', color: 'var(--accent-primary)', letterSpacing: '2px', opacity: 0.8 }}>USER</span>
               <span
                 style={{
                   display: 'flex',
@@ -337,7 +415,6 @@ function MainApp({
                   textShadow: '0 0 6px var(--accent-secondary)'
                 }}
               >
-                <span style={{ fontSize: '0.9rem', filter: 'drop-shadow(0 0 4px var(--accent-secondary))', animation: 'swordGlow 2.5s ease-in-out infinite' }}>⚔</span>
                 {currentUser.username}
               </span>
             </span>
@@ -346,10 +423,21 @@ function MainApp({
             ⚙
           </button>
           <button onClick={onLogout} className="btn-icon" title="ログアウト" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            ⎋
+            ↩
           </button>
         </div>
       </header>
+
+      {!profile.hasProfile && !profilePromptDismissed && (
+        <ProfilePrompt
+          profile={profile}
+          onSaveProfile={async (payload) => {
+            await saveProfile(payload);
+            setProfilePromptDismissed(false);
+          }}
+          onDismiss={() => setProfilePromptDismissed(true)}
+        />
+      )}
 
       {dueTasks.length > 0 && (
         <div
@@ -367,19 +455,15 @@ function MainApp({
             animation: 'popIn 0.3s ease'
           }}
         >
-          <span style={{ fontSize: '1rem' }}>⚠</span>
+          <span>!</span>
           <span>
-            期限切れまたは本日期限のクエストが
-            {' '}
-            <strong>{dueTasks.length}件</strong>
-            {' '}
-            あります。
+            今日が期限、または期限切れのタスクが {dueTasks.length} 件あります。
           </span>
         </div>
       )}
 
       <StatusHeader stats={userStats} getRequiredExp={getRequiredExp} />
-      <TaskInput onAdd={addTask} apiSettings={apiSettings} />
+      <TaskInput onAdd={addTask} scoreDifficulty={scoreDifficulty} />
 
       <div
         style={{
@@ -392,13 +476,13 @@ function MainApp({
         }}
       >
         <h2 style={{ fontSize: '1rem', color: 'var(--accent-secondary)' }}>
-          ▶ クエスト一覧 ({displayTasks.length})
+          タスク ({displayTasks.length})
         </h2>
 
         <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center', flexWrap: 'wrap' }}>
           <details className="multi-select-window">
             <summary className="multi-select-window__summary">
-              <span className="multi-select-window__label">進行度</span>
+              <span className="multi-select-window__label">状態</span>
               <span className="multi-select-window__value">{selectedStatusLabel}</span>
             </summary>
             <div className="multi-select-window__panel rpg-window" style={{ marginBottom: 0 }}>
@@ -416,12 +500,12 @@ function MainApp({
           </details>
 
           <div style={{ display: 'flex', alignItems: 'center', border: '2px solid var(--border-window)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
-            <span style={{ padding: '4px 8px', color: 'var(--text-muted)', fontSize: '0.8rem', borderRight: '1px solid var(--border-window-inner)' }}>Sort</span>
-            <select value={sortMode} onChange={(e) => setSortMode(e.target.value)} style={{ border: 'none', borderRadius: 0, width: 'auto', padding: '4px 8px' }}>
-              <option value="created">追加順</option>
-              <option value="dueDate">期限が近い順</option>
-              <option value="difficulty">難易度が高い順</option>
-              <option value="exp">EXP が高い順</option>
+            <span style={{ padding: '4px 8px', color: 'var(--text-muted)', fontSize: '0.8rem', borderRight: '1px solid var(--border-window-inner)' }}>並び順</span>
+            <select value={sortMode} onChange={(event) => setSortMode(event.target.value)} style={{ border: 'none', borderRadius: 0, width: 'auto', padding: '4px 8px' }}>
+              <option value="created">新しい順</option>
+              <option value="dueDate">期限順</option>
+              <option value="difficulty">難易度順</option>
+              <option value="exp">EXP</option>
             </select>
           </div>
         </div>
@@ -432,7 +516,7 @@ function MainApp({
         toggleTask={toggleTask}
         editTask={editTask}
         deleteTask={deleteTask}
-        apiSettings={apiSettings}
+        apiSettings={aiSettings}
         userLevel={userStats.level}
         levelUpActive={Boolean(levelUpData)}
         onCompletionSequenceStart={handleCompletionSequenceStart}
@@ -454,82 +538,12 @@ function MainApp({
             cursor: 'pointer'
           }}
         >
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'radial-gradient(ellipse at center, rgba(255,220,0,0.12) 0%, rgba(100,60,255,0.08) 50%, transparent 75%)',
-              animation: 'lvupBgPulse 1.2s ease-in-out infinite alternate',
-              pointerEvents: 'none'
-            }}
-          />
-
-          <div
-            style={{
-              textAlign: 'center',
-              animation: 'lvupEntrance 0.5s cubic-bezier(0.175,0.885,0.32,1.275)',
-              maxWidth: '420px',
-              width: '90%',
-              position: 'relative'
-            }}
-          >
-            {['top:-14px;left:-14px', 'top:-14px;right:-14px', 'bottom:-14px;left:-14px', 'bottom:-14px;right:-14px'].map((pos, index) => (
-              <span
-                key={index}
-                style={{
-                  position: 'absolute',
-                  ...Object.fromEntries(pos.split(';').map((part) => part.split(':'))),
-                  fontSize: '1.4rem',
-                  color: 'var(--accent-secondary)',
-                  filter: 'drop-shadow(0 0 6px var(--accent-secondary))',
-                  animation: `cornerSpin 3s linear ${index * 0.75}s infinite`,
-                  pointerEvents: 'none'
-                }}
-              >
-                ✦
-              </span>
-            ))}
-
-            <div
-              className="rpg-window"
-              style={{
-                padding: 'var(--spacing-xl) var(--spacing-lg)',
-                border: '2px solid var(--accent-secondary)',
-                boxShadow: '0 0 30px rgba(255,220,0,0.4), 0 0 60px rgba(255,220,0,0.15), inset 0 0 20px rgba(0,0,0,0.5)'
-              }}
-            >
-              <p
-                style={{
-                  fontSize: '2.2rem',
-                  letterSpacing: '5px',
-                  marginBottom: '6px',
-                  color: 'var(--accent-secondary)',
-                  textShadow: '0 0 10px var(--accent-secondary), 0 0 30px rgba(255,220,0,0.5)',
-                  animation: 'lvupTextShine 1.5s ease-in-out infinite alternate'
-                }}
-              >
-                ★ LEVEL UP! ★
-              </p>
-
-              <p style={{ color: 'var(--accent-primary)', fontSize: '0.75rem', letterSpacing: '6px', marginBottom: '20px', opacity: 0.7 }}>
-                ・ ・ ・ ・ ・ ・ ・ ・ ・
-              </p>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '16px' }}>
-                <span style={{ fontSize: '1.3rem', color: 'var(--text-muted)' }}>Lv.{levelUpData.level - 1}</span>
-                <span style={{ fontSize: '1.6rem', color: 'var(--accent-secondary)', textShadow: '0 0 8px var(--accent-secondary)', animation: 'lvupArrow 0.6s ease-in-out infinite alternate' }}>▶▶</span>
-                <span style={{ fontSize: '2.8rem', fontWeight: 'bold', color: 'var(--success, #44ff88)', textShadow: '0 0 12px var(--success, #44ff88), 0 0 30px rgba(100,255,150,0.4)', animation: 'lvupNumber 0.8s cubic-bezier(0.175,0.885,0.32,1.275)', display: 'inline-block' }}>
-                  Lv.{levelUpData.level}
-                </span>
-              </div>
-
-              <p style={{ color: 'var(--accent-primary)', fontSize: '0.95rem', letterSpacing: '2px' }}>
-                ✨ 経験値が上がった！ ✨
-              </p>
-            </div>
-
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginTop: '16px', animation: 'blink 1.2s infinite', letterSpacing: '1px' }}>
-              ▼ タップして続ける
+          <div className="rpg-window" style={{ padding: 'var(--spacing-xl) var(--spacing-lg)', border: '2px solid var(--accent-secondary)' }}>
+            <p style={{ fontSize: '2rem', color: 'var(--accent-secondary)', textAlign: 'center' }}>
+              LEVEL UP
+            </p>
+            <p style={{ color: 'var(--accent-primary)', textAlign: 'center' }}>
+              Lv.{levelUpData.level}
             </p>
           </div>
         </div>
@@ -538,8 +552,11 @@ function MainApp({
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        apiSettings={apiSettings}
-        setApiSettings={setApiSettings}
+        aiSettings={aiSettings}
+        onSaveAiSettings={saveAiSettings}
+        onTestAiSettings={testAiSettings}
+        profile={profile}
+        onSaveProfile={saveProfile}
         colorTheme={colorTheme}
         onThemeChange={onThemeChange}
         bgTimeLock={bgTimeLock}

@@ -8,8 +8,9 @@ export default {
   async fetch(request, env) {
     const app = createApp({
       repository: createD1Repository(env.DB),
-      rateLimiter
+      rateLimiter,
+      env
     });
-    return app.fetch(request, env);
+    return app.fetch(request);
   }
 };

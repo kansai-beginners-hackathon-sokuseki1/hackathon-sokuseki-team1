@@ -1,7 +1,3 @@
-// バックエンドAPIクライアント
-// vite.config.js のプロキシ設定で /api/* → http://localhost:8787 に転送される
-
-// 本番環境では Cloudflare Workers URL、開発時は vite proxy 経由の /api を使用
 const API_BASE = import.meta.env.PROD
   ? "https://hackathon-sokuseki-team1-backend.btsi10-558.workers.dev/api"
   : "/api";
@@ -13,7 +9,7 @@ function getToken() {
 async function request(method, path, body) {
   const headers = { "Content-Type": "application/json" };
   const token = getToken();
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+  if (token) headers.Authorization = `Bearer ${token}`;
 
   const res = await fetch(`${API_BASE}${path}`, {
     method,
@@ -25,12 +21,12 @@ async function request(method, path, body) {
   try {
     data = await res.json();
   } catch {
-    // レスポンスボディが空またはJSONでない（バックエンド未起動時など）
-    const err = new Error("バックエンドに接続できません。サーバーが起動しているか確認してください。");
+    const err = new Error("Backend response was not valid JSON.");
     err.code = "network_error";
     err.status = res.status;
     throw err;
   }
+
   if (!res.ok) {
     const err = new Error(data.error?.message || `API Error: ${res.status}`);
     err.code = data.error?.code;
@@ -41,22 +37,27 @@ async function request(method, path, body) {
 }
 
 export const api = {
-  // 認証
   register: (email, username, password) =>
     request("POST", "/auth/register", { email, username, password }),
   login: (email, password) =>
     request("POST", "/auth/login", { email, password }),
 
-  // タスク
   getTasks: (params = {}) => {
     const qs = new URLSearchParams(params).toString();
-    return request("GET", `/tasks${qs ? "?" + qs : ""}`);
+    return request("GET", `/tasks${qs ? `?${qs}` : ""}`);
   },
   createTask: (data) => request("POST", "/tasks", data),
   updateTask: (id, data) => request("PATCH", `/tasks/${id}`, data),
   deleteTask: (id) => request("DELETE", `/tasks/${id}`),
   completeTask: (id) => request("POST", `/tasks/${id}/complete`),
-
-  // 進捗
   getProgress: () => request("GET", "/progress"),
+
+  getProfile: () => request("GET", "/me/profile"),
+  saveProfile: (data) => request("PUT", "/me/profile", data),
+
+  getAiSettings: () => request("GET", "/me/ai-settings"),
+  saveAiSettings: (data) => request("PUT", "/me/ai-settings", data),
+  testAiSettings: (data) => request("POST", "/me/ai-settings/test", data),
+
+  scoreDifficulty: (data) => request("POST", "/ai/difficulty", data)
 };

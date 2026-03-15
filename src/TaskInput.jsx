@@ -1,19 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Mic, Plus, Square } from 'lucide-react';
-import { generateSubtasks } from './aiService';
 import { FantasyDatePicker } from './FantasyDatePicker';
 
-export function TaskInput({ onAdd, apiSettings }) {
+export function TaskInput({ onAdd, scoreDifficulty }) {
   const [title, setTitle] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [difficulty, setDifficulty] = useState(1);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [difficultyMeta, setDifficultyMeta] = useState(null);
+  const [isScoring, setIsScoring] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   const recognitionRef = useRef(null);
   const silenceTimerRef = useRef(null);
   const transcriptRef = useRef('');
   const shouldSubmitTranscriptRef = useRef(false);
+  const scoreTimerRef = useRef(null);
   const supportsSpeechRecognition = typeof window !== 'undefined'
     && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
 
@@ -21,6 +23,13 @@ export function TaskInput({ onAdd, apiSettings }) {
     if (silenceTimerRef.current) {
       clearTimeout(silenceTimerRef.current);
       silenceTimerRef.current = null;
+    }
+  };
+
+  const clearScoreTimer = () => {
+    if (scoreTimerRef.current) {
+      clearTimeout(scoreTimerRef.current);
+      scoreTimerRef.current = null;
     }
   };
 
@@ -37,49 +46,66 @@ export function TaskInput({ onAdd, apiSettings }) {
     if (!normalizedTitle) return;
 
     setErrorMsg(null);
+    setIsSubmitting(true);
+    try {
+      await onAdd(normalizedTitle, difficulty, dueDate || null);
+      setTitle('');
+      setDueDate('');
+      setDifficulty(1);
+      setDifficultyMeta(null);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-    if (apiSettings.apiKey) {
-      setIsGenerating(true);
-      try {
-        const result = await generateSubtasks(apiSettings.apiKey, apiSettings.modelName, normalizedTitle);
-        await onAdd(result.mainTask.trim() || normalizedTitle, difficulty, dueDate || null);
-        for (const sub of result.subtasks) {
-          if (sub && sub.trim()) {
-            await onAdd(sub.trim(), difficulty, dueDate || null);
-          }
-        }
-        setTitle('');
-        setDueDate('');
-        setDifficulty(1);
-      } catch {
-        setErrorMsg('AI によるタスク分解に失敗しました。');
-      } finally {
-        setIsGenerating(false);
-      }
+  useEffect(() => () => {
+    clearSilenceTimer();
+    clearScoreTimer();
+    if (recognitionRef.current) {
+      recognitionRef.current.onresult = null;
+      recognitionRef.current.onerror = null;
+      recognitionRef.current.onend = null;
+      recognitionRef.current.stop();
+    }
+  }, []);
+
+  useEffect(() => {
+    const normalizedTitle = title.trim();
+    if (!normalizedTitle) {
+      clearScoreTimer();
+      setDifficulty(1);
+      setDifficultyMeta(null);
+      setIsScoring(false);
       return;
     }
 
-    await onAdd(normalizedTitle, difficulty, dueDate || null);
-    setTitle('');
-    setDueDate('');
-    setDifficulty(1);
-  };
-
-  useEffect(() => {
-    return () => {
-      clearSilenceTimer();
-      if (recognitionRef.current) {
-        recognitionRef.current.onresult = null;
-        recognitionRef.current.onerror = null;
-        recognitionRef.current.onend = null;
-        recognitionRef.current.stop();
+    clearScoreTimer();
+    scoreTimerRef.current = setTimeout(async () => {
+      setIsScoring(true);
+      try {
+        const result = await scoreDifficulty({
+          title: normalizedTitle,
+          dueDate: dueDate || null
+        });
+        setDifficulty(result.difficulty);
+        setDifficultyMeta(result);
+      } catch (error) {
+        console.error(error);
+        setDifficultyMeta({
+          reason: 'AI による難易度判定を利用できなかったため、代替の難易度を使用しました。',
+          matchedCategories: []
+        });
+      } finally {
+        setIsScoring(false);
       }
-    };
-  }, []);
+    }, 450);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!title.trim() || isListening) return;
+    return clearScoreTimer;
+  }, [title, dueDate, scoreDifficulty]);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!title.trim() || isListening || isSubmitting) return;
     await submitTask(title);
   };
 
@@ -102,7 +128,7 @@ export function TaskInput({ onAdd, apiSettings }) {
   };
 
   const handleVoiceInput = () => {
-    if (!supportsSpeechRecognition || isGenerating) return;
+    if (!supportsSpeechRecognition || isSubmitting) return;
     if (isListening) {
       stopListening();
       return;
@@ -121,8 +147,8 @@ export function TaskInput({ onAdd, apiSettings }) {
 
     recognition.onresult = (event) => {
       let nextTranscript = '';
-      for (let i = 0; i < event.results.length; i += 1) {
-        nextTranscript += event.results[i][0]?.transcript || '';
+      for (let index = 0; index < event.results.length; index += 1) {
+        nextTranscript += event.results[index][0]?.transcript || '';
       }
       transcriptRef.current = nextTranscript.trim();
       shouldSubmitTranscriptRef.current = transcriptRef.current.length > 0;
@@ -134,7 +160,7 @@ export function TaskInput({ onAdd, apiSettings }) {
       if (event.error === 'no-speech') {
         shouldSubmitTranscriptRef.current = false;
       } else if (event.error !== 'aborted') {
-        setErrorMsg('音声入力に失敗しました。マイク権限と対応ブラウザを確認してください。');
+        setErrorMsg('音声入力に失敗しました。');
       }
     };
 
@@ -164,33 +190,35 @@ export function TaskInput({ onAdd, apiSettings }) {
   return (
     <div className="rpg-window" style={{ marginBottom: 'var(--spacing-lg)' }}>
       <p style={{ color: 'var(--accent-secondary)', marginBottom: 'var(--spacing-sm)', fontSize: '0.85rem', borderBottom: '1px solid var(--border-window-inner)', paddingBottom: '6px' }}>
-        新しいクエストを追加
+        タスクを追加
       </p>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
         <input
           type="text"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="クエスト名を入力..."
-          disabled={isGenerating || isListening}
+          onChange={(event) => setTitle(event.target.value)}
+          placeholder="やることを入力"
+          disabled={isSubmitting || isListening}
         />
 
         <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center', flexWrap: 'wrap' }}>
           <FantasyDatePicker
             value={dueDate}
             onChange={setDueDate}
-            disabled={isGenerating || isListening}
+            disabled={isSubmitting || isListening}
           />
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '2px', border: '2px solid var(--border-window)', borderRadius: 'var(--radius-sm)', padding: '4px 8px' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginRight: '4px' }}>難易度</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginRight: '4px' }}>
+              難易度
+            </span>
             {[1, 2, 3, 4, 5].map((star) => (
               <button
                 key={star}
                 type="button"
                 onClick={() => setDifficulty(star)}
-                disabled={isGenerating || isListening}
+                disabled={isSubmitting || isListening}
                 style={{ padding: '0 2px', color: star <= difficulty ? 'var(--accent-secondary)' : 'var(--text-muted)', border: 'none', background: 'transparent' }}
               >
                 ★
@@ -202,16 +230,11 @@ export function TaskInput({ onAdd, apiSettings }) {
             type="button"
             className="btn-primary"
             onClick={handleVoiceInput}
-            disabled={!supportsSpeechRecognition || isGenerating}
-            title={
-              supportsSpeechRecognition
-                ? (isListening ? '音声入力を停止' : '音声入力を開始')
-                : 'このブラウザでは音声入力を利用できません'
-            }
+            disabled={!supportsSpeechRecognition || isSubmitting}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', opacity: !supportsSpeechRecognition ? 0.6 : 1 }}
           >
             {isListening ? <Square size={16} /> : <Mic size={16} />}
-            {isListening ? '録音停止' : '音声入力'}
+            {isListening ? '停止' : '音声入力'}
           </button>
 
           <div style={{ flex: 1 }} />
@@ -219,30 +242,22 @@ export function TaskInput({ onAdd, apiSettings }) {
           <button
             type="submit"
             className="btn-primary"
-            disabled={!title.trim() || isGenerating || isListening}
-            title={apiSettings.apiKey ? 'AI でタスクを分解して追加' : 'クエストを追加'}
+            disabled={!title.trim() || isSubmitting || isListening}
           >
-            {isGenerating
-              ? <>AI 解析中...</>
-              : apiSettings.apiKey
-                ? <>AI 追加</>
-                : <><Plus size={16} />追加</>
-            }
+            {isSubmitting ? '追加中...' : <><Plus size={16} />追加</>}
           </button>
         </div>
       </form>
 
-      {!supportsSpeechRecognition && (
-        <div style={{ marginTop: 'var(--spacing-sm)', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-          このブラウザでは音声入力を利用できません。
-        </div>
-      )}
-
-      {isListening && (
-        <div style={{ marginTop: 'var(--spacing-sm)', fontSize: '0.8rem', color: 'var(--accent-secondary)' }}>
-          音声入力中です。5秒以上の無音で自動終了します。
-        </div>
-      )}
+      <div style={{ marginTop: 'var(--spacing-sm)', minHeight: '1.2rem', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+        {isScoring && 'AI が難易度を判定中です...'}
+        {!isScoring && difficultyMeta?.reason && (
+          <span>
+            {difficultyMeta.reason}
+            {difficultyMeta.matchedCategories?.length > 0 && ` 判定カテゴリ: ${difficultyMeta.matchedCategories.join(', ')}`}
+          </span>
+        )}
+      </div>
 
       {errorMsg && (
         <div style={{ marginTop: 'var(--spacing-sm)', fontSize: '0.8rem', color: 'var(--danger)' }}>

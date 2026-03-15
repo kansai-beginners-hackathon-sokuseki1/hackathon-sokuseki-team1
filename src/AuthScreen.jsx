@@ -57,7 +57,7 @@ export function AuthScreen({ onLogin }) {
             marginBottom: 'var(--spacing-xl)'
           }}
         >
-          クエストマネージャー
+          タスクマネージャー
         </h1>
 
         <div className="rpg-window">
@@ -70,7 +70,7 @@ export function AuthScreen({ onLogin }) {
               marginBottom: 'var(--spacing-md)'
             }}
           >
-            ▶ {mode === 'login' ? 'ギルドにログイン' : '新しい冒険者として登録'}
+            ▶ {mode === 'login' ? 'ログイン' : '新規登録'}
           </p>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
@@ -91,13 +91,13 @@ export function AuthScreen({ onLogin }) {
             {mode === 'register' && (
               <div>
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
-                  冒険者名（ユーザー名）
+                  ユーザー名
                 </label>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="名前を入力"
+                  placeholder="表示名を入力"
                   disabled={loading}
                   minLength={2}
                   required
@@ -122,7 +122,7 @@ export function AuthScreen({ onLogin }) {
 
             {error && (
               <p style={{ color: 'var(--danger)', fontSize: '0.85rem', margin: 0 }}>
-                ⚠ {error}
+                注意: {error}
               </p>
             )}
 
@@ -133,7 +133,7 @@ export function AuthScreen({ onLogin }) {
               style={{ marginTop: 'var(--spacing-sm)' }}
             >
               {loading
-                ? '認証中...'
+                ? '処理中...'
                 : mode === 'login' ? '▶ ログイン' : '▶ 登録してはじめる'}
             </button>
           </form>
@@ -148,8 +148,7 @@ export function AuthScreen({ onLogin }) {
           >
             {mode === 'login' ? (
               <>
-                アカウントがない？
-                {' '}
+                アカウントがない場合は{' '}
                 <button
                   onClick={() => {
                     setMode('register');
@@ -162,8 +161,7 @@ export function AuthScreen({ onLogin }) {
               </>
             ) : (
               <>
-                すでに登録済み？
-                {' '}
+                すでに登録済みなら{' '}
                 <button
                   onClick={() => {
                     setMode('login');

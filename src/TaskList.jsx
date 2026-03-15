@@ -297,6 +297,8 @@ export function TaskList({
         ) : tasks.map((task) => {
           const isEditing = editingId === task.id;
           const daysUntilDue = getDaysUntilDue(task.dueDate);
+          const isOverdue = !task.completed && daysUntilDue !== null && daysUntilDue < 0;
+          const isDueToday = !task.completed && daysUntilDue === 0;
 
           let dateColor = 'var(--text-muted)';
           if (!task.completed && daysUntilDue !== null) {
@@ -314,7 +316,15 @@ export function TaskList({
                   padding: 'var(--spacing-sm) var(--spacing-md)',
                   opacity: task.completed ? 0.5 : 1,
                   marginBottom: 0,
-                  borderStyle: task.completed ? 'dashed' : 'solid'
+                  borderStyle: task.completed ? 'dashed' : 'solid',
+                  borderColor: isOverdue
+                    ? 'rgba(220, 60, 60, 0.8)'
+                    : isDueToday
+                      ? 'rgba(255, 190, 70, 0.85)'
+                      : undefined,
+                  boxShadow: isOverdue || isDueToday
+                    ? '0 0 0 1px rgba(255,255,255,0.05), inset 0 0 18px rgba(255,150,80,0.08)'
+                    : undefined
                 }}
               >
                 <button

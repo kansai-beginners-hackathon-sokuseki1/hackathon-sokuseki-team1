@@ -28,35 +28,59 @@ function normalizeTask(dbTask) {
   };
 }
 
+const DEFAULT_AI_SETTINGS = {
+  useServerDefault: true,
+  provider: 'openrouter',
+  model: 'google/gemini-2.5-flash',
+  baseUrl: '',
+  hasUserApiKey: false,
+  defaultProvider: 'openrouter',
+  defaultModel: 'google/gemini-2.5-flash',
+  providers: ['openrouter', 'openai']
+};
+
+const DEFAULT_PROFILE = {
+  onboardingCompleted: false,
+  hasProfile: false,
+  categories: [],
+  preferences: []
+};
+
 export const getRequiredExp = (level) => Math.floor(100 * Math.pow(1.2, level - 1));
 
 export const useAppState = () => {
   const [tasks, setTasks] = useState([]);
   const [userStats, setUserStats] = useState({ level: 1, currentExp: 0 });
-  const [apiSettings, setApiSettings] = useState(() => {
-    const saved = localStorage.getItem('apiSettings');
-    return saved ? JSON.parse(saved) : { apiKey: '', modelName: 'google/gemini-2.5-flash' };
-  });
+  const [aiSettings, setAiSettings] = useState(DEFAULT_AI_SETTINGS);
+  const [profile, setProfile] = useState(DEFAULT_PROFILE);
   const [levelUpData, setLevelUpData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  useEffect(() => {
-    localStorage.setItem('apiSettings', JSON.stringify(apiSettings));
-  }, [apiSettings]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const [tasksData, progressData] = await Promise.all([
+      const [tasksData, progressData, profileData, aiSettingsData] = await Promise.all([
         api.getTasks({ pageSize: 100, sort: 'createdAt', order: 'desc' }),
-        api.getProgress()
+        api.getProgress(),
+        api.getProfile(),
+        api.getAiSettings()
       ]);
 
       setTasks(tasksData.tasks.map(normalizeTask));
       setUserStats(computeLevelFromXp(Number(progressData.progress.xp)));
+      setProfile({
+        onboardingCompleted: profileData.onboardingCompleted,
+        hasProfile: profileData.hasProfile,
+        categories: profileData.categories,
+        preferences: profileData.preferences
+      });
+      setAiSettings({
+        ...DEFAULT_AI_SETTINGS,
+        ...aiSettingsData
+      });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -137,19 +161,42 @@ export const useAppState = () => {
     setTasks((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const clearLevelUpData = () => setLevelUpData(null);
-
-  const calculateExpByDifficulty = (difficulty) => {
-    const multipliers = [0, 1, 3, 6, 12, 25];
-    const normalized = Math.max(1, Math.min(5, Math.floor(difficulty) || 1));
-    return 10 * multipliers[normalized];
+  const saveProfile = async ({ preferences, onboardingCompleted }) => {
+    const result = await api.saveProfile({ preferences, onboardingCompleted });
+    setProfile({
+      onboardingCompleted: result.onboardingCompleted,
+      hasProfile: result.hasProfile,
+      categories: result.categories,
+      preferences: result.preferences
+    });
+    return result;
   };
+
+  const saveAiSettings = async (payload) => {
+    const result = await api.saveAiSettings(payload);
+    setAiSettings({
+      ...DEFAULT_AI_SETTINGS,
+      ...result
+    });
+    return result;
+  };
+
+  const testAiSettings = async (payload) => api.testAiSettings(payload);
+
+  const scoreDifficulty = async (payload) => api.scoreDifficulty(payload);
+
+  const clearLevelUpData = () => setLevelUpData(null);
 
   return {
     tasks,
     userStats,
-    apiSettings,
-    setApiSettings,
+    aiSettings,
+    profile,
+    setProfile,
+    saveProfile,
+    saveAiSettings,
+    testAiSettings,
+    scoreDifficulty,
     addTask,
     toggleTask,
     editTask,
@@ -157,7 +204,6 @@ export const useAppState = () => {
     getRequiredExp,
     levelUpData,
     clearLevelUpData,
-    calculateExpByDifficulty,
     loading,
     error,
     reload: loadData
