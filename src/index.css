@@ -73,6 +73,37 @@ body {
   z-index: 1;
 }
 
+.auth-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-primary);
+  padding: var(--spacing-md);
+}
+
+.auth-screen__inner {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-screen__title {
+  text-align: center;
+  font-size: 1.6rem;
+  color: var(--accent-secondary);
+  letter-spacing: 2px;
+  margin-bottom: var(--spacing-xl);
+}
+
+.auth-screen__guest-button {
+  width: 100%;
+  margin-bottom: var(--spacing-md);
+}
+
+.app-wrapper > header > h1 {
+  min-width: 0;
+}
+
 /* =============================================
    RPG ウィンドウ
    ドラクエ風の「太い白枠 + 内側に細いカラー枠」
@@ -513,6 +544,41 @@ button:disabled {
 }
 
 @media (max-width: 640px) {
+  #root,
+  .app-wrapper {
+    padding: var(--spacing-lg) var(--spacing-sm);
+  }
+
+  .auth-screen {
+    align-items: flex-start;
+    padding-top: var(--spacing-xl);
+  }
+
+  .auth-screen__title {
+    font-size: 1.35rem;
+    margin-bottom: var(--spacing-lg);
+    letter-spacing: 1px;
+  }
+
+  .app-wrapper > header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: var(--spacing-md) !important;
+  }
+
+  .app-wrapper > header > h1 {
+    justify-content: center !important;
+    text-align: center !important;
+    flex-wrap: wrap !important;
+    font-size: 1.3rem !important;
+    letter-spacing: 1px !important;
+  }
+
+  .app-wrapper > header > div:last-child {
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+  }
+
   .status-row {
     align-items: stretch;
     gap: 10px;

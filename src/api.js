@@ -53,6 +53,8 @@ export const api = {
     request("POST", "/auth/register", { email, username, password }),
   login: (email, password) =>
     request("POST", "/auth/login", { email, password }),
+  loginAsGuest: () =>
+    request("POST", "/auth/guest"),
   loginWithGoogle: (credential) =>
     request("POST", "/auth/google", { credential }),
 

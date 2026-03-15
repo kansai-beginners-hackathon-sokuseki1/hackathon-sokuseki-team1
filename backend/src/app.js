@@ -78,6 +78,15 @@ function normalizeUsernameCandidate(value, fallbackEmail) {
   return selected.length >= 2 ? selected.slice(0, 40) : "adventurer";
 }
 
+function createGuestIdentity() {
+  const guestKey = createToken().replace(/[^a-zA-Z0-9]/g, "").slice(0, 12) || Date.now().toString(36);
+  return {
+    email: `guest-${guestKey}@guest.local`,
+    username: `Guest-${guestKey.slice(0, 6).toUpperCase()}`,
+    providerUserId: guestKey
+  };
+}
+
 async function createAuthenticatedSession(repository, userId, userPayload, auditAction, clientIp) {
   const token = createToken();
   const createdAt = new Date().toISOString();
@@ -288,6 +297,33 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
               authProvider: user.auth_provider ?? user.authProvider ?? "local"
             },
             "auth.login",
+            clientIp
+          );
+        }
+
+        if (request.method === "POST" && url.pathname === "/api/auth/guest") {
+          const createdAt = new Date().toISOString();
+          const guestIdentity = createGuestIdentity();
+          const user = await repository.createUser({
+            email: guestIdentity.email,
+            username: guestIdentity.username,
+            passwordHash: "",
+            passwordSalt: "",
+            authProvider: "guest",
+            providerUserId: guestIdentity.providerUserId,
+            createdAt
+          });
+
+          return createAuthenticatedSession(
+            repository,
+            user.id,
+            {
+              id: user.id,
+              email: user.email,
+              username: user.username,
+              authProvider: "guest"
+            },
+            "auth.guest.login",
             clientIp
           );
         }

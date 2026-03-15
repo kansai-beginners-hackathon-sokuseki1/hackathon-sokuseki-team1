@@ -30,7 +30,7 @@ function loadGoogleScript() {
 
 function mapAuthError(err) {
   if (err.code === 'email_exists') {
-    return 'このメールアドレスはすでに登録されています。';
+    return 'このメールアドレスは既に登録されています。';
   }
   if (err.code === 'invalid_credentials') {
     return 'メールアドレスまたはパスワードが正しくありません。';
@@ -39,12 +39,12 @@ function mapAuthError(err) {
     return 'このアカウントは Google ログイン専用です。Google で続行してください。';
   }
   if (err.code === 'account_exists_different_sign_in') {
-    return '同じメールアドレスの既存アカウントがあります。現在のログイン方法で続けてください。';
+    return '同じメールアドレスのアカウントが別のログイン方法で登録されています。';
   }
   if (err.code === 'google_auth_unavailable') {
-    return 'Google ログインはまだ設定されていません。';
+    return 'Google ログインは現在利用できません。';
   }
-  return err.message || 'エラーが発生しました。もう一度試してください。';
+  return err.message || 'エラーが発生しました。もう一度お試しください。';
 }
 
 export function AuthScreen({ onLogin }) {
@@ -83,6 +83,7 @@ export function AuthScreen({ onLogin }) {
               if (!response?.credential) return;
               setError(null);
               setLoading(true);
+
               try {
                 const result = await api.loginWithGoogle(response.credential);
                 onLogin(result.token, result.user);
@@ -146,29 +147,24 @@ export function AuthScreen({ onLogin }) {
     }
   };
 
+  const handleGuestLogin = async () => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const result = await api.loginAsGuest();
+      onLogin(result.token, result.user);
+    } catch (err) {
+      setError(mapAuthError(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'var(--bg-primary)',
-        padding: 'var(--spacing-md)'
-      }}
-    >
-      <div style={{ width: '100%', maxWidth: '420px' }}>
-        <h1
-          style={{
-            textAlign: 'center',
-            fontSize: '1.6rem',
-            color: 'var(--accent-secondary)',
-            letterSpacing: '2px',
-            marginBottom: 'var(--spacing-xl)'
-          }}
-        >
-          タスクマネージャー
-        </h1>
+    <div className="auth-screen">
+      <div className="auth-screen__inner">
+        <h1 className="auth-screen__title">クエストマネージャー</h1>
 
         <div className="rpg-window">
           <p
@@ -177,7 +173,7 @@ export function AuthScreen({ onLogin }) {
               fontSize: '0.85rem',
               borderBottom: '1px solid var(--border-window-inner)',
               paddingBottom: '6px',
-              marginBottom: 'var(--spacing-md)'
+              marginBottom: 'var(--spacing-md)',
             }}
           >
             {mode === 'login' ? 'ログイン' : '新規登録'}
@@ -190,12 +186,12 @@ export function AuthScreen({ onLogin }) {
                 style={{
                   minHeight: 44,
                   display: 'flex',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
                 }}
               />
               {googleLoading && (
                 <p style={{ marginTop: 8, marginBottom: 0, fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-                  Google ログインを準備中...
+                  Google ログインを読み込み中...
                 </p>
               )}
               {!googleReady && !googleLoading && (
@@ -211,15 +207,24 @@ export function AuthScreen({ onLogin }) {
                   gap: 10,
                   color: 'var(--text-muted)',
                   fontSize: '0.72rem',
-                  letterSpacing: '0.08em'
+                  letterSpacing: '0.08em',
                 }}
               >
                 <span style={{ flex: 1, height: 1, background: 'var(--border-window-inner)' }} />
-                <span>OR EMAIL</span>
+                <span>OR</span>
                 <span style={{ flex: 1, height: 1, background: 'var(--border-window-inner)' }} />
               </div>
             </div>
           )}
+
+          <button
+            type="button"
+            className="btn-primary auth-screen__guest-button"
+            onClick={handleGuestLogin}
+            disabled={loading}
+          >
+            {loading ? '処理中...' : 'ゲストで始める'}
+          </button>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
             <div>
@@ -301,7 +306,7 @@ export function AuthScreen({ onLogin }) {
               textAlign: 'center',
               marginTop: 'var(--spacing-md)',
               fontSize: '0.85rem',
-              color: 'var(--text-muted)'
+              color: 'var(--text-muted)',
             }}
           >
             {mode === 'login' ? (
@@ -317,7 +322,7 @@ export function AuthScreen({ onLogin }) {
               </>
             ) : (
               <>
-                すでに登録済みなら{' '}
+                すでに登録済みの場合は{' '}
                 <button
                   type="button"
                   onClick={() => switchMode('login')}
