@@ -191,7 +191,7 @@ export function MainApp({
             letterSpacing: '2px'
           }}
         >
-          タスク管理
+          クエストマネージャー
           <span
             style={{
               fontSize: '0.75rem',
