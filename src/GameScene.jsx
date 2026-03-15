@@ -7,6 +7,7 @@ import {
   HarborStructures,
   MagicCityStructures,
   RuinsStructures,
+  RuneRoadStructures,
   SceneLights,
   VillageStructures
 } from './StageStructures';
@@ -68,8 +69,8 @@ const STAGE_DEFINITIONS = [
         showSmoke: true
       },
       characters: [
-        { role: 'hero', variant: 'adventurer', x: 46 },
-        { role: 'guide', variant: 'villager', x: 60 }
+        { role: 'hero', variant: 'adventurer', x: 34 },
+        { role: 'guide', variant: 'villager', x: 67 }
       ]
     }
   },
@@ -96,11 +97,12 @@ const STAGE_DEFINITIONS = [
     scene: {
       focus: 'road',
       props: {
-        structureSet: 'none',
+        structureSet: 'rune-road',
         showWatchtower: false,
         houseCount: 0,
         showLanterns: false,
         showCrystal: false,
+        showPath: false,
         showTrees: true,
         showFence: false,
         showFlowers: true,
@@ -480,6 +482,7 @@ function StageProps({ scene, stageKey }) {
     harbor: <HarborStructures props={props} houses={houses} stageKey={stageKey} />,
     ruins: <RuinsStructures props={props} />,
     forest: <ForestStructures />,
+    'rune-road': <RuneRoadStructures />,
     'magic-city': <MagicCityStructures props={props} houses={houses} stageKey={stageKey} />,
     castle: <CastleStructures props={props} />
   };
@@ -519,7 +522,7 @@ function StageProps({ scene, stageKey }) {
             ))}
           </div>
         )}
-        <div className="gs-path" />
+        {props.showPath !== false && <div className="gs-path" />}
         {props.showFlowers && <div className="gs-flower-cluster gs-flower-cluster--left" />}
         {props.showFlowers && <div className="gs-flower-cluster gs-flower-cluster--right" />}
 

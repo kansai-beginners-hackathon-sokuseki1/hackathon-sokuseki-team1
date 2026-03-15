@@ -1080,6 +1080,69 @@
   transform: rotate(-12deg);
 }
 
+.gs-rune-marker {
+  position: absolute;
+  left: 42%;
+  bottom: 16px;
+  width: 22px;
+  height: 42px;
+  border-radius: 8px 8px 6px 6px;
+  background: linear-gradient(to bottom, rgba(182, 184, 166, 0.95), rgba(112, 116, 97, 0.98));
+  border: 2px solid rgba(86, 92, 72, 0.84);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.18),
+    0 6px 14px rgba(52, 62, 34, 0.18);
+  transform: rotate(-4deg);
+}
+
+.gs-rune-marker-core {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  width: 8px;
+  height: 24px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: linear-gradient(to bottom, rgba(206, 220, 186, 0.82), rgba(133, 146, 107, 0.28));
+  opacity: 0.56;
+}
+
+.gs-rune-glyph {
+  position: absolute;
+  left: 50%;
+  width: 10px;
+  height: 2px;
+  transform: translateX(-50%);
+  background: rgba(224, 240, 194, 0.82);
+  box-shadow: 0 0 6px rgba(221, 245, 184, 0.24);
+}
+
+.gs-rune-glyph--top {
+  top: 11px;
+}
+
+.gs-rune-glyph--mid {
+  top: 19px;
+  width: 6px;
+}
+
+.gs-rune-glyph--bottom {
+  top: 27px;
+  width: 12px;
+}
+
+.gs-rune-stones {
+  position: absolute;
+  left: 38%;
+  bottom: 12px;
+  width: 48px;
+  height: 8px;
+  background:
+    radial-gradient(circle at 16% 50%, rgba(136, 140, 114, 0.86) 0 4px, transparent 5px),
+    radial-gradient(circle at 48% 50%, rgba(126, 130, 105, 0.82) 0 3px, transparent 4px),
+    radial-gradient(circle at 80% 50%, rgba(114, 118, 94, 0.78) 0 4px, transparent 5px);
+}
+
 .gs-snowcaps {
   left: 8%;
   right: 8%;

@@ -115,6 +115,20 @@ export function ForestStructures() {
   );
 }
 
+export function RuneRoadStructures() {
+  return (
+    <>
+      <div className="gs-rune-marker">
+        <span className="gs-rune-marker-core" />
+        <span className="gs-rune-glyph gs-rune-glyph--top" />
+        <span className="gs-rune-glyph gs-rune-glyph--mid" />
+        <span className="gs-rune-glyph gs-rune-glyph--bottom" />
+      </div>
+      <div className="gs-rune-stones" />
+    </>
+  );
+}
+
 export function MagicCityStructures({ props, houses, stageKey }) {
   return (
     <>
