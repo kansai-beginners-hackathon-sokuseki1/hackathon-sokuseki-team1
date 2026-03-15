@@ -37,6 +37,15 @@ cd backend
 npm run db:migrate:local
 ```
 
+### 4.1 外部公開先 / リモート D1 への反映
+
+外部アクセス時や `workers.dev` 上の API を使う場合は、リモート D1 にも同じマイグレーションを適用します。
+
+```bash
+cd backend
+npm run db:migrate:remote
+```
+
 ### 5. サーバー起動
 
 バックエンド:
@@ -69,6 +78,8 @@ npm run dev
 - `npm run deploy`: Cloudflare Workers へデプロイ
 - `npm run db:migrate:local`: ローカル D1 へマイグレーション
 - `npm run db:migrate:remote`: リモート D1 へマイグレーション
+
+外部向け API で `D1_Error` が出る場合は、リモート D1 へのマイグレーション未反映を疑って `npm run db:migrate:remote` を実行してください。
 
 ## 技術スタック
 
