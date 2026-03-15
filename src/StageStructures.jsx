@@ -137,7 +137,7 @@ export function CastleStructures({ props }) {
   );
 }
 
-export function SceneLights({ lanterns = [], showLanterns, stageKey }) {
+export function SceneLights({ lanterns = [], showLanterns, showCrystal = true, stageKey }) {
   return (
     <>
       {showLanterns && lanterns.map((lantern, index) => (
@@ -149,7 +149,7 @@ export function SceneLights({ lanterns = [], showLanterns, stageKey }) {
           delay={lantern.delay}
         />
       ))}
-      <CrystalLight />
+      {showCrystal && <CrystalLight />}
     </>
   );
 }

@@ -23,6 +23,15 @@
     repeating-linear-gradient(90deg, rgba(132, 102, 68, 0.08) 0 18px, transparent 18px 28px);
 }
 
+.game-scene[data-stage="grassland-road"] .gs-path {
+  width: 78px;
+  left: 46%;
+  background:
+    linear-gradient(to bottom, rgba(203, 194, 145, 0.64), rgba(140, 132, 84, 0.24)),
+    repeating-linear-gradient(0deg, rgba(116, 104, 66, 0.08) 0 3px, transparent 3px 10px);
+  opacity: 0.82;
+}
+
 .game-scene[data-stage="forest-maze"] .gs-house-body,
 .game-scene[data-stage="forest-maze"] .gs-watchtower {
   background:

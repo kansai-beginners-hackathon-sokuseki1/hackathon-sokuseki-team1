@@ -96,10 +96,11 @@ const STAGE_DEFINITIONS = [
     scene: {
       focus: 'road',
       props: {
-        structureSet: 'forest',
+        structureSet: 'none',
         showWatchtower: false,
         houseCount: 0,
         showLanterns: false,
+        showCrystal: false,
         showTrees: true,
         showFence: false,
         showFlowers: true,
@@ -135,7 +136,7 @@ const STAGE_DEFINITIONS = [
     scene: {
       focus: 'forest',
       props: {
-        structureSet: 'none',
+        structureSet: 'forest',
         showWatchtower: false,
         houseCount: 0,
         showLanterns: false,
@@ -492,6 +493,7 @@ function StageProps({ scene, stageKey }) {
         <SceneLights
           lanterns={GAME_SCENE_CONFIG.lanterns}
           showLanterns={props.showLanterns}
+          showCrystal={props.showCrystal !== false}
           stageKey={stageKey}
         />
 
