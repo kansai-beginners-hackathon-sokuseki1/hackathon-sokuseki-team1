@@ -66,17 +66,22 @@ npm run db:migrate:remote
 
 ### 5. サーバー起動
 
-バックエンド:
+フロントエンドとバックエンドをまとめて起動する場合:
 
 ```bash
-cd backend
 npm run dev
 ```
 
-フロントエンド:
+フロントエンドのみ起動する場合:
 
 ```bash
-npm run dev
+npm run dev:frontend
+```
+
+バックエンドのみ起動する場合:
+
+```bash
+npm run dev:backend
 ```
 
 ブラウザで `http://localhost:5173/hackathon-sokuseki-team1/` を開きます。
@@ -85,14 +90,15 @@ npm run dev
 
 ### フロントエンド
 
-- `npm run dev`: Vite 開発サーバー
+- `npm run dev`: バックエンドの `health` 応答を待ってからフロントエンドも含めて一括起動
+- `npm run dev:frontend`: Vite 開発サーバー
 - `npm run build`: 本番ビルド
 - `npm run preview`: ビルド結果の確認
 - `npm run lint`: ESLint
 
 ### バックエンド
 
-- `npm run dev`: `wrangler dev`
+- `npm run dev:backend`: `wrangler dev`
 - `npm run deploy`: Cloudflare Workers へデプロイ
 - `npm run db:migrate:local`: ローカル D1 へマイグレーション
 - `npm run db:migrate:remote`: リモート D1 へマイグレーション
