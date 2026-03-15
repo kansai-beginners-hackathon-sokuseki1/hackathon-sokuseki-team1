@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import './FantasyBackground.css';
+import './FantasyBackgroundStages.css';
 
 const GAME_SCENE_CONFIG = {
   clouds: [
