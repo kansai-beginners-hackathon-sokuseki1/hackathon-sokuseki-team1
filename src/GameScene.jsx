@@ -575,47 +575,85 @@ function StageProps({ scene, stageKey, compact = false }) {
 }
 
 function StageCharacters({ scene, stageKey }) {
+  const hasEnemy = scene.characters.some((character) => (
+    character.role === 'monster' || character.role === 'boss'
+  ));
+
   return (
     <div className="gs-characters-layer">
       {scene.characters.map((character, index) => (
-        <div
-          key={`${stageKey}-character-${character.role}-${index}`}
-          className={`gs-character gs-character--${character.role} gs-character--${character.variant}`}
-          style={{ left: `${character.x}%` }}
-        >
-          <span className="gs-character-shadow" />
-          <span className="gs-character-aura" />
-          <span className="gs-character-back-arm" />
-          <span className="gs-character-back-leg" />
-          <span className="gs-character-body" />
-          <span className="gs-character-belt" />
-          <span className="gs-character-front-leg" />
-          <span className="gs-character-front-arm" />
-          <span className="gs-character-boots" />
-          <span className="gs-character-head" />
-          <span className="gs-character-hair" />
-          <span className="gs-character-face" />
-          <span className="gs-character-cloak" />
-          {(character.variant === 'sprite' || character.variant === 'wisp' || character.variant === 'drake') && (
-            <span className="gs-character-wings" />
-          )}
-          {(character.variant === 'beast' || character.variant === 'boss' || character.variant === 'drake') && (
-            <span className="gs-character-tail" />
-          )}
-          {(character.variant === 'mage' || character.variant === 'wisp' || character.variant === 'champion' || character.variant === 'drake') && (
-            <span className="gs-character-crest" />
-          )}
-          {(character.variant === 'traveler' || character.variant === 'adventurer' || character.variant === 'explorer') && (
-            <span className="gs-character-pack" />
-          )}
-          {(character.variant === 'ranger' || character.variant === 'guard' || character.variant === 'warden' || character.variant === 'champion' || character.variant === 'sailor') && (
-            <span className="gs-character-weapon" />
-          )}
-          {(character.variant === 'merchant' || character.variant === 'dockhand') && (
-            <span className="gs-character-cargo" />
-          )}
-          {character.variant === 'boss' && <span className="gs-character-horns" />}
-        </div>
+        (() => {
+          const isEnemy = character.role === 'monster' || character.role === 'boss';
+          const extraClass = hasEnemy ? ' gs-character--combatant' : '';
+
+          if (isEnemy) {
+            return (
+              <div
+                key={`${stageKey}-character-${character.role}-${index}`}
+                className={`gs-character gs-character--enemy gs-character--${character.role} gs-character--${character.variant}${extraClass}`}
+                style={{ left: `${character.x}%` }}
+              >
+                <span className="gs-character-shadow" />
+                <span className="gs-character-aura" />
+                <span className="gs-monster-body" />
+                <span className="gs-monster-head" />
+                <span className="gs-monster-jaw" />
+                <span className="gs-monster-eye gs-monster-eye--left" />
+                <span className="gs-monster-eye gs-monster-eye--right" />
+                <span className="gs-monster-crest" />
+                <span className="gs-monster-leg gs-monster-leg--front" />
+                <span className="gs-monster-leg gs-monster-leg--rear" />
+                <span className="gs-monster-claw gs-monster-claw--front" />
+                <span className="gs-monster-claw gs-monster-claw--rear" />
+                <span className="gs-monster-spikes" />
+                {(character.variant === 'beast' || character.variant === 'boss' || character.variant === 'drake') && (
+                  <span className="gs-character-tail" />
+                )}
+                {(character.variant === 'drake' || character.variant === 'boss') && (
+                  <span className="gs-character-wings" />
+                )}
+                {character.variant === 'boss' && <span className="gs-character-horns" />}
+              </div>
+            );
+          }
+
+          return (
+            <div
+              key={`${stageKey}-character-${character.role}-${index}`}
+              className={`gs-character gs-character--${character.role} gs-character--${character.variant}${extraClass}`}
+              style={{ left: `${character.x}%` }}
+            >
+              <span className="gs-character-shadow" />
+              <span className="gs-character-aura" />
+              <span className="gs-character-back-arm" />
+              <span className="gs-character-back-leg" />
+              <span className="gs-character-body" />
+              <span className="gs-character-belt" />
+              <span className="gs-character-front-leg" />
+              <span className="gs-character-front-arm" />
+              <span className="gs-character-boots" />
+              <span className="gs-character-head" />
+              <span className="gs-character-hair" />
+              <span className="gs-character-face" />
+              <span className="gs-character-cloak" />
+              {(character.variant === 'sprite' || character.variant === 'wisp') && (
+                <span className="gs-character-wings" />
+              )}
+              {(character.variant === 'mage' || character.variant === 'wisp' || character.variant === 'champion') && (
+                <span className="gs-character-crest" />
+              )}
+              {(character.variant === 'traveler' || character.variant === 'adventurer' || character.variant === 'explorer') && (
+                <span className="gs-character-pack" />
+              )}
+              {(character.variant === 'ranger' || character.variant === 'guard' || character.variant === 'warden' || character.variant === 'champion' || character.variant === 'sailor') && (
+                <span className="gs-character-weapon" />
+              )}
+              {(character.variant === 'merchant' || character.variant === 'dockhand') && (
+                <span className="gs-character-cargo" />
+              )}
+            </div>
+          );
+        })()
       ))}
     </div>
   );
