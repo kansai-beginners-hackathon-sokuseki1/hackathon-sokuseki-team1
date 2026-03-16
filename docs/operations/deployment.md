@@ -28,4 +28,13 @@ npx wrangler secret put OPENAI_API_KEY
 npx wrangler secret put OPENROUTER_API_KEY
 ```
 
+Optional Worker vars for separate server-default models:
+
+```env
+DEFAULT_AI_PROVIDER=openai
+OPENAI_MODEL=gpt-5
+OPENAI_QUEST_MODEL=gpt-4o
+OPENAI_DIFFICULTY_MODEL=gpt-4o-mini
+```
+
 For local Worker development, use `backend/.dev.vars`. See [docs/operations/ai-secrets.md](/C:/Users/paramaster/Desktop/hackathon/Mock/docs/operations/ai-secrets.md).
