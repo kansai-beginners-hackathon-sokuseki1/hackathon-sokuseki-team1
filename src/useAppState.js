@@ -85,20 +85,39 @@ export const useAppState = () => {
     userStatsRef.current = userStats;
   }, [userStats]);
 
+  const loadAllTasks = useCallback(async () => {
+    const pageSize = 100;
+    let page = 1;
+    let total = 0;
+    const allTasks = [];
+
+    do {
+      const response = await api.getTasks({ page, pageSize, sort: 'createdAt', order: 'desc' });
+      const items = Array.isArray(response.tasks) ? response.tasks : [];
+      const paginationTotal = Number(response.pagination?.total ?? 0);
+
+      allTasks.push(...items.map(normalizeTask));
+      total = paginationTotal;
+      page += 1;
+    } while (allTasks.length < total);
+
+    return allTasks;
+  }, []);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
       const [tasksData, progressData, profileData, aiSettingsData] = await Promise.all([
-        api.getTasks({ pageSize: 100, sort: 'createdAt', order: 'desc' }),
+        loadAllTasks(),
         api.getProgress(),
         api.getProfile(),
         api.getAiSettings()
       ]);
 
       const safeProgress = normalizeProgressPayload(progressData?.progress);
-      setTasks((tasksData.tasks ?? []).map(normalizeTask));
+      setTasks(tasksData);
       setUserStats(computeLevelFromXp(safeProgress.xp));
       setProfile({
         onboardingCompleted: profileData.onboardingCompleted,
@@ -115,7 +134,7 @@ export const useAppState = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [loadAllTasks]);
 
   useEffect(() => {
     loadData();
@@ -123,22 +142,17 @@ export const useAppState = () => {
 
   const addTask = async (title, difficulty = 1, dueDate = null, questBreakdown = null) => {
     const subQuests = Array.isArray(questBreakdown?.subQuests) ? questBreakdown.subQuests : [];
-    const data = await api.createTask({
+    const mainTaskResponse = await api.createTask({
       title,
       difficulty,
       dueDate,
       description: serializeQuestBreakdown(questBreakdown)
     });
-    const task = normalizeTask(data.task);
+    const task = normalizeTask(mainTaskResponse.task);
 
-    const createdSubtasks = [];
-    for (let index = subQuests.length - 1; index >= 0; index -= 1) {
-      const subQuest = subQuests[index];
-      const subTitle = String(subQuest?.title || '').trim();
-      if (!subTitle) continue;
-
-      const subtaskData = await api.createTask({
-        title: subTitle,
+    const subtaskPayloads = subQuests
+      .map((subQuest) => ({
+        title: String(subQuest?.title || '').trim(),
         difficulty: Math.max(1, difficulty - 1),
         dueDate,
         description: serializeSubQuestMetadata({
@@ -147,8 +161,13 @@ export const useAppState = () => {
           mainQuest: questBreakdown?.mainQuest,
           subQuest
         })
-      });
-      createdSubtasks.push(normalizeTask(subtaskData.task));
+      }))
+      .filter((subTask) => subTask.title);
+
+    let createdSubtasks = [];
+    if (subtaskPayloads.length > 0) {
+      const bulkResponse = await api.createTasksBulk({ tasks: subtaskPayloads });
+      createdSubtasks = (bulkResponse.tasks ?? []).map(normalizeTask);
     }
 
     setTasks((prev) => [task, ...createdSubtasks, ...prev]);

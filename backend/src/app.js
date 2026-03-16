@@ -461,6 +461,60 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
           return json(201, { task: pickTask(task) });
         }
 
+        if (request.method === "POST" && url.pathname === "/api/tasks/bulk") {
+          const body = await readBody(request);
+          const inputTasks = Array.isArray(body.tasks) ? body.tasks : [];
+
+          if (inputTasks.length === 0) {
+            return errorResponse(400, "invalid_input", "tasks must contain at least one item.");
+          }
+
+          if (inputTasks.length > 25) {
+            return errorResponse(400, "invalid_input", "tasks must contain at most 25 items.");
+          }
+
+          const now = new Date().toISOString();
+          const createdTasks = [];
+
+          for (const item of inputTasks) {
+            const title = typeof item.title === "string" ? item.title.trim() : "";
+            if (!title) {
+              return errorResponse(400, "invalid_input", "Each task title is required.");
+            }
+
+            const description = typeof item.description === "string" ? item.description.trim() : "";
+            const priority = ["low", "medium", "high"].includes(item.priority) ? item.priority : "medium";
+            const difficulty = Math.max(1, Math.min(5, Math.floor(Number(item.difficulty) || 1)));
+            const expReward = calculateExpByDifficulty(difficulty);
+            const dueDate = item.dueDate ?? null;
+            if (dueDate !== null && Number.isNaN(Date.parse(dueDate))) {
+              return errorResponse(400, "invalid_input", "dueDate must be a valid ISO date string.");
+            }
+
+            const task = await repository.createTask({
+              userId: user.id,
+              title,
+              description,
+              priority,
+              difficulty,
+              expReward,
+              dueDate,
+              createdAt: now
+            });
+
+            createdTasks.push(task);
+            await repository.createAuditLog({
+              userId: user.id,
+              action: "task.create",
+              targetId: task.id,
+              ipAddress: clientIp,
+              createdAt: now
+            });
+          }
+
+          return json(201, { tasks: createdTasks.map(pickTask) });
+        }
+
         if (request.method === "GET" && url.pathname === "/api/progress") {
           const progress = await repository.getUserProgress(user.id);
           const { level, currentExp } = computeLevelFromXp(Number(progress.xp));

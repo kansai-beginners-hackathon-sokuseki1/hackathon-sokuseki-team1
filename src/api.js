@@ -80,6 +80,7 @@ export const api = {
     return request("GET", `/tasks${qs ? `?${qs}` : ""}`);
   },
   createTask: (data) => request("POST", "/tasks", data),
+  createTasksBulk: (data) => request("POST", "/tasks/bulk", data),
   updateTask: (id, data) => request("PATCH", `/tasks/${id}`, data),
   deleteTask: (id) => request("DELETE", `/tasks/${id}`),
   completeTask: (id) => request("POST", `/tasks/${id}/complete`),
