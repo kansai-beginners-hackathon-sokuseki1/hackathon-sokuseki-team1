@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from './api';
-import { serializeQuestBreakdown } from './taskBreakdown';
+import { serializeQuestBreakdown, serializeSubQuestMetadata } from './taskBreakdown';
 
 function computeLevelFromXp(totalXp) {
   const safeTotalXp = Number.isFinite(Number(totalXp)) ? Number(totalXp) : 0;
@@ -123,8 +123,15 @@ export const useAppState = () => {
 
   const addTask = async (title, difficulty = 1, dueDate = null, questBreakdown = null) => {
     const subQuests = Array.isArray(questBreakdown?.subQuests) ? questBreakdown.subQuests : [];
-    const createdSubtasks = [];
+    const data = await api.createTask({
+      title,
+      difficulty,
+      dueDate,
+      description: serializeQuestBreakdown(questBreakdown)
+    });
+    const task = normalizeTask(data.task);
 
+    const createdSubtasks = [];
     for (let index = subQuests.length - 1; index >= 0; index -= 1) {
       const subQuest = subQuests[index];
       const subTitle = String(subQuest?.title || '').trim();
@@ -134,18 +141,16 @@ export const useAppState = () => {
         title: subTitle,
         difficulty: Math.max(1, difficulty - 1),
         dueDate,
-        description: String(subQuest?.intent || '').trim()
+        description: serializeSubQuestMetadata({
+          parentTaskId: task.id,
+          parentTitle: title,
+          mainQuest: questBreakdown?.mainQuest,
+          subQuest
+        })
       });
       createdSubtasks.push(normalizeTask(subtaskData.task));
     }
 
-    const data = await api.createTask({
-      title,
-      difficulty,
-      dueDate,
-      description: serializeQuestBreakdown(questBreakdown)
-    });
-    const task = normalizeTask(data.task);
     setTasks((prev) => [task, ...createdSubtasks, ...prev]);
     return task;
   };
