@@ -7,6 +7,8 @@ Relevant keys:
 - `DEFAULT_AI_PROVIDER`
 - `OPENAI_API_KEY`
 - `OPENAI_MODEL`
+- `OPENAI_QUEST_MODEL`
+- `OPENAI_DIFFICULTY_MODEL`
 - `OPENROUTER_API_KEY`
 - `OPENROUTER_MODEL`
 
@@ -21,7 +23,9 @@ Example:
 ```env
 DEFAULT_AI_PROVIDER=openai
 OPENAI_API_KEY=your-openai-api-key
-OPENAI_MODEL=gpt-4o-mini
+OPENAI_MODEL=gpt-5
+OPENAI_QUEST_MODEL=gpt-4o
+OPENAI_DIFFICULTY_MODEL=gpt-4o-mini
 ```
 
 Then run:
@@ -59,3 +63,4 @@ After setting secrets:
 - The repository root `.env` is not the source of truth for Wrangler when `wrangler.toml` is inside `backend/`.
 - If you use server-default AI settings in the app, the Worker must have the matching provider key configured.
 - The app default is now `openai`, and the settings screen shows a scrollable preset model list for each provider.
+- Quest breakdown and difficulty scoring can use separate default models from the general AI default.
