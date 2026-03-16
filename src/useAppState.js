@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from './api';
+import { serializeQuestBreakdown } from './taskBreakdown';
 
 function computeLevelFromXp(totalXp) {
   const safeTotalXp = Number.isFinite(Number(totalXp)) ? Number(totalXp) : 0;
@@ -120,10 +121,32 @@ export const useAppState = () => {
     loadData();
   }, [loadData]);
 
-  const addTask = async (title, difficulty = 1, dueDate = null, description = '') => {
-    const data = await api.createTask({ title, difficulty, dueDate, description });
+  const addTask = async (title, difficulty = 1, dueDate = null, questBreakdown = null) => {
+    const subQuests = Array.isArray(questBreakdown?.subQuests) ? questBreakdown.subQuests : [];
+    const createdSubtasks = [];
+
+    for (let index = subQuests.length - 1; index >= 0; index -= 1) {
+      const subQuest = subQuests[index];
+      const subTitle = String(subQuest?.title || '').trim();
+      if (!subTitle) continue;
+
+      const subtaskData = await api.createTask({
+        title: subTitle,
+        difficulty: Math.max(1, difficulty - 1),
+        dueDate,
+        description: String(subQuest?.intent || '').trim()
+      });
+      createdSubtasks.push(normalizeTask(subtaskData.task));
+    }
+
+    const data = await api.createTask({
+      title,
+      difficulty,
+      dueDate,
+      description: serializeQuestBreakdown(questBreakdown)
+    });
     const task = normalizeTask(data.task);
-    setTasks((prev) => [task, ...prev]);
+    setTasks((prev) => [task, ...createdSubtasks, ...prev]);
     return task;
   };
 

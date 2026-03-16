@@ -1,9 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Mic, Plus, Square } from 'lucide-react';
 import { FantasyDatePicker } from './FantasyDatePicker';
-import { serializeQuestBreakdown } from './taskBreakdown';
 
-const JAPANESE_TASK_PATTERN = /^[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}ー・、。！？\s]+$/u;
+const JAPANESE_TASK_PATTERN = /^[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}々ー、。！？「」（）・\s]+$/u;
 
 function validateTaskTitle(rawTitle) {
   const normalizedTitle = rawTitle.trim();
@@ -89,7 +88,7 @@ export function TaskInput({ onAdd, scoreDifficulty, generateQuestBreakdown }) {
         normalizedTitle,
         difficulty,
         dueDate || null,
-        serializeQuestBreakdown(questBreakdown)
+        questBreakdown
       );
       setTitle('');
       setDueDate('');
@@ -370,22 +369,15 @@ export function TaskInput({ onAdd, scoreDifficulty, generateQuestBreakdown }) {
             {typeof difficultyMeta.baseScore === 'number' ? ` (base ${difficultyMeta.baseScore})` : ''}
           </div>
         )}
-        {isGeneratingBreakdown && <div>AI がサブタスクを分解中...</div>}
+        {isGeneratingBreakdown && <div>AI がサブクエストを分解中...</div>}
       </div>
 
       {questBreakdown && (
-        <div
-          className="rpg-window"
-          style={{
-            marginTop: 'var(--spacing-sm)',
-            padding: '12px 14px',
-            background: 'rgba(10, 18, 36, 0.72)'
-          }}
-        >
-          <div style={{ fontSize: '0.76rem', letterSpacing: '0.08em', color: 'var(--accent-secondary)', marginBottom: '6px' }}>
-            AI クエスト分解
-          </div>
-          <div style={{ fontSize: '0.92rem', color: 'var(--text-primary)', marginBottom: '8px' }}>
+        <details className="rpg-window" style={{ marginTop: 'var(--spacing-sm)', padding: '12px 14px', background: 'rgba(10, 18, 36, 0.72)' }}>
+          <summary style={{ cursor: 'pointer', color: 'var(--accent-secondary)', fontSize: '0.82rem' }}>
+            AI クエスト分解を表示
+          </summary>
+          <div style={{ marginTop: '10px', fontSize: '0.92rem', color: 'var(--text-primary)', marginBottom: '8px' }}>
             メインクエスト: {questBreakdown.mainQuest}
           </div>
           <div style={{ display: 'grid', gap: '6px' }}>
@@ -410,7 +402,7 @@ export function TaskInput({ onAdd, scoreDifficulty, generateQuestBreakdown }) {
               </div>
             ))}
           </div>
-        </div>
+        </details>
       )}
 
       {(errorMsg || validationError) && (
