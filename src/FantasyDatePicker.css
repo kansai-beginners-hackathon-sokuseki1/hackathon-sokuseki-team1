@@ -200,6 +200,9 @@
 
 .fdp-day--sun { color: #8b1010; }
 .fdp-day--sat { color: #10308b; }
+.fdp-day--past {
+  opacity: 0.55;
+}
 
 /* 今日: 墨で丸を描いたように */
 .fdp-day--today {
@@ -282,6 +285,17 @@
   text-align: center;
 }
 
+.fdp-error {
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  border: 1px solid rgba(139, 26, 26, 0.35);
+  border-radius: 4px;
+  background: rgba(139, 26, 26, 0.08);
+  color: #8b1a1a;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
 .fdp-footer-actions {
   display: flex;
   gap: 8px;
@@ -305,6 +319,12 @@
 .fdp-footer-btn:hover {
   background: rgba(120, 70, 10, 0.2);
   transform: translateY(-1px);
+}
+
+.fdp-footer-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .fdp-footer-btn--primary {

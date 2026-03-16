@@ -95,6 +95,22 @@ function todayIsoDate() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function validateDueDateInput(dueDate) {
+  if (dueDate === null || dueDate === undefined) {
+    return null;
+  }
+
+  if (Number.isNaN(Date.parse(dueDate))) {
+    return "dueDate must be a valid ISO date string.";
+  }
+
+  if (typeof dueDate === "string" && dueDate.slice(0, 10) < todayIsoDate()) {
+    return "dueDate must be today or later.";
+  }
+
+  return null;
+}
+
 function normalizeUsernameCandidate(value, fallbackEmail) {
   const base = typeof value === "string" ? value.trim() : "";
   const fallback = typeof fallbackEmail === "string" ? fallbackEmail.split("@")[0] : "adventurer";
@@ -442,8 +458,9 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
           const difficulty = Math.max(1, Math.min(5, Math.floor(Number(body.difficulty) || 1)));
           const expReward = calculateExpByDifficulty(difficulty);
           const dueDate = body.dueDate ?? null;
-          if (dueDate !== null && Number.isNaN(Date.parse(dueDate))) {
-            return errorResponse(400, "invalid_input", "dueDate must be a valid ISO date string.");
+          const dueDateError = validateDueDateInput(dueDate);
+          if (dueDateError) {
+            return errorResponse(400, "invalid_input", dueDateError);
           }
 
           const now = new Date().toISOString();
@@ -487,8 +504,9 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
             const difficulty = Math.max(1, Math.min(5, Math.floor(Number(item.difficulty) || 1)));
             const expReward = calculateExpByDifficulty(difficulty);
             const dueDate = item.dueDate ?? null;
-            if (dueDate !== null && Number.isNaN(Date.parse(dueDate))) {
-              return errorResponse(400, "invalid_input", "dueDate must be a valid ISO date string.");
+            const dueDateError = validateDueDateInput(dueDate);
+            if (dueDateError) {
+              return errorResponse(400, "invalid_input", dueDateError);
             }
 
             const task = await repository.createTask({
@@ -751,8 +769,9 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
               patch.expReward = calculateExpByDifficulty(patch.difficulty);
             }
             if (body.dueDate !== undefined) {
-              if (body.dueDate !== null && Number.isNaN(Date.parse(body.dueDate))) {
-                return errorResponse(400, "invalid_input", "dueDate must be a valid ISO date string.");
+              const dueDateError = validateDueDateInput(body.dueDate);
+              if (dueDateError) {
+                return errorResponse(400, "invalid_input", dueDateError);
               }
               patch.dueDate = body.dueDate;
             }

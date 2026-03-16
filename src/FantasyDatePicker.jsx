@@ -5,6 +5,17 @@ import './FantasyDatePicker.css';
 const MONTHS = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
 const DAYS = ['日', '月', '火', '水', '木', '金', '土'];
 
+export function getTodayDateString(baseDate = new Date()) {
+  const year = baseDate.getFullYear();
+  const month = String(baseDate.getMonth() + 1).padStart(2, '0');
+  const day = String(baseDate.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+export function isPastDateString(dateStr, todayStr = getTodayDateString()) {
+  return typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr) && dateStr < todayStr;
+}
+
 export function formatFantasyDate(dateStr) {
   if (!dateStr) return null;
   const date = new Date(`${dateStr}T00:00:00`);
@@ -13,6 +24,7 @@ export function formatFantasyDate(dateStr) {
 
 export function FantasyDatePicker({ value, onChange, disabled }) {
   const today = new Date();
+  const todayStr = getTodayDateString(today);
   const [isOpen, setIsOpen] = useState(false);
   const [draftValue, setDraftValue] = useState(value ?? '');
   const [viewYear, setViewYear] = useState(
@@ -61,6 +73,7 @@ export function FantasyDatePicker({ value, onChange, disabled }) {
   }
 
   const selectedDate = draftValue ? new Date(`${draftValue}T00:00:00`) : null;
+  const hasPastSelection = isPastDateString(draftValue, todayStr);
 
   function prevMonth() {
     if (viewMonth === 0) {
@@ -88,6 +101,7 @@ export function FantasyDatePicker({ value, onChange, disabled }) {
   }
 
   function confirmSelection() {
+    if (hasPastSelection) return;
     onChange(draftValue);
     setIsOpen(false);
   }
@@ -147,6 +161,8 @@ export function FantasyDatePicker({ value, onChange, disabled }) {
               if (!day) return <div key={`empty-${index}`} className="fdp-day-empty" />;
 
               const col = (firstDay + day - 1) % 7;
+              const candidate = new Date(viewYear, viewMonth, day);
+              const candidateDateStr = getTodayDateString(candidate);
               const isSelected = selectedDate
                 && selectedDate.getFullYear() === viewYear
                 && selectedDate.getMonth() === viewMonth
@@ -154,6 +170,7 @@ export function FantasyDatePicker({ value, onChange, disabled }) {
               const isToday = today.getFullYear() === viewYear
                 && today.getMonth() === viewMonth
                 && today.getDate() === day;
+              const isPast = candidateDateStr < todayStr;
               const isSun = col === 0;
               const isSat = col === 6;
 
@@ -165,6 +182,7 @@ export function FantasyDatePicker({ value, onChange, disabled }) {
                     'fdp-day',
                     isSelected ? 'fdp-day--selected' : '',
                     isToday ? 'fdp-day--today' : '',
+                    isPast ? 'fdp-day--past' : '',
                     isSun ? 'fdp-day--sun' : '',
                     isSat ? 'fdp-day--sat' : '',
                   ].filter(Boolean).join(' ')}
@@ -177,6 +195,11 @@ export function FantasyDatePicker({ value, onChange, disabled }) {
           </div>
 
           <div className="fdp-footer">
+            {hasPastSelection && (
+              <div className="fdp-error" role="alert">
+                過去の日付は指定できません。今日以降の日付を選んでください。
+              </div>
+            )}
             <div className="fdp-footer-actions">
               <button
                 type="button"
@@ -189,6 +212,7 @@ export function FantasyDatePicker({ value, onChange, disabled }) {
                 type="button"
                 className="fdp-footer-btn fdp-footer-btn--primary"
                 onClick={confirmSelection}
+                disabled={hasPastSelection}
               >
                 決定
               </button>
