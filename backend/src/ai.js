@@ -103,14 +103,14 @@ export const AI_MODEL_OPTIONS = {
 };
 
 export const PROFILE_CATEGORIES = [
-  { id: "planning", label: "Planning" },
-  { id: "focus", label: "Focus" },
-  { id: "writing", label: "Writing" },
-  { id: "communication", label: "Communication" },
-  { id: "research", label: "Research" },
-  { id: "numbers", label: "Numbers" },
-  { id: "routine", label: "Routine" },
-  { id: "physical_tasks", label: "Physical Tasks" }
+  { id: "planning", label: "計画・段取り" },
+  { id: "focus", label: "集中・見直し" },
+  { id: "writing", label: "文章作成" },
+  { id: "communication", label: "連絡・相談" },
+  { id: "research", label: "調査・分析" },
+  { id: "numbers", label: "数値・集計" },
+  { id: "routine", label: "定例・事務" },
+  { id: "physical_tasks", label: "移動・作業" }
 ];
 
 const PROFILE_WEIGHTS = {
