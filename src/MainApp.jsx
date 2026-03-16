@@ -82,12 +82,23 @@ export function MainApp({
   const [activeMinutes, setActiveMinutes] = useState(0);
   const [claimedSessionTiers, setClaimedSessionTiers] = useState([]);
   const [bonusToasts, setBonusToasts] = useState([]);
+  const statusDetailsRef = useRef(null);
   const notifiedRef = useRef(new Set());
   const sessionActiveMsRef = useRef(0);
   const lastVisibleAtRef = useRef(0);
   const activeDayKeyRef = useRef(getLocalDayKey());
   const pendingSessionClaimsRef = useRef(new Set());
   const claimedSessionTiersRef = useRef([]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (statusDetailsRef.current && !statusDetailsRef.current.contains(e.target)) {
+        statusDetailsRef.current.open = false;
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const dueTasks = useMemo(() => {
     const today = new Date();
@@ -562,7 +573,7 @@ export function MainApp({
         </h2>
 
         <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center', flexWrap: 'wrap' }}>
-          <details className="multi-select-window">
+          <details className="multi-select-window" ref={statusDetailsRef}>
             <summary className="multi-select-window__summary">
               <span className="multi-select-window__label">状態</span>
               <span className="multi-select-window__value">{selectedStatusLabel}</span>
