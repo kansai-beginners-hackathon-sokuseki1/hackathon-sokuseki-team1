@@ -40,13 +40,24 @@ function normalizeTask(dbTask) {
 
 const DEFAULT_AI_SETTINGS = {
   useServerDefault: true,
-  provider: 'openrouter',
-  model: 'google/gemini-2.5-flash',
+  provider: 'openai',
+  model: 'gpt-4o-mini',
   baseUrl: '',
   hasUserApiKey: false,
-  defaultProvider: 'openrouter',
-  defaultModel: 'google/gemini-2.5-flash',
-  providers: ['openrouter', 'openai']
+  defaultProvider: 'openai',
+  defaultModel: 'gpt-4o-mini',
+  providers: ['openai', 'openrouter'],
+  modelOptionsByProvider: {
+    openai: ['gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano', 'gpt-4o', 'gpt-4o-mini', 'o4-mini'],
+    openrouter: [
+      'google/gemini-2.5-flash',
+      'google/gemini-2.5-pro',
+      'openai/gpt-4o-mini',
+      'openai/gpt-4.1-mini',
+      'anthropic/claude-3.5-haiku',
+      'meta-llama/llama-3.3-70b-instruct'
+    ]
+  }
 };
 
 const DEFAULT_PROFILE = {
@@ -202,6 +213,7 @@ export const useAppState = () => {
 
   const scoreDifficulty = async (payload) => api.scoreDifficulty(payload);
   const generateCompanionMessage = async (payload) => api.generateCompanionMessage(payload);
+  const generateQuestBreakdown = async (payload) => api.generateQuestBreakdown(payload);
 
   const clearLevelUpData = () => setLevelUpData(null);
 
@@ -228,6 +240,7 @@ export const useAppState = () => {
     testAiSettings,
     scoreDifficulty,
     generateCompanionMessage,
+    generateQuestBreakdown,
     addTask,
     toggleTask,
     editTask,

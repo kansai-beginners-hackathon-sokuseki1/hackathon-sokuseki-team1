@@ -276,6 +276,10 @@ export function SettingsModal({
     () => BG_TIME_OPTIONS.find(({ value }) => value === bgTimeLock) ?? BG_TIME_OPTIONS[0],
     [bgTimeLock]
   );
+  const availableModelOptions = useMemo(
+    () => draftSettings.modelOptionsByProvider?.[draftSettings.provider] ?? [],
+    [draftSettings.modelOptionsByProvider, draftSettings.provider]
+  );
 
   useEffect(() => {
     setDraftSettings(aiSettings);
@@ -533,12 +537,31 @@ export function SettingsModal({
 
               <div style={{ display: 'grid', gap: '6px' }}>
                 <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>モデル</label>
+                <select
+                  value={availableModelOptions.includes(draftSettings.model) ? draftSettings.model : ''}
+                  size={Math.min(Math.max(availableModelOptions.length, 4), 6)}
+                  onChange={(event) => {
+                    const nextModel = event.target.value;
+                    setDraftSettings((current) => ({ ...current, model: nextModel }));
+                  }}
+                  style={{ minHeight: '124px' }}
+                >
+                  {availableModelOptions.map((model) => (
+                    <option key={model} value={model}>{model}</option>
+                  ))}
+                  {!availableModelOptions.includes(draftSettings.model) && draftSettings.model ? (
+                    <option value={draftSettings.model}>{draftSettings.model}</option>
+                  ) : null}
+                </select>
                 <input
                   type="text"
                   value={draftSettings.model || ''}
                   onChange={(event) => setDraftSettings((current) => ({ ...current, model: event.target.value }))}
                   placeholder={draftSettings.provider === 'openai' ? 'gpt-4o-mini' : 'google/gemini-2.5-flash'}
                 />
+                <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0 }}>
+                  上の一覧から選択できます。候補外のモデルを使う場合は下の入力欄で上書きできます。
+                </p>
               </div>
 
               {!draftSettings.useServerDefault && (

@@ -19,9 +19,9 @@ Create `backend/.dev.vars` from [backend/.dev.vars.example](/C:/Users/paramaster
 Example:
 
 ```env
-DEFAULT_AI_PROVIDER=openrouter
-OPENROUTER_API_KEY=your-openrouter-api-key
-OPENROUTER_MODEL=google/gemini-2.5-flash
+DEFAULT_AI_PROVIDER=openai
+OPENAI_API_KEY=your-openai-api-key
+OPENAI_MODEL=gpt-4o-mini
 ```
 
 Then run:
@@ -58,4 +58,4 @@ After setting secrets:
 - Do not commit `backend/.dev.vars`.
 - The repository root `.env` is not the source of truth for Wrangler when `wrangler.toml` is inside `backend/`.
 - If you use server-default AI settings in the app, the Worker must have the matching provider key configured.
-
+- The app default is now `openai`, and the settings screen shows a scrollable preset model list for each provider.

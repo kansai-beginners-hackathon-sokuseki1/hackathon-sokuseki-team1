@@ -1,7 +1,9 @@
 import { calculateExpByDifficulty, computeLevelFromXp } from "./rpg.js";
 import { decryptSecret, encryptSecret, createToken, hashPassword, verifyPassword } from "./crypto.js";
 import {
+  getAiModelOptions,
   PROFILE_CATEGORIES,
+  generateQuestBreakdown,
   generateCompanionMessage,
   getDefaultAiDescriptor,
   resolveActiveAiConfig,
@@ -204,7 +206,8 @@ function serializeAiSettings(settings, env) {
     hasUserApiKey: Boolean(settings?.encryptedApiKey),
     defaultProvider: defaults.provider,
     defaultModel: defaults.model,
-    providers: ["openrouter", "openai"]
+    providers: ["openai", "openrouter"],
+    modelOptionsByProvider: getAiModelOptions()
   };
 }
 
@@ -603,6 +606,23 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
           });
 
           return json(200, { message });
+        }
+
+        if (request.method === "POST" && url.pathname === "/api/ai/quest-breakdown") {
+          const body = await readBody(request);
+          const taskTitle = typeof body.taskTitle === "string" ? body.taskTitle.trim() : "";
+          if (!taskTitle) {
+            return errorResponse(400, "invalid_input", "taskTitle is required.");
+          }
+
+          const aiSettings = await loadResolvedAiSettings(repository, user.id, env);
+          const result = await generateQuestBreakdown({
+            taskTitle,
+            aiConfig: aiSettings.resolved,
+            env
+          });
+
+          return json(200, result);
         }
 
         const completeMatch = url.pathname.match(/^\/api\/tasks\/([^/]+)\/complete$/);
