@@ -1,124 +1,189 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-const LABELS = {
-  strength: '得意',
-  neutral: '普通',
-  weakness: '苦手'
+const OPTIONS = [
+  { value: 'strength', label: '得意', color: 'var(--success)' },
+  { value: 'neutral', label: '普通', color: 'var(--text-secondary)' },
+  { value: 'weakness', label: '苦手', color: 'var(--danger)' }
+];
+
+const LABELS = Object.fromEntries(OPTIONS.map((option) => [option.value, option.label]));
+const CATEGORY_LABELS = {
+  planning: '計画・段取り',
+  focus: '集中・見直し',
+  writing: '文章作成',
+  communication: '連絡・相談',
+  research: '調査・分析',
+  numbers: '数値・集計',
+  routine: '定例・事務',
+  physical_tasks: '移動・作業'
 };
 const SWIPE_THRESHOLD = 36;
 
-function getValueFromDirection(deltaX, deltaY) {
+function getValueFromSwipe(deltaX, deltaY) {
   const absX = Math.abs(deltaX);
   const absY = Math.abs(deltaY);
 
   if (absX < SWIPE_THRESHOLD && absY < SWIPE_THRESHOLD) return null;
 
-  if (absX >= absY) {
-    return deltaX > 0 ? 'strength' : 'weakness';
-  } else {
-    return deltaY < 0 ? 'neutral' : null;
+  if (absY > absX && deltaY < 0) {
+    return 'neutral';
   }
+
+  return deltaX > 0 ? 'strength' : 'weakness';
 }
 
 export function PreferenceSwipeCard({ category, value, onChange }) {
+  const [isOpen, setIsOpen] = useState(false);
   const touchStartRef = useRef(null);
-  const mouseStartRef = useRef(null);
+  const suppressClickRef = useRef(false);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
+  const selectedOption = OPTIONS.find((option) => option.value === value) ?? OPTIONS[1];
+  const categoryLabel = CATEGORY_LABELS[category.id] ?? category.label ?? '未設定';
+
+  const handleSelect = (nextValue) => {
+    onChange(nextValue);
+    setIsOpen(false);
+  };
 
   const handleTouchStart = (event) => {
     const touch = event.changedTouches[0];
     touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    suppressClickRef.current = false;
   };
 
   const handleTouchEnd = (event) => {
     if (!touchStartRef.current) return;
+
     const touch = event.changedTouches[0];
     const deltaX = touch.clientX - touchStartRef.current.x;
     const deltaY = touch.clientY - touchStartRef.current.y;
     touchStartRef.current = null;
-    const newValue = getValueFromDirection(deltaX, deltaY);
-    if (newValue) onChange(newValue);
+
+    const nextValue = getValueFromSwipe(deltaX, deltaY);
+    if (!nextValue) return;
+
+    suppressClickRef.current = true;
+    onChange(nextValue);
   };
 
-  const handleMouseDown = (event) => {
-    mouseStartRef.current = { x: event.clientX, y: event.clientY };
+  const handleCardClick = () => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+    setIsOpen(true);
   };
-
-  const handleMouseUp = (event) => {
-    if (!mouseStartRef.current) return;
-    const deltaX = event.clientX - mouseStartRef.current.x;
-    const deltaY = event.clientY - mouseStartRef.current.y;
-    mouseStartRef.current = null;
-    const newValue = getValueFromDirection(deltaX, deltaY);
-    if (newValue) onChange(newValue);
-  };
-
-  const handleMouseLeave = () => {
-    mouseStartRef.current = null;
-  };
-
-  const labelColor = value === 'weakness'
-    ? 'var(--danger)'
-    : value === 'strength'
-      ? 'var(--success)'
-      : 'var(--text-muted)';
 
   return (
-    <div
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '48px 1fr 48px',
-        gap: '8px',
-        alignItems: 'center'
-      }}
-    >
+    <>
       <button
         type="button"
-        className="btn-icon"
-        aria-label={`${category.label}を苦手に設定`}
-        onClick={() => onChange('weakness')}
-      >
-        ←
-      </button>
-
-      <div
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
+        onClick={handleCardClick}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
         style={{
+          width: '100%',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           gap: '12px',
-          padding: '10px 12px',
+          padding: '12px 14px',
           border: '1px solid var(--border-window-inner)',
           borderRadius: 'var(--radius-sm)',
           background: 'rgba(255,255,255,0.03)',
-          touchAction: 'none',
-          cursor: 'grab',
-          userSelect: 'none'
+          color: 'var(--text-primary)',
+          textAlign: 'left'
         }}
       >
         <div style={{ display: 'grid', gap: '4px' }}>
-          <span>{category.label}</span>
+          <span>{categoryLabel}</span>
           <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-            右:得意 左:苦手 上:普通
+            タップ/クリックで設定・スマホはスワイプ可
           </span>
         </div>
-        <span style={{ color: labelColor }}>
-          {LABELS[value] ?? LABELS.neutral}
+        <span style={{ color: selectedOption.color, fontSize: '0.88rem' }}>
+          {LABELS[selectedOption.value]}
         </span>
-      </div>
-
-      <button
-        type="button"
-        className="btn-icon"
-        aria-label={`${category.label}を得意に設定`}
-        onClick={() => onChange('strength')}
-      >
-        →
       </button>
-    </div>
+
+      {isOpen && (
+        <div className="modal-overlay" onClick={() => setIsOpen(false)}>
+          <div
+            className="rpg-window"
+            onClick={(event) => event.stopPropagation()}
+            style={{
+              width: 'min(360px, calc(100vw - 32px))',
+              padding: '16px',
+              display: 'grid',
+              gap: '14px',
+              animation: 'popIn 0.2s ease'
+            }}
+          >
+            <div style={{ display: 'grid', gap: '4px' }}>
+              <div style={{ color: 'var(--accent-secondary)', fontSize: '0.88rem' }}>
+                得意・苦手を設定
+              </div>
+              <div style={{ color: 'var(--text-primary)', fontSize: '0.96rem' }}>
+                {categoryLabel}
+              </div>
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.76rem' }}>
+                いまの設定: {LABELS[selectedOption.value]}
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gap: '8px' }}>
+              {OPTIONS.map((option) => {
+                const isSelected = option.value === selectedOption.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleSelect(option.value)}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '12px 14px',
+                      border: isSelected ? `2px solid ${option.color}` : '1px solid var(--border-window-inner)',
+                      borderRadius: 'var(--radius-sm)',
+                      background: isSelected ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)',
+                      color: 'var(--text-primary)'
+                    }}
+                  >
+                    <span>{option.label}</span>
+                    <span style={{ color: option.color, fontSize: '0.78rem' }}>
+                      {isSelected ? '選択中' : '選ぶ'}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              className="btn-icon"
+              onClick={() => setIsOpen(false)}
+              style={{ justifySelf: 'end', padding: '8px 12px' }}
+            >
+              閉じる
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
