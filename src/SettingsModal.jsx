@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Bell,
   Bot,
+  Check,
   ChevronDown,
   ChevronRight,
   Clock3,
@@ -547,12 +548,18 @@ export function SettingsModal({
                   style={{ minHeight: '124px' }}
                 >
                   {availableModelOptions.map((model) => (
-                    <option key={model} value={model}>{model}</option>
+                    <option key={model} value={model}>
+                      {draftSettings.model === model ? `\u2713 ${model}` : model}
+                    </option>
                   ))}
                   {!availableModelOptions.includes(draftSettings.model) && draftSettings.model ? (
-                    <option value={draftSettings.model}>{draftSettings.model}</option>
+                    <option value={draftSettings.model}>{`\u2713 ${draftSettings.model}`}</option>
                   ) : null}
                 </select>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: 'var(--accent-secondary)' }}>
+                  <Check size={14} />
+                  <span>選択中: {draftSettings.model || '未選択'}</span>
+                </div>
                 <input
                   type="text"
                   value={draftSettings.model || ''}
