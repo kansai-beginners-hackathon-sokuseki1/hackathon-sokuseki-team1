@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Mic, Plus, Square } from 'lucide-react';
 import { FantasyDatePicker } from './FantasyDatePicker';
+import { serializeQuestBreakdown } from './taskBreakdown';
 
-const JAPANESE_TASK_PATTERN = /^[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}々ー、。！？「」（）・\s]+$/u;
+const JAPANESE_TASK_PATTERN = /^[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}ー・、。！？\s]+$/u;
 
 function validateTaskTitle(rawTitle) {
   const normalizedTitle = rawTitle.trim();
@@ -22,12 +23,14 @@ function validateTaskTitle(rawTitle) {
   return null;
 }
 
-export function TaskInput({ onAdd, scoreDifficulty }) {
+export function TaskInput({ onAdd, scoreDifficulty, generateQuestBreakdown }) {
   const [title, setTitle] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [difficulty, setDifficulty] = useState(1);
   const [difficultyMeta, setDifficultyMeta] = useState(null);
+  const [questBreakdown, setQuestBreakdown] = useState(null);
   const [isScoring, setIsScoring] = useState(false);
+  const [isGeneratingBreakdown, setIsGeneratingBreakdown] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
@@ -36,6 +39,7 @@ export function TaskInput({ onAdd, scoreDifficulty }) {
   const transcriptRef = useRef('');
   const shouldSubmitTranscriptRef = useRef(false);
   const scoreTimerRef = useRef(null);
+  const breakdownTimerRef = useRef(null);
   const supportsSpeechRecognition = typeof window !== 'undefined'
     && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
 
@@ -50,6 +54,13 @@ export function TaskInput({ onAdd, scoreDifficulty }) {
     if (scoreTimerRef.current) {
       clearTimeout(scoreTimerRef.current);
       scoreTimerRef.current = null;
+    }
+  };
+
+  const clearBreakdownTimer = () => {
+    if (breakdownTimerRef.current) {
+      clearTimeout(breakdownTimerRef.current);
+      breakdownTimerRef.current = null;
     }
   };
 
@@ -74,11 +85,17 @@ export function TaskInput({ onAdd, scoreDifficulty }) {
     setErrorMsg(null);
     setIsSubmitting(true);
     try {
-      await onAdd(normalizedTitle, difficulty, dueDate || null);
+      await onAdd(
+        normalizedTitle,
+        difficulty,
+        dueDate || null,
+        serializeQuestBreakdown(questBreakdown)
+      );
       setTitle('');
       setDueDate('');
       setDifficulty(1);
       setDifficultyMeta(null);
+      setQuestBreakdown(null);
     } catch (error) {
       console.error(error);
       setErrorMsg(error.message || 'タスクの追加に失敗しました。');
@@ -90,6 +107,7 @@ export function TaskInput({ onAdd, scoreDifficulty }) {
   useEffect(() => () => {
     clearSilenceTimer();
     clearScoreTimer();
+    clearBreakdownTimer();
     if (recognitionRef.current) {
       recognitionRef.current.onresult = null;
       recognitionRef.current.onerror = null;
@@ -132,7 +150,7 @@ export function TaskInput({ onAdd, scoreDifficulty }) {
       } catch (error) {
         console.error(error);
         setDifficultyMeta({
-          reason: 'AI 判定を利用できなかったため、現在の難易度をそのまま使います。',
+          reason: 'AI 難易度判定を利用できなかったため、現在の難易度をそのまま使います。',
           matchedCategories: []
         });
       } finally {
@@ -141,7 +159,41 @@ export function TaskInput({ onAdd, scoreDifficulty }) {
     }, 450);
 
     return clearScoreTimer;
-  }, [title, dueDate, scoreDifficulty]);
+  }, [dueDate, scoreDifficulty, title]);
+
+  useEffect(() => {
+    const normalizedTitle = title.trim();
+    if (!normalizedTitle) {
+      clearBreakdownTimer();
+      setQuestBreakdown(null);
+      setIsGeneratingBreakdown(false);
+      return;
+    }
+
+    const validationError = validateTaskTitle(normalizedTitle);
+    if (validationError) {
+      clearBreakdownTimer();
+      setQuestBreakdown(null);
+      setIsGeneratingBreakdown(false);
+      return;
+    }
+
+    clearBreakdownTimer();
+    breakdownTimerRef.current = setTimeout(async () => {
+      setIsGeneratingBreakdown(true);
+      try {
+        const result = await generateQuestBreakdown({ taskTitle: normalizedTitle });
+        setQuestBreakdown(result);
+      } catch (error) {
+        console.error(error);
+        setQuestBreakdown(null);
+      } finally {
+        setIsGeneratingBreakdown(false);
+      }
+    }, 650);
+
+    return clearBreakdownTimer;
+  }, [generateQuestBreakdown, title]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -305,14 +357,61 @@ export function TaskInput({ onAdd, scoreDifficulty }) {
 
       <div style={{ marginTop: 'var(--spacing-sm)', minHeight: '1.2rem', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
         <span>日本語のみ、50文字以内で入力できます。</span>
-        {isScoring && <div>AI が難易度を判定中です...</div>}
+        {isScoring && <div>AI が難易度を判定中...</div>}
         {!isScoring && difficultyMeta?.reason && (
           <div>
             {difficultyMeta.reason}
             {difficultyMeta.matchedCategories?.length > 0 && ` 判定カテゴリ: ${difficultyMeta.matchedCategories.join(', ')}`}
           </div>
         )}
+        {!isScoring && difficultyMeta?.difficulty && (
+          <div style={{ color: 'var(--accent-secondary)', marginTop: '4px' }}>
+            AI 難易度: {difficultyMeta.difficulty}/5
+            {typeof difficultyMeta.baseScore === 'number' ? ` (base ${difficultyMeta.baseScore})` : ''}
+          </div>
+        )}
+        {isGeneratingBreakdown && <div>AI がサブタスクを分解中...</div>}
       </div>
+
+      {questBreakdown && (
+        <div
+          className="rpg-window"
+          style={{
+            marginTop: 'var(--spacing-sm)',
+            padding: '12px 14px',
+            background: 'rgba(10, 18, 36, 0.72)'
+          }}
+        >
+          <div style={{ fontSize: '0.76rem', letterSpacing: '0.08em', color: 'var(--accent-secondary)', marginBottom: '6px' }}>
+            AI クエスト分解
+          </div>
+          <div style={{ fontSize: '0.92rem', color: 'var(--text-primary)', marginBottom: '8px' }}>
+            メインクエスト: {questBreakdown.mainQuest}
+          </div>
+          <div style={{ display: 'grid', gap: '6px' }}>
+            {questBreakdown.subQuests?.map((subQuest, index) => (
+              <div
+                key={`${subQuest.title}-${index}`}
+                style={{
+                  padding: '8px 10px',
+                  border: '1px solid var(--border-window-inner)',
+                  borderRadius: 'var(--radius-sm)',
+                  background: 'rgba(255,255,255,0.03)'
+                }}
+              >
+                <div style={{ fontSize: '0.84rem', color: 'var(--accent-primary)' }}>
+                  {index + 1}. {subQuest.title}
+                </div>
+                {subQuest.intent && (
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '3px' }}>
+                    {subQuest.intent}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {(errorMsg || validationError) && (
         <div style={{ marginTop: 'var(--spacing-sm)', fontSize: '0.8rem', color: 'var(--danger)' }}>

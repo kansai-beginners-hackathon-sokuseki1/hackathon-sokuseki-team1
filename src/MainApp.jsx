@@ -59,6 +59,7 @@ export function MainApp({
     saveAiSettings,
     testAiSettings,
     scoreDifficulty,
+    generateQuestBreakdown,
     generateCompanionMessage,
     addTask,
     toggleTask,
@@ -540,7 +541,11 @@ export function MainApp({
           </div>
         </div>
       </div>
-      <TaskInput onAdd={addTask} scoreDifficulty={scoreDifficulty} />
+      <TaskInput
+        onAdd={addTask}
+        scoreDifficulty={scoreDifficulty}
+        generateQuestBreakdown={generateQuestBreakdown}
+      />
 
       <div
         style={{

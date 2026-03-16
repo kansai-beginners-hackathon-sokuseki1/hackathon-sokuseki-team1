@@ -29,6 +29,7 @@ function normalizeTask(dbTask) {
   return {
     id: dbTask.id,
     title: dbTask.title,
+    description: dbTask.description ?? '',
     completed: dbTask.status === 'completed',
     expReward: dbTask.expReward ?? 10,
     difficulty: dbTask.difficulty ?? 1,
@@ -119,8 +120,8 @@ export const useAppState = () => {
     loadData();
   }, [loadData]);
 
-  const addTask = async (title, difficulty = 1, dueDate = null) => {
-    const data = await api.createTask({ title, difficulty, dueDate });
+  const addTask = async (title, difficulty = 1, dueDate = null, description = '') => {
+    const data = await api.createTask({ title, difficulty, dueDate, description });
     const task = normalizeTask(data.task);
     setTasks((prev) => [task, ...prev]);
     return task;
