@@ -12,26 +12,30 @@ import {
 } from "./ai.js";
 import { verifyGoogleIdToken } from "./google-auth.js";
 
-function buildCorsHeaders() {
+function buildCorsHeaders(origin, env) {
+  const allowed = env?.CORS_ORIGINS
+    ? env.CORS_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean)
+    : [];
+  const allowOrigin = allowed.length === 0
+    ? "*"
+    : allowed.includes(origin) ? origin : allowed[0];
+
   return {
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Authorization, Content-Type"
+    "Access-Control-Allow-Headers": "Authorization, Content-Type",
+    ...(allowed.length > 0 ? { Vary: "Origin" } : {})
   };
 }
 
-function json(status, payload) {
+function jsonResponse(status, payload, corsHeaders) {
   return new Response(JSON.stringify(payload), {
     status,
     headers: {
       "content-type": "application/json; charset=utf-8",
-      ...buildCorsHeaders()
+      ...corsHeaders
     }
   });
-}
-
-function errorResponse(status, code, message) {
-  return json(status, { error: { code, message } });
 }
 
 async function readBody(request) {
@@ -107,12 +111,12 @@ function createGuestIdentity() {
   };
 }
 
-async function createAuthenticatedSession(repository, userId, userPayload, auditAction, clientIp) {
+async function createAuthenticatedSession(repository, userId, userPayload, auditAction, clientIp, corsHeaders) {
   const token = createToken();
   const createdAt = new Date().toISOString();
   await repository.createSession({ userId, token, createdAt });
   await repository.createAuditLog({ userId, action: auditAction, ipAddress: clientIp, createdAt });
-  return json(200, { token, user: userPayload });
+  return jsonResponse(200, { token, user: userPayload }, corsHeaders);
 }
 
 const KEEPALIVE_BONUS_TIERS = {
@@ -236,17 +240,19 @@ async function loadResolvedAiSettings(repository, userId, env) {
 export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, rateLimiter, env }) {
   return {
     async fetch(request) {
+      const origin = request.headers.get("Origin") || "";
+      const cors = buildCorsHeaders(origin, env);
+      const json = (status, payload) => jsonResponse(status, payload, cors);
+      const errorResponse = (status, code, message) => json(status, { error: { code, message } });
+
       try {
         if (request.method === "OPTIONS") {
-          return new Response(null, {
-            status: 204,
-            headers: buildCorsHeaders()
-          });
+          return new Response(null, { status: 204, headers: cors });
         }
 
         const clientIp = request.headers.get("CF-Connecting-IP") || request.headers.get("x-forwarded-for") || "unknown";
         if (rateLimiter && !rateLimiter.consume(clientIp)) {
-          return errorResponse(429, "rate_limited", "Too many requests. Please retry later.");
+          return errorResponse(429, "rate_limited", "Too many requests. Please retry later.", cors);
         }
 
         const url = new URL(request.url);
@@ -314,7 +320,8 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
               authProvider: user.auth_provider ?? user.authProvider ?? "local"
             },
             "auth.login",
-            clientIp
+            clientIp,
+            cors
           );
         }
 
@@ -341,7 +348,8 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
               authProvider: "guest"
             },
             "auth.guest.login",
-            clientIp
+            clientIp,
+            cors
           );
         }
 
@@ -392,7 +400,8 @@ export function createApp({ repository, tokenTtlMs = 1000 * 60 * 60 * 24 * 7, ra
               authProvider: user.auth_provider ?? user.authProvider ?? "google"
             },
             "auth.google.login",
-            clientIp
+            clientIp,
+            cors
           );
         }
 

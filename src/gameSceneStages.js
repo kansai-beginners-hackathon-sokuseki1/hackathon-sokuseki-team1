@@ -1,7 +1,7 @@
 export const STAGE_DEFINITIONS = [
   {
     key: 'beginning-village',
-    label: 'Stage 1 蟋九∪繧翫・譚・',
+    label: 'Stage 1 始まりの村',
     minLevel: 1,
     theme: {
       '--scene-hill-back': '#54785d',
@@ -34,7 +34,7 @@ export const STAGE_DEFINITIONS = [
   },
   {
     key: 'grassland-road',
-    label: 'Stage 2 闕牙次縺ｮ驕・',
+    label: 'Stage 2 草原の道',
     minLevel: 4,
     theme: {
       '--scene-sky-top': '#5ba8ea',
@@ -73,7 +73,7 @@ export const STAGE_DEFINITIONS = [
   },
   {
     key: 'forest-maze',
-    label: 'Stage 3 譽ｮ縺ｮ霑ｷ螳ｮ',
+    label: 'Stage 3 森の迷宮',
     minLevel: 7,
     theme: {
       '--scene-sky-top': '#18352d',
@@ -115,7 +115,7 @@ export const STAGE_DEFINITIONS = [
   },
   {
     key: 'desert-town',
-    label: 'Stage 4 遐よｼ縺ｮ逕ｺ',
+    label: 'Stage 4 砂漠の町',
     minLevel: 10,
     theme: {
       '--scene-sky-top': '#e3a75f',
@@ -157,7 +157,7 @@ export const STAGE_DEFINITIONS = [
   },
   {
     key: 'seaside-port',
-    label: 'Stage 5 豬ｷ霎ｺ縺ｮ貂ｯ',
+    label: 'Stage 5 海辺の港',
     minLevel: 13,
     theme: {
       '--scene-sky-top': '#4fa8d9',
@@ -198,7 +198,7 @@ export const STAGE_DEFINITIONS = [
   },
   {
     key: 'snow-fortress',
-    label: 'Stage 6 髮ｪ螻ｱ縺ｮ遐ｦ',
+    label: 'Stage 6 雪山の砦',
     minLevel: 16,
     theme: {
       '--scene-sky-top': '#7ca7d9',
@@ -244,7 +244,7 @@ export const STAGE_DEFINITIONS = [
   },
   {
     key: 'ancient-ruins',
-    label: 'Stage 7 蜿､莉｣驕ｺ霍｡',
+    label: 'Stage 7 古代遺跡',
     minLevel: 19,
     theme: {
       '--scene-sky-top': '#62524d',
@@ -285,7 +285,7 @@ export const STAGE_DEFINITIONS = [
   },
   {
     key: 'magic-city',
-    label: 'Stage 8 鬲疲ｳ暮・蟶・',
+    label: 'Stage 8 魔法都市',
     minLevel: 22,
     theme: {
       '--scene-sky-top': '#251c56',
@@ -328,7 +328,7 @@ export const STAGE_DEFINITIONS = [
   },
   {
     key: 'demon-lord-castle',
-    label: 'Stage 9 鬲皮視蝓・',
+    label: 'Stage 9 魔王城',
     minLevel: 25,
     theme: {
       '--scene-sky-top': '#17040d',
@@ -378,11 +378,11 @@ export const STAGE_DEFINITIONS = [
 ];
 
 export const SCENE_RULES = [
-  '閭梧勹縺ｮ荳ｻ蠖ｹ縺ｯ1縺､縺縺代↓縺吶ｋ',
-  '蟒ｺ迚ｩ繧貞､壹￥鄂ｮ縺上・縺ｯ逕滓ｴｻ蝨上せ繝・・繧ｸ縺縺代↓縺吶ｋ',
-  '謗｢邏｢邉ｻ繧ｹ繝・・繧ｸ縺ｧ縺ｯ蟒ｺ迚ｩ縺ｮ莉｣繧上ｊ縺ｫ逞戊ｷ｡繧・慍蠖｢繧剃ｸｻ蠖ｹ縺ｫ縺吶ｋ',
-  '繧ｭ繝｣繝ｩ繧ｯ繧ｿ繝ｼ縺ｯ荳ｻ莠ｺ蜈ｬ繧剃ｸｭ蠢・↓縲∝ｿ・ｦ√↑繧ｹ繝・・繧ｸ縺縺大酔陦瑚・ｄNPC繧定ｿｽ蜉縺吶ｋ',
-  '蜑肴勹縺ｮ諠・ｱ驥上・UI繧帝が鬲斐＠縺ｪ縺・ｯ・峇縺ｫ謚代∴繧・'
+  '背景の主役は1つだけにする',
+  '建物を多く置くのは生活圏ステージだけにする',
+  '探索系ステージでは建物の代わりに痕跡や地形を主役にする',
+  'キャラクターは主人公を中心に、必要なステージだけ同行者やNPCを追加する',
+  '前景の情報量はUIを邪魔しない範囲に抑える'
 ];
 
 export function getAdventureStages() {

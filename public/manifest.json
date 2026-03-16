@@ -1,6 +1,6 @@
 {
-  "name": "クエストマネージャー",
-  "short_name": "クエスト",
+  "name": "TasQuest",
+  "short_name": "TasQuest",
   "description": "RPG風タスク管理アプリ",
   "start_url": "/",
   "scope": "/",

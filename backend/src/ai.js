@@ -489,20 +489,23 @@ export async function scoreTaskDifficulty({ taskInput, aiConfig, profile, env })
   const fallbackDimensions = [];
   let aiSuccessCount = 0;
 
-  for (const { key } of DIFFICULTY_DIMENSIONS) {
-    try {
-      const responseText = await chatCompletion(
+  const dimensionResults = await Promise.allSettled(
+    DIFFICULTY_DIMENSIONS.map(({ key }) =>
+      chatCompletion(
         providerConfig,
         buildDimensionPrompt(key, taskInput, profile),
-        {
-          temperature: 0.1,
-          maxTokens: 220,
-          jsonSchema: DIMENSION_SCORE_SCHEMA
-        }
-      );
-      const parsed = parseJsonResponse(responseText);
-      const score = clampDimensionScore(parsed?.score, 3);
-      dimensionScores[key] = score;
+        { temperature: 0.1, maxTokens: 220, jsonSchema: DIMENSION_SCORE_SCHEMA }
+      ).then((responseText) => ({ key, parsed: parseJsonResponse(responseText) }))
+    )
+  );
+
+  for (let i = 0; i < DIFFICULTY_DIMENSIONS.length; i++) {
+    const { key } = DIFFICULTY_DIMENSIONS[i];
+    const result = dimensionResults[i];
+
+    if (result.status === "fulfilled") {
+      const { parsed } = result.value;
+      dimensionScores[key] = clampDimensionScore(parsed?.score, 3);
       dimensionReasons[key] = String(parsed?.reason || "AI scored this dimension.").trim();
       for (const categoryId of Array.isArray(parsed?.matchedCategories) ? parsed.matchedCategories : []) {
         if (PROFILE_CATEGORIES.some((category) => category.id === categoryId)) {
@@ -510,7 +513,7 @@ export async function scoreTaskDifficulty({ taskInput, aiConfig, profile, env })
         }
       }
       aiSuccessCount += 1;
-    } catch (error) {
+    } else {
       const fallback = fallbackDimensionScore(key, taskInput);
       dimensionScores[key] = fallback.score;
       dimensionReasons[key] = fallback.reason;
@@ -518,7 +521,7 @@ export async function scoreTaskDifficulty({ taskInput, aiConfig, profile, env })
       for (const categoryId of fallback.matchedCategories) {
         matchedCategorySet.add(categoryId);
       }
-      console.error(`scoreTaskDifficulty fallback for ${key}:`, error);
+      console.error(`scoreTaskDifficulty fallback for ${key}:`, result.reason);
     }
   }
 

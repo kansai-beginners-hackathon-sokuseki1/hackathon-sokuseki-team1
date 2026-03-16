@@ -1,7 +1,30 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Edit2, Save, Trash2, X } from 'lucide-react';
 import { FantasyDatePicker, formatFantasyDate } from './FantasyDatePicker';
-import { getCompanionProfile } from './aiService';
+function getCompanionProfile(userLevel = 1) {
+  if (userLevel >= 20) {
+    return {
+      icon: '🐉',
+      name: '古竜の導師',
+      tone: '威厳がありつつ温かく、達成を大きく称える',
+      fallback: (taskTitle) => `見事だ、勇者よ。「${taskTitle}」を成し遂げた力は本物だ。この調子で次の試練も突破しよう。`
+    };
+  }
+  if (userLevel >= 10) {
+    return {
+      icon: '🧙',
+      name: '旅の魔法使い',
+      tone: '落ち着いていて頼れる、少し知的で前向き',
+      fallback: (taskTitle) => `いい進み方だね。「${taskTitle}」を終えたなら、次の行動もきっと軽くなる。この勢いをつなげよう。`
+    };
+  }
+  return {
+    icon: '🧚',
+    name: 'ギルドの案内妖精',
+    tone: '親しみやすく元気で、短く励ます',
+    fallback: (taskTitle) => `やったね。「${taskTitle}」の完了、おみごと。次のクエストもこの調子で進めよう。`
+  };
+}
 import { playQuestComplete } from './soundEffects';
 
 export function TaskList({
