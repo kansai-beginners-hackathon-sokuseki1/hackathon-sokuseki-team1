@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from './api';
-import { serializeQuestBreakdown, serializeSubQuestMetadata } from './taskBreakdown';
+import { parseQuestMetadata, serializeQuestBreakdown, serializeSubQuestMetadata } from './taskBreakdown';
 
 function computeLevelFromXp(totalXp) {
   const safeTotalXp = Number.isFinite(Number(totalXp)) ? Number(totalXp) : 0;
@@ -165,21 +165,81 @@ export const useAppState = () => {
     return nextStats;
   }, []);
 
+  const syncParentTaskStatus = useCallback(async (currentTasks, parentTaskId, updatedChildTask) => {
+    if (!parentTaskId) return { tasks: currentTasks, parentTask: null, parentCompletedNow: false };
+
+    const parentTask = currentTasks.find((item) => item.id === parentTaskId);
+    if (!parentTask) return { tasks: currentTasks, parentTask: null, parentCompletedNow: false };
+
+    const siblingTasks = currentTasks.filter((item) => {
+      const metadata = parseQuestMetadata(item.description);
+      return metadata?.role === 'sub' && metadata.parentTaskId === parentTaskId;
+    }).map((item) => (item.id === updatedChildTask.id ? updatedChildTask : item));
+
+    if (siblingTasks.length === 0) {
+      return { tasks: currentTasks, parentTask, parentCompletedNow: false };
+    }
+
+    const allCompleted = siblingTasks.every((item) => item.status === 'completed');
+    const anyStarted = siblingTasks.some((item) => item.status !== 'todo');
+    const desiredParentStatus = allCompleted ? 'completed' : anyStarted ? 'in_progress' : 'todo';
+
+    if (parentTask.status === desiredParentStatus) {
+      return { tasks: currentTasks, parentTask, parentCompletedNow: false };
+    }
+
+    let parentResponse;
+    if (desiredParentStatus === 'completed') {
+      parentResponse = await api.completeTask(parentTaskId);
+    } else {
+      parentResponse = await api.updateTask(parentTaskId, { status: desiredParentStatus });
+    }
+
+    const updatedParentTask = normalizeTask(parentResponse.task);
+    const nextTasks = currentTasks.map((item) => (item.id === updatedParentTask.id ? updatedParentTask : item));
+    applyProgress(parentResponse.progress);
+
+    return {
+      tasks: nextTasks,
+      parentTask: updatedParentTask,
+      parentCompletedNow: desiredParentStatus === 'completed'
+    };
+  }, [applyProgress]);
+
   const toggleTask = async (id) => {
     const task = tasks.find((item) => item.id === id);
     if (!task) return null;
+    const metadata = parseQuestMetadata(task.description);
+
+    if (metadata?.role === 'main') {
+      const hasChildren = tasks.some((item) => {
+        const childMetadata = parseQuestMetadata(item.description);
+        return childMetadata?.role === 'sub' && childMetadata.parentTaskId === task.id;
+      });
+
+      if (hasChildren) {
+        return { task, completedNow: false, parentControlled: true };
+      }
+    }
 
     if (task.status === 'todo') {
       const res = await api.updateTask(id, { status: 'in_progress' });
       const updated = normalizeTask(res.task);
-      setTasks((prev) => prev.map((item) => (item.id === id ? updated : item)));
+      let nextTasks = tasks.map((item) => (item.id === id ? updated : item));
+
+      if (metadata?.role === 'sub' && metadata.parentTaskId) {
+        const parentSync = await syncParentTaskStatus(nextTasks, metadata.parentTaskId, updated);
+        nextTasks = parentSync.tasks;
+      }
+
+      setTasks(nextTasks);
       return { task: updated, completedNow: false };
     }
 
     if (task.status === 'in_progress') {
       const res = await api.completeTask(id);
       const updated = normalizeTask(res.task);
-      setTasks((prev) => prev.map((item) => (item.id === id ? updated : item)));
+      let nextTasks = tasks.map((item) => (item.id === id ? updated : item));
 
       if (res.progress) {
         const prevLevel = userStats.level;
@@ -189,17 +249,34 @@ export const useAppState = () => {
         }
       }
 
+      let parentCompletedNow = false;
+      if (metadata?.role === 'sub' && metadata.parentTaskId) {
+        const parentSync = await syncParentTaskStatus(nextTasks, metadata.parentTaskId, updated);
+        nextTasks = parentSync.tasks;
+        parentCompletedNow = parentSync.parentCompletedNow;
+      }
+
+      setTasks(nextTasks);
+
       return {
         task: updated,
         completedNow: true,
+        parentCompletedNow,
         leveledUp: res.progress ? Number(res.progress.level) > userStats.level : false
       };
     }
 
     const res = await api.updateTask(id, { status: 'todo' });
     const updated = normalizeTask(res.task);
-    setTasks((prev) => prev.map((item) => (item.id === id ? updated : item)));
+    let nextTasks = tasks.map((item) => (item.id === id ? updated : item));
     applyProgress(res.progress);
+
+    if (metadata?.role === 'sub' && metadata.parentTaskId) {
+      const parentSync = await syncParentTaskStatus(nextTasks, metadata.parentTaskId, updated);
+      nextTasks = parentSync.tasks;
+    }
+
+    setTasks(nextTasks);
     return { task: updated, completedNow: false };
   };
 
